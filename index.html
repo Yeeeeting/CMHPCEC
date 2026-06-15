@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星光引路・奇恩的故事 — 安寧緩和醫療教育課程報名</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --lavender-50:  #F4F2FB;
+    --lavender-100: #E4E0F5;
+    --lavender-300: #B3A9E2;
+    --lavender-500: #7A6FC4;
+    --lavender-700: #4E4592;
+    --lavender-900: #2A244E;
+
+    --sage-50:  #F2F7F4;
+    --sage-100: #DAF0E5;
+    --sage-400: #6DAF8B;
+    --sage-600: #3D8060;
+    --sage-800: #1E4D38;
+
+    --amber-50:  #FFF8EE;
+    --amber-200: #FDDBA0;
+    --amber-500: #E8960E;
+    --amber-700: #8C5500;
+
+    --red-50:  #FFF1F0;
+    --red-300: #F8A9A4;
+    --red-600: #C0392B;
+
+    --cream:    #FAF8F5;
+    --surface:  #FFFFFF;
+    --border:   #E8E4DC;
+    --border-md:#C8C3B8;
+    --text-primary:   #14112A;
+    --text-secondary: #3D3852;
+    --text-muted:     #6B6480;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    --shadow-card: 0 1px 3px rgba(74,69,146,0.08), 0 4px 16px rgba(74,69,146,0.06);
+    --shadow-hover: 0 4px 12px rgba(74,69,146,0.14), 0 8px 24px rgba(74,69,146,0.1);
+  }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--cream);
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ===== YEAR TABS ===== */
+  .year-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: var(--radius-md);
+    padding: 3px;
+  }
+  .year-tab {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: var(--lavender-300);
+    cursor: pointer;
+    transition: all .15s;
+    letter-spacing: 0.03em;
+  }
+  .year-tab:hover { color: #E4E0F5; background: rgba(255,255,255,0.1); }
+  .year-tab.active { background: white; color: var(--lavender-900); }
+
+  /* ===== TBA PAGE ===== */
+  .tba-page {
+    text-align: center;
+    padding: 80px 24px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .tba-icon { font-size: 52px; margin-bottom: 20px; line-height: 1; }
+  .tba-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--lavender-900);
+    margin-bottom: 12px;
+  }
+  .tba-desc {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 10px;
+  }
+  .tba-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ===== STICKY TOP WRAPPER ===== */
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(30,27,46,0.18);
+  }
+
+  /* ===== HEADER ===== */
+  .site-header {
+    background: var(--lavender-900);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    gap: 16px;
+  }
+  .site-header .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .brand-icon svg { width: 18px; height: 18px; fill: #E4E0F5; }
+  .brand-name {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #E4E0F5;
+    letter-spacing: 0.02em;
+  }
+  .brand-sub {
+    font-size: 11px;
+    color: var(--lavender-300);
+    letter-spacing: 0.06em;
+  }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .btn-admin-login, .btn-logout {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: #E4E0F5;
+    cursor: pointer;
+    transition: background .15s;
+    letter-spacing: 0.03em;
+  }
+  .btn-admin-login:hover { background: rgba(255,255,255,0.2); }
+  .btn-logout { background: rgba(255,100,80,0.2); border-color: rgba(255,120,100,0.3); }
+  .admin-badge {
+    font-size: 11px;
+    background: var(--lavender-500);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== HERO BANNER (compact sticky) ===== */
+  .hero {
+    background: linear-gradient(135deg, var(--lavender-900) 0%, #3A3170 55%, var(--lavender-700) 100%);
+    padding: 10px 24px 12px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid rgba(255,255,255,0.07);
+  }
+  .hero::before, .hero::after { display: none; }
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--lavender-300);
+    margin-bottom: 2px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: #F0EEF9;
+    line-height: 1.35;
+    margin-bottom: 6px;
+  }
+  .hero-sub {
+    font-size: 12px;
+    color: var(--lavender-300);
+    margin-bottom: 0;
+  }
+  .hero-meta { display: none; }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 20px 64px;
+  }
+
+  /* ===== SECTION TITLES ===== */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+  .section-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--lavender-900);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title svg { width: 18px; height: 18px; color: var(--lavender-500); }
+
+  /* ===== UPDATE BANNER ===== */
+  .update-banner {
+    background: var(--amber-50);
+    border: 1px solid var(--amber-200);
+    border-left: 3px solid var(--amber-500);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: var(--amber-700);
+  }
+  .update-banner.hidden { display: none; }
+  .update-dot {
+    width: 8px; height: 8px;
+    background: var(--amber-500);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+    animation: pulse-amber 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse-amber {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  /* ===== STICKY FILTERS BAR ===== */
+  .sticky-filters-bar {
+    background: var(--cream);
+    border-top: 1px solid var(--border);
+    padding: 10px 24px 8px;
+  }
+  .sticky-filters-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .month-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .month-filter-row .month-filter-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+  .month-filter-row .month-filter-bar {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  /* ===== FILTER BARS ===== */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+  }
+  .filter-chip {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .filter-chip:hover { border-color: var(--lavender-300); color: var(--lavender-700); }
+  .filter-chip.active {
+    background: var(--lavender-500);
+    border-color: var(--lavender-500);
+    color: white;
+  }
+
+  /* Month filter row */
+  .month-filter-wrap {
+    margin-bottom: 0;
+  }
+  .month-filter-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.07em;
+    margin-bottom: 7px;
+    text-transform: uppercase;
+  }
+  .month-filter-bar {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .month-chip {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    padding: 6px 13px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+    min-width: 46px;
+    text-align: center;
+  }
+  .month-chip:hover { border-color: var(--lavender-300); color: var(--lavender-700); }
+  .month-chip.active {
+    background: var(--lavender-100);
+    border-color: var(--lavender-300);
+    color: var(--lavender-700);
+    font-weight: 500;
+  }
+  .month-chip .month-dot {
+    position: absolute;
+    top: 3px; right: 3px;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--sage-400);
+  }
+  .month-chip.has-open .month-dot { background: var(--sage-400); }
+  .month-chip.all-full .month-dot { background: var(--lavender-300); }
+  .month-chip.all-cancel .month-dot { display: none; }
+  .month-chip.past {
+    opacity: 0.42;
+    color: var(--text-muted);
+    border-color: var(--border);
+    background: var(--cream);
+  }
+  .month-chip.past:hover { opacity: 0.65; border-color: var(--border-md); color: var(--text-secondary); }
+  .month-chip.past.active { opacity: 1; }
+
+  /* ===== COURSE GRID ===== */
+  .course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  /* ===== COURSE CARD ===== */
+  .course-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow .2s, transform .2s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .course-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+  .course-card.cancelled { opacity: 0.55; }
+  .course-card.full .card-body { background: var(--lavender-50); }
+
+  /* Card status bar */
+  .card-status-bar {
+    height: 3px;
+    border-radius: 0;
+  }
+  .status-open   .card-status-bar { background: var(--sage-400); }
+  .status-full   .card-status-bar { background: var(--lavender-500); }
+  .status-cancel .card-status-bar { background: var(--border-md); }
+  .status-tba    .card-status-bar { background: var(--amber-500); }
+  .status-locked .card-status-bar { background: var(--border-md); }
+
+  .card-header {
+    padding: 14px 16px 10px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .card-date-block { flex: 1; }
+  .card-date {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--lavender-900);
+    line-height: 1.2;
+  }
+  .card-weekday {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  .card-badge {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+  }
+  .badge-open   { background: var(--sage-100); color: var(--sage-800); }
+  .badge-full   { background: var(--lavender-100); color: var(--lavender-700); }
+  .badge-cancel { background: #F0EDEA; color: #7A7470; }
+  .badge-tba    { background: var(--amber-50); color: var(--amber-700); }
+  .badge-locked { background: #F0EDEA; color: #6B6480; }
+
+  .card-body { padding: 0 16px 14px; flex: 1; }
+  .card-info-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+  }
+  .card-info-row svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--lavender-500); }
+
+  .card-capacity-bar-wrap {
+    margin: 12px 0 10px;
+  }
+  .capacity-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+  }
+  .capacity-count { color: var(--text-primary); font-weight: 500; }
+  .capacity-track {
+    height: 5px;
+    background: var(--lavender-50);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .capacity-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width .4s ease;
+  }
+  .fill-low    { background: var(--sage-400); }
+  .fill-medium { background: var(--amber-500); }
+  .fill-high   { background: var(--red-600); }
+  .fill-full   { background: var(--lavender-500); }
+
+  .card-registrants {
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    margin-top: 10px;
+    max-height: 54px;
+    overflow: hidden;
+    transition: max-height .25s ease;
+    cursor: pointer;
+  }
+  .card-registrants.expanded { max-height: 200px; }
+  .card-registrants:empty { display: none; }
+
+  .card-actions { padding: 0 16px 14px; }
+  .btn-register {
+    width: 100%;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: all .15s;
+    letter-spacing: 0.02em;
+  }
+  .btn-register.open {
+    background: var(--lavender-500);
+    color: white;
+  }
+  .btn-register.open:hover { background: var(--lavender-700); }
+  .btn-register:disabled {
+    background: var(--lavender-50);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    border: 1px solid var(--lavender-100);
+  }
+  .btn-register.btn-locked:disabled {
+    background: #F5F3F0;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  /* Update dot on card */
+  .card-update-dot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background: var(--amber-500);
+    border-radius: 50%;
+    border: 2px solid white;
+    animation: pulse-amber 1.8s infinite;
+    display: none;
+  }
+  .card-update-dot.show { display: block; }
+
+  /* ===== MODAL OVERLAY ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(30,27,46,0.55);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: 28px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(30,27,46,0.25);
+    animation: modal-in .2s ease;
+  }
+  @keyframes modal-in {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--lavender-900);
+    margin-bottom: 4px;
+  }
+  .modal-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .form-input, .form-select {
+    width: 100%;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--cream);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: var(--lavender-500);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(122,111,196,0.15);
+  }
+  .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .btn-primary, .btn-secondary, .btn-danger {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 9px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: all .15s;
+    flex: 1;
+  }
+  .btn-primary { background: var(--lavender-500); color: white; }
+  .btn-primary:hover { background: var(--lavender-700); }
+  .btn-secondary { background: var(--cream); color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--lavender-50); }
+  .btn-danger { background: var(--red-50); color: var(--red-600); border: 1px solid var(--red-300); }
+  .btn-danger:hover { background: var(--red-600); color: white; }
+
+  /* ===== ADMIN PANEL ===== */
+  .admin-toolbar {
+    display: none;
+    background: var(--lavender-900);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .admin-toolbar.show { display: flex; }
+  .admin-toolbar-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--lavender-100);
+    letter-spacing: 0.04em;
+  }
+  .admin-toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-tool {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: var(--lavender-100);
+    cursor: pointer;
+    transition: background .15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-tool:hover { background: rgba(255,255,255,0.18); }
+  .btn-tool svg { width: 13px; height: 13px; }
+
+  /* Edit overlay on card (admin only) */
+  .card-edit-btn {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: var(--lavender-500);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    z-index: 5;
+  }
+  body.admin-mode .card-edit-btn { display: block; }
+  body.admin-mode .btn-register { display: none; }
+
+  /* ===== STATS ROW ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--lavender-700);
+    line-height: 1.1;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ===== LOGIN FORM ===== */
+  .login-info-row {
+    background: var(--lavender-50);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--lavender-700);
+    margin-bottom: 16px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  /* ===== TOAST ===== */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    background: var(--lavender-900);
+    color: white;
+    font-size: 13px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: toast-in .25s ease;
+    max-width: 300px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.success { background: var(--sage-600); }
+  .toast.error   { background: var(--red-600); }
+  .toast svg { width: 14px; height: 14px; flex-shrink: 0; }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ===== FOOTER ===== */
+  .site-footer {
+    background: var(--lavender-900);
+    color: var(--lavender-300);
+    text-align: center;
+    font-size: 12px;
+    padding: 20px;
+    margin-top: 48px;
+    letter-spacing: 0.04em;
+  }
+  .site-footer strong { color: var(--lavender-100); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    .hero { padding: 32px 16px 28px; }
+    .main-container { padding: 20px 14px 48px; }
+    .course-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ===== HELPERS ===== */
+  .hidden { display: none !important; }
+  .text-center { text-align: center; }
+  .mt-4 { margin-top: 4px; }
+  .mt-8 { margin-top: 8px; }
+  .gap-8 { gap: 8px; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+</style>
+</head>
+<body>
+
+<div class="sticky-top">
+<!-- HEADER -->
+<header class="site-header">
+  <a href="#" class="brand" onclick="return false;">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">星光引路 · 奇恩的故事</div>
+      <div class="brand-sub">奇美醫院 安寧緩和醫療教育課程</div>
+    </div>
+  </a>
+  <div class="year-tabs">
+    <button class="year-tab active" id="tab115" onclick="switchYear(115)">115 年度</button>
+    <button class="year-tab" id="tab116" onclick="switchYear(116)">116 年度</button>
+  </div>
+  <div class="header-right" id="headerRight">
+    <button class="btn-admin-login" onclick="openLoginModal()">管理者登入</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Chi Mei Hospital · 115 年度</div>
+  <h1>安寧緩和醫療教育課程 · 線上報名系統</h1>
+  <p class="hero-sub">每月第 2、4 週週二 · 13:00–14:00 · 全院各職類實見習生</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      民國 115 年 1 月 – 12 月
+    </div>
+    <div class="hero-meta-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      全院各職類實習生
+    </div>
+    <div class="hero-meta-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      1300–1400（1 小時）
+    </div>
+  </div>
+</section>
+
+<!-- STICKY FILTERS -->
+<div class="sticky-filters-bar" id="filtersBar">
+  <div class="sticky-filters-inner">
+    <div class="filter-bar" id="statusFilterBar">
+      <button class="filter-chip active" onclick="setFilter('all', this)">全部場次</button>
+      <button class="filter-chip" onclick="setFilter('open', this)">可報名</button>
+      <button class="filter-chip" onclick="setFilter('full', this)">額滿</button>
+      <button class="filter-chip" onclick="setFilter('cancel', this)">已取消</button>
+      <button class="filter-chip" onclick="setFilter('upcoming', this)">即將舉辦</button>
+    </div>
+    <div class="month-filter-row">
+      <span class="month-filter-label">月份</span>
+      <div class="month-filter-bar" id="monthFilterBar">
+        <button class="month-chip active" data-month="0" onclick="setMonthFilter(0, this)">全年</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MAIN -->
+<main class="main-container">
+
+  <!-- 116 年度待公告頁 -->
+  <div id="view116" class="hidden">
+    <div class="tba-page">
+      <div class="tba-icon">🌙</div>
+      <h2 class="tba-title">116 年度課程</h2>
+      <p class="tba-desc">116 年度安寧緩和醫療教育課程<br>規劃中，敬請期待。</p>
+      <p class="tba-sub">課程資訊公告後將於本系統更新，屆時開放報名。</p>
+    </div>
+  </div>
+
+  <!-- 115 年度主內容 -->
+  <div id="view115">
+
+  <!-- ADMIN TOOLBAR -->
+  <div class="admin-toolbar" id="adminToolbar">
+    <div class="admin-toolbar-title">🔐 管理者模式</div>
+    <div class="admin-toolbar-actions">
+      <button class="btn-tool" onclick="downloadCSV()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        下載整年報名 CSV
+      </button>
+      <button class="btn-tool" onclick="openAddSessionModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新增場次
+      </button>
+      <button class="btn-tool" onclick="syncFromSheet()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+        從 Google Sheet 同步
+      </button>
+    </div>
+  </div>
+
+  <!-- UPDATE BANNER -->
+  <div class="update-banner hidden" id="updateBanner">
+    <div class="update-dot"></div>
+    <div>
+      <strong>課程資訊已更新</strong>
+      <span id="updateBannerText"> — 部分場次的場地或名額有異動，請重新確認您的報名。</span>
+      <button onclick="dismissUpdateBanner()" style="font-size:12px;background:none;border:none;color:var(--amber-500);cursor:pointer;margin-left:8px;text-decoration:underline;">知道了</button>
+    </div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">115年 總場次</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statOpen">0</div>
+      <div class="stat-label">尚可報名</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statRegistered">0</div>
+      <div class="stat-label">已報名人數</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statFull">0</div>
+      <div class="stat-label">額滿場次</div>
+    </div>
+  </div>
+
+  <!-- SECTION HEADER -->
+  <div class="section-header">
+    <h2 class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      115 年度課程場次
+    </h2>
+    <span style="font-size:12px;color:var(--text-muted)" id="cardCount"></span>
+  </div>
+
+  <!-- COURSE GRID -->
+  <div class="course-grid" id="courseGrid"></div>
+
+  </div><!-- /view115 -->
+
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <strong>奇美醫療財團法人奇美醫院 教學部</strong><br>
+  本系統資料以 Google Sheets 後端為準 · 如有疑問請洽教學部承辦人
+</footer>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <div class="modal-title">管理者登入</div>
+    <div class="modal-subtitle">請輸入管理帳號密碼</div>
+    <div class="login-info-row">
+      ℹ️ 管理者模式可即時修改場地、人數、狀態，並下載整年度報名資料。
+    </div>
+    <div class="form-group">
+      <label class="form-label">帳號</label>
+      <input type="text" class="form-input" id="loginUser" placeholder="輸入管理帳號" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">密碼</label>
+      <input type="password" class="form-input" id="loginPass" placeholder="輸入密碼">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('loginModal')">取消</button>
+      <button class="btn-primary" onclick="doLogin()">登入</button>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div class="modal-overlay" id="registerModal">
+  <div class="modal">
+    <div class="modal-title" id="registerModalTitle">報名課程</div>
+    <div class="modal-subtitle" id="registerModalSub"></div>
+    <div class="form-group">
+      <label class="form-label">報名者姓名</label>
+      <input type="text" class="form-input" id="regName" placeholder="請輸入真實姓名（帶班老師或負責人）">
+    </div>
+    <div class="form-group">
+      <label class="form-label">聯絡方式</label>
+      <input type="text" class="form-input" id="regContact" placeholder="電話或電子信箱">
+    </div>
+    <div class="form-group">
+      <label class="form-label">職類</label>
+      <select class="form-select" id="regType">
+        <option value="">請選擇職類</option>
+        <option>護理實習生</option>
+        <option>藥事實習生</option>
+        <option>呼吸治療實習生</option>
+        <option>職能治療實習生</option>
+        <option>物理治療實習生</option>
+        <option>醫檢實習生</option>
+        <option>營養實習生</option>
+        <option>語言治療實習生</option>
+        <option>聽力實習生</option>
+        <option>醫學系見實習生</option>
+        <option>其他職類</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">實習單位／科別</label>
+      <input type="text" class="form-input" id="regUnit" placeholder="例：4A病房、呼吸治療科">
+    </div>
+    <div class="form-group">
+      <label class="form-label">報名人數</label>
+      <input type="number" class="form-input" id="regCount" min="1" max="200" placeholder="請輸入本次報名總人數">
+      <div class="form-hint">請填寫本次一同參加的總人數（含帶班老師）</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('registerModal')">取消</button>
+      <button class="btn-primary" onclick="submitRegistration()">確認報名</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT SESSION MODAL (Admin) -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">編輯場次資訊</div>
+    <div class="modal-subtitle" id="editModalSub"></div>
+    <input type="hidden" id="editSessionId">
+    <div class="form-group">
+      <label class="form-label">場地</label>
+      <input type="text" class="form-input" id="editVenue" placeholder="例：554會議室">
+    </div>
+    <div class="form-group">
+      <label class="form-label">容額（人數上限）</label>
+      <input type="number" class="form-input" id="editCapacity" min="1" max="500" placeholder="輸入容額">
+    </div>
+    <div class="form-group">
+      <label class="form-label">狀態</label>
+      <select class="form-select" id="editStatus">
+        <option value="open">開放報名</option>
+        <option value="full">額滿</option>
+        <option value="cancel">取消</option>
+        <option value="tba">待公告</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">備註（已報名單位等）</label>
+      <input type="text" class="form-input" id="editRegistrants" placeholder="護理5A學生16位、藥事4位...">
+    </div>
+    <div class="form-group" id="unlockGroup" style="display:none;">
+      <label class="form-label" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="editAdminUnlocked" style="width:16px;height:16px;accent-color:var(--lavender-500);">
+        <span>手動開放報名（忽略 14 天前鎖定）</span>
+      </label>
+      <div class="form-hint">勾選後，即使距課程不足 14 天，一般使用者仍可報名。</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="cancelSession()">取消該場次</button>
+      <button class="btn-secondary" onclick="closeModal('editModal')">關閉</button>
+      <button class="btn-primary" onclick="saveSessionEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SESSION MODAL (Admin) -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title">新增場次</div>
+    <div class="modal-subtitle">手動新增課程場次</div>
+    <div class="form-group">
+      <label class="form-label">日期</label>
+      <input type="date" class="form-input" id="addDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">場地</label>
+      <input type="text" class="form-input" id="addVenue" placeholder="例：554會議室">
+    </div>
+    <div class="form-group">
+      <label class="form-label">容額</label>
+      <input type="number" class="form-input" id="addCapacity" min="1" placeholder="輸入容額">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('addModal')">取消</button>
+      <button class="btn-primary" onclick="addSession()">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCRIPT ===================== -->
+<script>
+/* ================================================================
+   ▶ BACKEND CONFIGURATION
+   將以下三個變數替換為您的 Google Apps Script 部署網址即可。
+   Apps Script 需實作以下端點：
+     GET  ?action=getSessions          → 回傳所有場次 JSON
+     POST action=register              → 報名寫入
+     POST action=updateSession         → 管理者更新場次
+     POST action=addSession            → 管理者新增場次
+     POST action=login                 → 驗證管理者帳密
+   詳見底部 API_CONTRACT 說明。
+================================================================ */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznuYMBW7MeqnhOjZpPsn3AbIOJwHKd2M8iRj_QONBsHmBxQNKgRIbMMIBGdRChjXqGPQ/exec';
+const SHEET_ID        = '1M79ZcHIZ1SWStVh1t7JhtcYaLDdlDqcPK1dKu1V2VMg';
+// 管理者帳密建議放在 Apps Script 的 PropertiesService，
+// 前端只做 token 驗證，不在此處硬寫密碼。
+/* ============================================================== */
+
+/* ---------- STATE ---------- */
+let sessions   = [];          // 全部場次陣列
+let isAdmin    = false;       // 管理者模式
+let adminToken = null;        // 登入後的 token（由 Apps Script 回傳）
+let currentFilter = 'all';
+let currentMonth  = 0;        // 0 = 全年，1–12 = 指定月份
+let pendingSessionId = null;  // 待報名場次
+let lastFetchHash = null;     // 比對資料是否有更新
+
+// 台北時間今日零時（UTC+8）
+function getTodayTaipei() {
+  const now = new Date();
+  const taipeiOffset = 8 * 60; // 分鐘
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const taipeiNow = new Date(utc + taipeiOffset * 60000);
+  taipeiNow.setHours(0, 0, 0, 0);
+  return taipeiNow;
+}
+const TODAY = getTodayTaipei();
+
+/* ---------- INIT ---------- */
+window.addEventListener('DOMContentLoaded', () => {
+  loadSessions();
+  setInterval(checkForUpdates, 30000); // 每 30 秒輪詢
+});
+
+/* ---------- DATA LOADING ---------- */
+async function loadSessions(silent = false) {
+  try {
+    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      showToast('尚未設定後端網址，請填入 APPS_SCRIPT_URL', 'error');
+      sessions = [];
+      renderAll();
+      return;
+    }
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getSessions&t=${Date.now()}`);
+    const json = await res.json();
+    const newHash = JSON.stringify(json.sessions);
+    if (lastFetchHash && newHash !== lastFetchHash && !silent) {
+      showUpdateBanner('有場次資訊已更新，請查看最新狀態。');
+      markUpdatedCards(sessions, json.sessions);
+    }
+    lastFetchHash = newHash;
+    sessions = json.sessions;
+    renderAll();
+  } catch(e) {
+    if (!silent) showToast('無法連線後端，請確認網路或 Apps Script 設定', 'error');
+    sessions = [];
+    renderAll();
+  }
+}
+
+async function checkForUpdates() {
+  await loadSessions(true);
+}
+
+function markUpdatedCards(oldData, newData) {
+  const oldMap = {};
+  oldData.forEach(s => oldMap[s.id] = s);
+  newData.forEach(s => {
+    const old = oldMap[s.id];
+    if (old && (old.venue !== s.venue || old.capacity !== s.capacity || old.registered !== s.registered)) {
+      const dot = document.querySelector(`.course-card[data-id="${s.id}"] .card-update-dot`);
+      if (dot) dot.classList.add('show');
+    }
+  });
+}
+
+/* ---------- RENDER ---------- */
+function renderAll() {
+  renderStats();
+  buildMonthChips();
+  renderCards();
+}
+
+function renderStats() {
+  const yr115 = sessions.filter(s => s.year === 115);
+  const open  = yr115.filter(s => s.status !== 'cancel' && s.status !== 'tba' && s.remaining > 0);
+  const total115 = yr115.length;
+  const totalReg  = yr115.reduce((a,s) => a + (s.registered||0), 0);
+  const fullCount = yr115.filter(s => s.remaining === 0 && s.status !== 'cancel').length;
+  document.getElementById('statTotal').textContent = total115;
+  document.getElementById('statOpen').textContent  = open.length;
+  document.getElementById('statRegistered').textContent = totalReg;
+  document.getElementById('statFull').textContent  = fullCount;
+}
+
+function buildMonthChips() {
+  const yr115 = sessions.filter(s => s.year === 115);
+  const monthsPresent = [...new Set(yr115.map(s => new Date(s.date).getMonth() + 1))].sort((a,b)=>a-b);
+  const bar = document.getElementById('monthFilterBar');
+  const allActive = currentMonth === 0 ? 'active' : '';
+  let html = `<button class="month-chip ${allActive}" data-month="0" onclick="setMonthFilter(0,this)">全年</button>`;
+  monthsPresent.forEach(m => {
+    const inMonth = yr115.filter(s => new Date(s.date).getMonth()+1 === m);
+    const allPast = inMonth.every(s => new Date(s.date) < TODAY);
+    const hasOpen = !allPast && inMonth.some(s => s.status !== 'cancel' && s.status !== 'tba' && s.remaining > 0);
+    const allCancelled = inMonth.every(s => s.status === 'cancel');
+    const dotClass = allCancelled || allPast ? 'all-cancel' : hasOpen ? 'has-open' : 'all-full';
+    const pastClass = allPast ? 'past' : '';
+    const isActive = currentMonth === m ? 'active' : '';
+    html += `<button class="month-chip ${dotClass} ${pastClass} ${isActive}" data-month="${m}" onclick="setMonthFilter(${m},this)">${m} 月<span class="month-dot"></span></button>`;
+  });
+  bar.innerHTML = html;
+}
+
+function setMonthFilter(m, btn) {
+  currentMonth = m;
+  renderCards();
+  buildMonthChips();
+}
+
+function renderCards() {
+  const grid = document.getElementById('courseGrid');
+  let filtered = sessions.filter(s => s.year === 115);
+
+  // 月份篩選
+  if (currentMonth > 0) {
+    filtered = filtered.filter(s => new Date(s.date).getMonth() + 1 === currentMonth);
+  }
+
+  // 狀態篩選
+  if (currentFilter === 'open')     filtered = filtered.filter(s => s.status !== 'cancel' && s.remaining > 0 && new Date(s.date) >= TODAY);
+  if (currentFilter === 'full')     filtered = filtered.filter(s => s.remaining === 0 && s.status !== 'cancel');
+  if (currentFilter === 'cancel')   filtered = filtered.filter(s => s.status === 'cancel' || new Date(s.date) < TODAY);
+  if (currentFilter === 'upcoming') {
+    const upcoming = new Date(TODAY); upcoming.setDate(upcoming.getDate() + 14);
+    filtered = filtered.filter(s => {
+      const d = new Date(s.date); return d >= TODAY && d <= upcoming && s.status !== 'cancel';
+    });
+  }
+
+  const monthLabel = currentMonth > 0 ? `${currentMonth} 月・` : '';
+  document.getElementById('cardCount').textContent = `${monthLabel}共 ${filtered.length} 場`;
+  grid.innerHTML = filtered.map(s => buildCard(s)).join('');
+}
+
+function buildCard(s) {
+  const d = new Date(s.date);
+  const isCancel = s.status === 'cancel';
+  const isTba    = s.status === 'tba';
+  const isFull   = s.remaining === 0 && !isCancel && !isTba;
+  const isOpen   = !isCancel && !isTba && s.remaining > 0;
+
+  // 課程前 14 天鎖定報名（除非管理者手動開放）
+  const msUntil   = d - TODAY;
+  const daysUntil = Math.ceil(msUntil / (1000 * 60 * 60 * 24));
+  const isPast    = d < TODAY;
+  const isLocked  = !isPast && daysUntil <= 14 && !s.adminUnlocked;
+
+  const statusClass = isCancel ? 'status-cancel' : isTba ? 'status-tba' : isPast ? 'status-cancel' : isFull ? 'status-full' : isLocked ? 'status-locked' : 'status-open';
+  const badgeClass  = isCancel ? 'badge-cancel'  : isTba ? 'badge-tba'  : isPast ? 'badge-cancel'  : isFull ? 'badge-full'  : isLocked ? 'badge-locked' : 'badge-open';
+  const badgeText   = isCancel ? '已取消' : isTba ? '待公告' : isPast ? '已結束' : isFull ? '額滿' : isLocked ? '報名未開放' : '可報名';
+
+  const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
+  const weekdays = ['日','一','二','三','四','五','六'];
+  const wday = weekdays[d.getDay()];
+
+  const fillPct = s.capacity > 0 ? Math.min(100, Math.round((s.registered||0)/s.capacity*100)) : 0;
+  const fillClass = fillPct >= 100 ? 'fill-full' : fillPct >= 75 ? 'fill-high' : fillPct >= 40 ? 'fill-medium' : 'fill-low';
+
+  const venueText = s.venue || '待公告';
+  const buildingText = s.building || (s.venue ? (VENUE_DB[s.venue]?.building || '') : '');
+  const venueDisplay = s.venue
+    ? `${venueText}${buildingText ? `・${buildingText}` : ''}`
+    : '場地待公告';
+  const regText   = s.registrants ? `<div class="card-registrants" onclick="this.classList.toggle('expanded')" title="點擊展開/收合">👥 ${s.registrants}</div>` : '';
+  const capDisplay = s.capacity ? `${s.registered||0} / ${s.capacity} 人` : '—';
+
+  let btnHtml = '';
+  if (!isAdmin) {
+    if (isCancel) {
+      btnHtml = `<button class="btn-register" disabled>此場次已取消</button>`;
+    } else if (isTba) {
+      btnHtml = `<button class="btn-register" disabled>場地待公告</button>`;
+    } else if (isFull) {
+      btnHtml = `<button class="btn-register" disabled>名額已滿</button>`;
+    } else if (isPast) {
+      btnHtml = `<button class="btn-register" disabled>已結束</button>`;
+    } else if (isLocked) {
+      btnHtml = `<button class="btn-register btn-locked" disabled>📋 開課前 ${daysUntil} 天・報名未開放</button>`;
+    } else {
+      btnHtml = `<button class="btn-register open" onclick="openRegisterModal('${s.id}')">立即報名</button>`;
+    }
+  }
+
+  return `
+  <div class="course-card ${statusClass} ${isCancel?'cancelled':''}" data-id="${s.id}">
+    <div class="card-status-bar"></div>
+    <div class="card-update-dot"></div>
+    <div class="card-header">
+      <div class="card-date-block">
+        <div class="card-date">${dateStr} (${wday})</div>
+      </div>
+      <span class="card-badge ${badgeClass}">${badgeText}</span>
+    </div>
+    <div class="card-body">
+      <div class="card-info-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        13:00 – 14:00
+      </div>
+      <div class="card-info-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        ${venueDisplay}
+      </div>
+      ${!isCancel && !isTba && s.capacity ? `
+      <div class="card-capacity-bar-wrap">
+        <div class="capacity-label">
+          <span>報名情況</span>
+          <span class="capacity-count">${capDisplay}</span>
+        </div>
+        <div class="capacity-track">
+          <div class="capacity-fill ${fillClass}" style="width:${fillPct}%"></div>
+        </div>
+      </div>` : ''}
+      ${regText}
+    </div>
+    <div class="card-actions">
+      ${btnHtml}
+    </div>
+    ${isAdmin ? `<button class="card-edit-btn" onclick="openEditModal('${s.id}')">✏️ 編輯</button>` : ''}
+  </div>`;
+}
+
+/* ---------- FILTER ---------- */
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+}
+
+/* ---------- YEAR SWITCH ---------- */
+function switchYear(yr) {
+  const is115 = yr === 115;
+  document.getElementById('view115').classList.toggle('hidden', !is115);
+  document.getElementById('view116').classList.toggle('hidden', is115);
+  document.getElementById('filtersBar').classList.toggle('hidden', !is115);
+  document.getElementById('tab115').classList.toggle('active', is115);
+  document.getElementById('tab116').classList.toggle('active', !is115);
+  // Hero eyebrow 更新
+  document.querySelector('.hero-eyebrow').textContent = `Chi Mei Hospital · ${yr} 年度`;
+}
+
+/* ---------- LOGIN ---------- */
+function openLoginModal() { openModal('loginModal'); }
+
+async function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!user || !pass) { showToast('請填寫帳號與密碼', 'error'); return; }
+
+  try {
+    if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'login', username: user, password: pass })
+      });
+      const json = await res.json();
+      if (!json.success) { showToast(json.message || '帳號或密碼錯誤', 'error'); return; }
+      adminToken = json.token;
+    } else {
+      // 本機 demo 模式：帳號 admin / 密碼 1234
+      if (user !== 'admin' || pass !== '1234') { showToast('（Demo 模式）帳號 admin，密碼 1234', 'error'); return; }
+    }
+    isAdmin = true;
+    document.body.classList.add('admin-mode');
+    document.getElementById('headerRight').innerHTML = `
+      <span class="admin-badge">管理者</span>
+      <button class="btn-logout" onclick="doLogout()">登出</button>`;
+    document.getElementById('adminToolbar').classList.add('show');
+    closeModal('loginModal');
+    showToast('已進入管理者模式', 'success');
+    renderCards();
+  } catch(e) {
+    showToast('連線失敗，請稍後再試', 'error');
+  }
+}
+
+function doLogout() {
+  isAdmin = false;
+  adminToken = null;
+  document.body.classList.remove('admin-mode');
+  document.getElementById('headerRight').innerHTML = `<button class="btn-admin-login" onclick="openLoginModal()">管理者登入</button>`;
+  document.getElementById('adminToolbar').classList.remove('show');
+  showToast('已登出管理者模式');
+  renderCards();
+}
+
+/* ---------- REGISTER ---------- */
+function openRegisterModal(id) {
+  pendingSessionId = id;
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
+  const d = new Date(s.date);
+  document.getElementById('registerModalTitle').textContent = '報名課程';
+  document.getElementById('registerModalSub').textContent =
+    `${d.getMonth()+1}/${d.getDate()} · 13:00–14:00 · ${s.venue||'待公告'} · 尚餘 ${s.remaining} 名`;
+  ['regName','regContact','regUnit','regCount'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('regType').value = '';
+  openModal('registerModal');
+}
+
+async function submitRegistration() {
+  const name    = document.getElementById('regName').value.trim();
+  const contact = document.getElementById('regContact').value.trim();
+  const type    = document.getElementById('regType').value;
+  const unit    = document.getElementById('regUnit').value.trim();
+  const count   = parseInt(document.getElementById('regCount').value) || 0;
+
+  if (!name || !contact || !type || !unit || count < 1) {
+    showToast('請填寫所有欄位，並確認人數至少為 1', 'error'); return;
+  }
+
+  const s = sessions.find(x => x.id === pendingSessionId);
+  if (!s || s.remaining <= 0) { showToast('此場次名額已滿或無法報名', 'error'); return; }
+  if (count > s.remaining) { showToast(`目前尚餘 ${s.remaining} 名，請調整人數`, 'error'); return; }
+
+  const payload = { action: 'register', sessionId: pendingSessionId, name, contact, type, unit, count, timestamp: new Date().toISOString() };
+
+  try {
+    if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (!json.success) { showToast(json.message || '報名失敗', 'error'); return; }
+    }
+    // 樂觀更新本機
+    s.registered = (s.registered || 0) + count;
+    s.remaining  = s.capacity - s.registered;
+    if (s.remaining <= 0) s.status = 'full';
+    const tag = `${type.replace('實習生','')} ${unit} ${count}位`;
+    s.registrants = s.registrants ? s.registrants + '、' + tag : tag;
+    renderAll();
+    closeModal('registerModal');
+    showToast(`報名成功！${name} 已完成 ${new Date(s.date).getMonth()+1}/${new Date(s.date).getDate()} 場次報名（${count} 人）`, 'success');
+  } catch(e) {
+    showToast('網路錯誤，請重試', 'error');
+  }
+}
+
+/* ---------- ADMIN EDIT ---------- */
+function openEditModal(id) {
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
+  const d = new Date(s.date);
+  document.getElementById('editModalSub').textContent = `${d.getMonth()+1}/${d.getDate()} 場次`;
+  document.getElementById('editSessionId').value    = id;
+  document.getElementById('editVenue').value        = s.venue || '';
+  document.getElementById('editCapacity').value     = s.capacity || '';
+  document.getElementById('editStatus').value       = s.status || 'open';
+  document.getElementById('editRegistrants').value  = s.registrants || '';
+  document.getElementById('editAdminUnlocked').checked = !!s.adminUnlocked;
+
+  // 只在距課程 ≤ 14 天且未過期時顯示手動開放選項
+  const msUntil = d - TODAY;
+  const daysUntil = Math.ceil(msUntil / (1000 * 60 * 60 * 24));
+  const showUnlock = daysUntil > 0 && daysUntil <= 14;
+  document.getElementById('unlockGroup').style.display = showUnlock ? 'block' : 'none';
+
+  openModal('editModal');
+}
+
+async function saveSessionEdit() {
+  const id       = document.getElementById('editSessionId').value;
+  const venue    = document.getElementById('editVenue').value.trim();
+  const capacity = parseInt(document.getElementById('editCapacity').value) || 0;
+  const status   = document.getElementById('editStatus').value;
+  const registrants = document.getElementById('editRegistrants').value.trim();
+  const adminUnlocked = document.getElementById('editAdminUnlocked').checked;
+
+  const payload = { action: 'updateSession', sessionId: id, venue, capacity, status, registrants, adminUnlocked, token: adminToken };
+
+  try {
+    if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (!json.success) { showToast(json.message || '儲存失敗', 'error'); return; }
+    }
+    // 本機更新
+    const s = sessions.find(x => x.id === id);
+    if (s) {
+      const oldVenue = s.venue; const oldCap = s.capacity;
+      s.venue = venue; s.capacity = capacity; s.status = status; s.registrants = registrants; s.adminUnlocked = adminUnlocked;
+      s.registered = s.registered || 0;
+      s.remaining  = capacity - s.registered;
+      if (s.remaining < 0) s.remaining = 0;
+      if (oldVenue !== venue || oldCap !== capacity) {
+        showUpdateBanner(`管理者已更新 ${new Date(s.date).getMonth()+1}/${new Date(s.date).getDate()} 場次資訊（場地或容額異動）。`);
+      }
+    }
+    renderAll();
+    closeModal('editModal');
+    showToast('場次資訊已更新', 'success');
+  } catch(e) {
+    showToast('儲存失敗，請重試', 'error');
+  }
+}
+
+function cancelSession() {
+  document.getElementById('editStatus').value = 'cancel';
+  saveSessionEdit();
+}
+
+/* ---------- ADD SESSION (Admin) ---------- */
+function openAddSessionModal() { openModal('addModal'); }
+
+async function addSession() {
+  const date     = document.getElementById('addDate').value;
+  const venue    = document.getElementById('addVenue').value.trim();
+  const capacity = parseInt(document.getElementById('addCapacity').value) || 0;
+  if (!date) { showToast('請選擇日期', 'error'); return; }
+
+  const newId = 'S_' + date.replace(/-/g,'') + '_' + Math.random().toString(36).substr(2,4);
+  const payload = { action: 'addSession', id: newId, date, venue, capacity, status:'open', token: adminToken };
+
+  try {
+    if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (!json.success) { showToast(json.message || '新增失敗', 'error'); return; }
+    }
+    sessions.push({ id: newId, date, year: 115, venue, capacity, registered: 0, remaining: capacity, status:'open', registrants:'' });
+    sessions.sort((a,b) => new Date(a.date) - new Date(b.date));
+    renderAll();
+    closeModal('addModal');
+    showToast('場次已新增', 'success');
+  } catch(e) {
+    showToast('新增失敗，請重試', 'error');
+  }
+}
+
+/* ---------- SYNC FROM SHEET ---------- */
+async function syncFromSheet() {
+  showToast('從 Google Sheet 同步中…');
+  await loadSessions(false);
+  showToast('同步完成', 'success');
+}
+
+/* ---------- DOWNLOAD CSV ---------- */
+function downloadCSV() {
+  const yr115 = sessions.filter(s => s.year === 115);
+  const header = ['場次日期','星期','時間','場地','容額','已報名人數','尚可報名數','狀態','報名單位備註'];
+  const weekdays = ['日','一','二','三','四','五','六'];
+  const rows = yr115.map(s => {
+    const d = new Date(s.date);
+    const wday = weekdays[d.getDay()];
+    const dateStr = `${d.getFullYear()-1911}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    const statusMap = { open:'開放報名', full:'額滿', cancel:'已取消', tba:'待公告' };
+    return [
+      dateStr, wday, '1300-1400', s.venue||'待公告', s.capacity||'', s.registered||0,
+      s.remaining||0, statusMap[s.status]||s.status, s.registrants||''
+    ];
+  });
+  const csv = '\uFEFF' + [header, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `115年度安寧緩和醫療教育課程報名_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')}.csv`;
+  a.click();
+  showToast('CSV 下載中…', 'success');
+}
+
+/* ---------- UPDATE BANNER ---------- */
+function showUpdateBanner(msg) {
+  const banner = document.getElementById('updateBanner');
+  document.getElementById('updateBannerText').textContent = ' — ' + msg;
+  banner.classList.remove('hidden');
+}
+function dismissUpdateBanner() {
+  document.getElementById('updateBanner').classList.add('hidden');
+}
+
+/* ---------- MODAL UTILS ---------- */
+function openModal(id)  { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('show');
+  }
+});
+
+/* ---------- TOAST ---------- */
+function showToast(msg, type = '') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  const icon = type === 'success'
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+    : type === 'error'
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  t.innerHTML = icon + msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+/* ================================================================
+   VENUE DATABASE（會議室棟別對照）
+================================================================ */
+const VENUE_DB = {
+  '552會議室':  { building: '第五醫療大樓 5F', capacity: 79  },
+  '553會議室':  { building: '第五醫療大樓 5F', capacity: 129 },
+  '554會議室':  { building: '第五醫療大樓 5F', capacity: 37  },
+  '556會議室':  { building: '第五醫療大樓 5F', capacity: 24  },
+  '558會議室':  { building: '第五醫療大樓 5F', capacity: 21  },
+  '561會議室':  { building: '第五醫療大樓 6F', capacity: 123 },
+  '563會議室':  { building: '第五醫療大樓 6F', capacity: 61  },
+  '辦-1會議室': { building: '第一辦公區 1F',   capacity: 32  },
+  '電腦教室':   { building: '第一辦公區 4F',   capacity: 12  },
+  '331會議室':  { building: '第三醫療大樓 3F', capacity: 26  },
+  '332會議室':  { building: '第三醫療大樓 3F', capacity: 26  },
+  '教-1會議室': { building: '教學大樓 B1',     capacity: 18  },
+  '教-2會議室': { building: '教學大樓 B1',     capacity: 26  },
+};
+
+/*
+================================================================
+API CONTRACT（Apps Script 需實作的端點）
+
+GET  ?action=getSessions
+  → { sessions: [ { id, date, year, venue, capacity, registered, remaining, status, registrants }, ... ] }
+
+POST body JSON { action: 'login', username, password }
+  → { success: true, token: '...' }  或  { success: false, message: '帳號或密碼錯誤' }
+
+POST body JSON { action: 'register', sessionId, name, contact, type, unit, count, timestamp }
+  → { success: true }  或  { success: false, message: '...' }
+
+POST body JSON { action: 'updateSession', sessionId, venue, capacity, status, registrants, adminUnlocked, token }
+  → { success: true }  或  { success: false, message: '...' }
+
+POST body JSON { action: 'addSession', id, date, venue, capacity, status, token }
+  → { success: true }  或  { success: false, message: '...' }
+================================================================
+*/
+</script>
+</body>
+</html>
