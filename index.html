@@ -789,10 +789,120 @@
   .site-footer strong { color: var(--lavender-100); }
 
   /* ===== RESPONSIVE ===== */
-  @media (max-width: 600px) {
-    .hero { padding: 32px 16px 28px; }
-    .main-container { padding: 20px 14px 48px; }
-    .course-grid { grid-template-columns: 1fr; }
+
+  /* 平板（768px 以下） */
+  @media (max-width: 768px) {
+    /* Header */
+    .site-header { height: auto; padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+    .brand-name { font-size: 13px; }
+    .brand-sub  { font-size: 10px; }
+    .brand-icon { width: 28px; height: 28px; }
+    .year-tabs  { order: 3; width: 100%; justify-content: center; }
+    .year-tab   { flex: 1; text-align: center; font-size: 12px; padding: 5px 10px; }
+    .header-right { margin-left: auto; }
+    .btn-admin-login { font-size: 12px; padding: 5px 12px; }
+
+    /* Hero */
+    .hero { padding: 10px 16px 12px; }
+    .hero h1 { font-size: 15px; }
+    .hero-sub { font-size: 11px; }
+    .hero-eyebrow { font-size: 9px; }
+
+    /* Filters */
+    .sticky-filters-bar { padding: 8px 16px 6px; }
+    .filter-chip { font-size: 13px; padding: 6px 12px; }
+    .month-chip  { font-size: 12px; padding: 5px 10px; min-width: 40px; }
+    .month-filter-row { gap: 6px; }
+
+    /* Stats */
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+    .stat-num   { font-size: 22px; }
+    .stat-label { font-size: 12px; }
+
+    /* Cards */
+    .course-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .card-date   { font-size: 18px; }
+
+    /* Admin toolbar */
+    .admin-toolbar { padding: 12px 16px; }
+    .btn-tool { font-size: 11px; padding: 5px 10px; }
+
+    /* Main */
+    .main-container { padding: 20px 16px 48px; }
+
+    /* Modal */
+    .modal { padding: 22px 20px; border-radius: var(--radius-lg); }
+    .modal-title { font-size: 16px; }
+  }
+
+  /* 手機（480px 以下） */
+  @media (max-width: 480px) {
+    /* Header — 更緊湊 */
+    .site-header { padding: 8px 12px; }
+    .brand-sub   { display: none; }
+    .year-tabs   { gap: 3px; }
+    .year-tab    { font-size: 12px; padding: 4px 10px; }
+
+    /* Hero */
+    .hero h1  { font-size: 14px; }
+    .hero-sub { font-size: 11px; }
+
+    /* Filters — 月份可橫向捲動 */
+    .sticky-filters-bar { padding: 8px 12px 6px; overflow-x: auto; }
+    .filter-bar { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+    .filter-chip { white-space: nowrap; flex-shrink: 0; font-size: 12px; padding: 5px 12px; }
+    .month-filter-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .month-filter-bar { flex-wrap: nowrap; }
+    .month-chip { flex-shrink: 0; font-size: 12px; padding: 5px 10px; }
+
+    /* Stats — 2欄 */
+    .stats-row  { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-num   { font-size: 20px; }
+    .stat-label { font-size: 11px; }
+
+    /* Cards — 單欄 */
+    .course-grid { grid-template-columns: 1fr; gap: 10px; }
+    .card-date   { font-size: 20px; }
+    .card-info-row { font-size: 13px; }
+    .btn-register  { font-size: 14px; }
+
+    /* Section header */
+    .section-title { font-size: 15px; }
+
+    /* Modal — 全寬底部彈出 */
+    .modal-overlay { align-items: flex-end; padding: 0; }
+    .modal {
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      max-height: 90vh;
+      width: 100%;
+      padding: 20px 16px 32px;
+    }
+    .modal-actions { flex-direction: column; gap: 8px; }
+    .modal-actions .btn-primary,
+    .modal-actions .btn-secondary,
+    .modal-actions .btn-danger { flex: unset; width: 100%; }
+
+    /* Admin toolbar */
+    .admin-toolbar-actions { width: 100%; }
+    .btn-tool { flex: 1; justify-content: center; font-size: 11px; }
+
+    /* Toast */
+    .toast-container { bottom: 16px; right: 12px; left: 12px; }
+    .toast { max-width: 100%; }
+
+    /* Main */
+    .main-container { padding: 16px 12px 48px; }
+
+    /* Footer */
+    .site-footer { font-size: 11px; padding: 16px 12px; }
+  }
+
+  /* 超小螢幕（360px 以下） */
+  @media (max-width: 360px) {
+    .year-tab   { font-size: 11px; padding: 4px 8px; }
+    .filter-chip { font-size: 11px; padding: 5px 10px; }
+    .stat-num   { font-size: 18px; }
+    .card-date  { font-size: 18px; }
   }
 
   /* ===== HELPERS ===== */
@@ -991,15 +1101,15 @@
     <div class="modal-subtitle" id="registerModalSub"></div>
     <div class="form-group">
       <label class="form-label">報名者姓名</label>
-      <input type="text" class="form-input" id="regName" placeholder="請輸入真實姓名（帶班老師或負責人）">
+      <input type="text" class="form-input" id="regName" placeholder="請輸入真實姓名（帶班老師或負責人）" autocomplete="off">
     </div>
     <div class="form-group">
       <label class="form-label">電子信箱 <span style="color:var(--red-600);font-size:12px;">必填・報名確認信將寄至此信箱</span></label>
-      <input type="email" class="form-input" id="regEmail" placeholder="請輸入電子信箱">
+      <input type="email" class="form-input" id="regEmail" placeholder="請輸入電子信箱" autocomplete="off">
     </div>
     <div class="form-group">
       <label class="form-label">聯絡電話 <span style="color:var(--text-muted);font-size:12px;">選填</span></label>
-      <input type="tel" class="form-input" id="regPhone" placeholder="請輸入聯絡電話">
+      <input type="tel" class="form-input" id="regPhone" placeholder="請輸入聯絡電話" autocomplete="off">
     </div>
     <div class="form-group">
       <label class="form-label">職類</label>
@@ -1752,7 +1862,7 @@ function dismissUpdateBanner() {
 function openModal(id)  { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal-overlay')) {
+  if (e.target.classList.contains('modal-overlay') && e.target === e.currentTarget) {
     e.target.classList.remove('show');
   }
 });
