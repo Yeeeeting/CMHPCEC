@@ -1229,7 +1229,7 @@ function renderCards() {
 
   // 狀態篩選
   if (currentFilter === 'open')     filtered = filtered.filter(s => s.status !== 'cancel' && s.remaining > 0 && new Date(s.date) >= TODAY);
-  if (currentFilter === 'full')     filtered = filtered.filter(s => s.remaining === 0 && s.status !== 'cancel');
+  if (currentFilter === 'full')     filtered = filtered.filter(s => s.remaining === 0 && s.status !== 'cancel' && s.status !== 'tba' && new Date(s.date) >= TODAY);
   if (currentFilter === 'cancel')   filtered = filtered.filter(s => s.status === 'cancel' || new Date(s.date) < TODAY);
   if (currentFilter === 'upcoming') {
     const upcoming = new Date(TODAY); upcoming.setDate(upcoming.getDate() + 14);
