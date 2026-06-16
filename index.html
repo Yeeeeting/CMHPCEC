@@ -317,11 +317,13 @@
     transition: all .15s;
   }
   .filter-chip:hover { border-color: var(--lavender-300); color: var(--lavender-700); }
-  .filter-chip.active {
-    background: var(--lavender-500);
-    border-color: var(--lavender-500);
-    color: white;
-  }
+
+  /* 各狀態的 active 顏色 */
+  .filter-chip.active                    { background: var(--lavender-500); border-color: var(--lavender-500); color: white; }
+  .filter-chip[data-filter="open"].active  { background: var(--sage-600);     border-color: var(--sage-600);     color: white; }
+  .filter-chip[data-filter="full"].active  { background: var(--lavender-500); border-color: var(--lavender-500); color: white; }
+  .filter-chip[data-filter="cancel"].active{ background: #6B6480;             border-color: #6B6480;             color: white; }
+  .filter-chip[data-filter="ended"].active { background: #4A4560;             border-color: #4A4560;             color: white; }
 
   /* Month filter row */
   .month-filter-wrap {
@@ -378,6 +380,13 @@
   }
   .month-chip.past:hover { opacity: 0.65; border-color: var(--border-md); color: var(--text-secondary); }
   .month-chip.past.active { opacity: 1; }
+
+  /* 月份 chip active 顏色跟隨狀態篩選 */
+  .month-chip.active                      { background: var(--lavender-100); border-color: var(--lavender-300); color: var(--lavender-700); font-weight: 500; }
+  body[data-filter="open"]   .month-chip.active { background: var(--sage-100);     border-color: var(--sage-400);     color: var(--sage-800); }
+  body[data-filter="full"]   .month-chip.active { background: var(--lavender-100); border-color: var(--lavender-300); color: var(--lavender-700); }
+  body[data-filter="cancel"] .month-chip.active { background: #EDEAF2;             border-color: #9992A8;             color: #4A4560; }
+  body[data-filter="ended"]  .month-chip.active { background: #E8E6F0;             border-color: #7A7490;             color: #3A3555; }
 
   /* ===== COURSE GRID ===== */
   .course-grid {
@@ -844,11 +853,11 @@
 <div class="sticky-filters-bar" id="filtersBar">
   <div class="sticky-filters-inner">
     <div class="filter-bar" id="statusFilterBar">
-      <button class="filter-chip active" onclick="setFilter('all', this)">全部場次</button>
-      <button class="filter-chip" onclick="setFilter('open', this)">可報名</button>
-      <button class="filter-chip" onclick="setFilter('full', this)">額滿</button>
-      <button class="filter-chip" onclick="setFilter('cancel', this)">已取消</button>
-      <button class="filter-chip" onclick="setFilter('upcoming', this)">即將舉辦</button>
+      <button class="filter-chip active" data-filter="all"    onclick="setFilter('all', this)">全部場次</button>
+      <button class="filter-chip"        data-filter="open"   onclick="setFilter('open', this)">可報名</button>
+      <button class="filter-chip"        data-filter="full"   onclick="setFilter('full', this)">額滿</button>
+      <button class="filter-chip"        data-filter="cancel" onclick="setFilter('cancel', this)">已取消</button>
+      <button class="filter-chip"        data-filter="ended"  onclick="setFilter('ended', this)">已結束</button>
     </div>
     <div class="month-filter-row">
       <span class="month-filter-label">月份</span>
@@ -985,8 +994,12 @@
       <input type="text" class="form-input" id="regName" placeholder="請輸入真實姓名（帶班老師或負責人）">
     </div>
     <div class="form-group">
-      <label class="form-label">聯絡方式</label>
-      <input type="text" class="form-input" id="regContact" placeholder="電話或電子信箱">
+      <label class="form-label">電子信箱 <span style="color:var(--red-600);font-size:12px;">必填・報名確認信將寄至此信箱</span></label>
+      <input type="email" class="form-input" id="regEmail" placeholder="請輸入電子信箱">
+    </div>
+    <div class="form-group">
+      <label class="form-label">聯絡電話 <span style="color:var(--text-muted);font-size:12px;">選填</span></label>
+      <input type="tel" class="form-input" id="regPhone" placeholder="請輸入聯絡電話">
     </div>
     <div class="form-group">
       <label class="form-label">職類</label>
@@ -1228,14 +1241,28 @@ function renderCards() {
   }
 
   // 狀態篩選
-  if (currentFilter === 'open')     filtered = filtered.filter(s => s.status !== 'cancel' && s.remaining > 0 && new Date(s.date) >= TODAY);
-  if (currentFilter === 'full')     filtered = filtered.filter(s => s.remaining === 0 && s.status !== 'cancel' && s.status !== 'tba' && new Date(s.date) >= TODAY);
-  if (currentFilter === 'cancel')   filtered = filtered.filter(s => s.status === 'cancel' || new Date(s.date) < TODAY);
-  if (currentFilter === 'upcoming') {
-    const upcoming = new Date(TODAY); upcoming.setDate(upcoming.getDate() + 14);
+  if (currentFilter === 'open') {
+    // 可報名：未過期 + 非取消 + 非待公告 + 有名額 + 未鎖定
     filtered = filtered.filter(s => {
-      const d = new Date(s.date); return d >= TODAY && d <= upcoming && s.status !== 'cancel';
+      const d = new Date(s.date);
+      const daysUntil = Math.ceil((d - TODAY) / (1000 * 60 * 60 * 24));
+      const isLocked = daysUntil <= 14 && !s.adminUnlocked;
+      return d >= TODAY && s.status !== 'cancel' && s.status !== 'tba' && s.remaining > 0 && !isLocked;
     });
+  }
+  if (currentFilter === 'full') {
+    // 額滿：未過期 + 非取消 + 非待公告 + 剩餘=0
+    filtered = filtered.filter(s =>
+      new Date(s.date) >= TODAY && s.status !== 'cancel' && s.status !== 'tba' && s.remaining === 0
+    );
+  }
+  if (currentFilter === 'cancel') {
+    // 已取消：只有真的被取消的
+    filtered = filtered.filter(s => s.status === 'cancel');
+  }
+  if (currentFilter === 'ended') {
+    // 已結束：日期已過（不管有沒有報名）
+    filtered = filtered.filter(s => new Date(s.date) < TODAY && s.status !== 'cancel');
   }
 
   const monthLabel = currentMonth > 0 ? `${currentMonth} 月・` : '';
@@ -1335,6 +1362,7 @@ function setFilter(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
+  document.body.setAttribute('data-filter', f);
   renderCards();
 }
 
@@ -1404,27 +1432,31 @@ function openRegisterModal(id) {
   document.getElementById('registerModalTitle').textContent = '報名課程';
   document.getElementById('registerModalSub').textContent =
     `${d.getMonth()+1}/${d.getDate()} · 13:00–14:00 · ${s.venue||'待公告'} · 尚餘 ${s.remaining} 名`;
-  ['regName','regContact','regUnit','regCount'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['regName','regEmail','regPhone','regUnit','regCount'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('regType').value = '';
   openModal('registerModal');
 }
 
 async function submitRegistration() {
-  const name    = document.getElementById('regName').value.trim();
-  const contact = document.getElementById('regContact').value.trim();
-  const type    = document.getElementById('regType').value;
-  const unit    = document.getElementById('regUnit').value.trim();
-  const count   = parseInt(document.getElementById('regCount').value) || 0;
+  const name  = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const type  = document.getElementById('regType').value;
+  const unit  = document.getElementById('regUnit').value.trim();
+  const count = parseInt(document.getElementById('regCount').value) || 0;
 
-  if (!name || !contact || !type || !unit || count < 1) {
-    showToast('請填寫所有欄位，並確認人數至少為 1', 'error'); return;
+  if (!name || !email || !type || !unit || count < 1) {
+    showToast('請填寫姓名、信箱、職類、單位及人數', 'error'); return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('請輸入正確的電子信箱格式', 'error'); return;
   }
 
   const s = sessions.find(x => x.id === pendingSessionId);
   if (!s || s.remaining <= 0) { showToast('此場次名額已滿或無法報名', 'error'); return; }
   if (count > s.remaining) { showToast(`目前尚餘 ${s.remaining} 名，請調整人數`, 'error'); return; }
 
-  const payload = { action: 'register', sessionId: pendingSessionId, name, contact, type, unit, count, timestamp: new Date().toISOString() };
+  const payload = { action: 'register', sessionId: pendingSessionId, name, email, phone, type, unit, count, timestamp: new Date().toISOString() };
 
   try {
     if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
@@ -1440,7 +1472,7 @@ async function submitRegistration() {
     s.registrants = s.registrants ? s.registrants + '、' + tag : tag;
     renderAll();
     closeModal('registerModal');
-    showToast(`報名成功！${name} 已完成 ${new Date(s.date).getMonth()+1}/${new Date(s.date).getDate()} 場次報名（${count} 人）`, 'success');
+    showToast(`報名成功！確認信已寄至 ${email}`, 'success');
   } catch(e) {
     showToast('網路錯誤，請重試', 'error');
   }
