@@ -1100,6 +1100,58 @@
   </div>
 </div>
 
+<!-- EDIT REGISTRATION MODAL (報名者) -->
+<div class="modal-overlay" id="editRegModal">
+  <div class="modal">
+    <div class="modal-title">管理我的報名</div>
+    <div class="modal-subtitle" id="editRegSub"></div>
+
+    <!-- 載入中 -->
+    <div id="editRegLoading" style="text-align:center;padding:32px 0;color:var(--text-muted);font-size:14px;">
+      載入報名資料中…
+    </div>
+
+    <!-- 內容 -->
+    <div id="editRegContent" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">職類</label>
+        <select class="form-select" id="editRegType">
+          <option>護理實習生</option>
+          <option>藥事實習生</option>
+          <option>呼吸治療實習生</option>
+          <option>職能治療實習生</option>
+          <option>物理治療實習生</option>
+          <option>醫檢實習生</option>
+          <option>營養實習生</option>
+          <option>語言治療實習生</option>
+          <option>聽力實習生</option>
+          <option>醫學系見實習生</option>
+          <option>其他職類</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">實習單位／科別</label>
+        <input type="text" class="form-input" id="editRegUnit" placeholder="例：4A病房">
+      </div>
+      <div class="form-group">
+        <label class="form-label">報名人數</label>
+        <input type="number" class="form-input" id="editRegCount" min="1" max="200">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-danger" onclick="doRegCancel()">取消報名</button>
+        <button class="btn-primary" onclick="doRegEdit()" style="flex:2;">儲存變更</button>
+      </div>
+    </div>
+
+    <!-- 已取消 -->
+    <div id="editRegCancelled" style="display:none;text-align:center;padding:24px 0;">
+      <div style="font-size:32px;margin-bottom:12px;">✓</div>
+      <div style="font-size:15px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">報名已取消</div>
+      <div style="font-size:13px;color:var(--text-muted);">名額已自動歸還，感謝您的告知。</div>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== SCRIPT ===================== -->
 <script>
 /* ================================================================
@@ -1124,9 +1176,10 @@ let sessions   = [];          // 全部場次陣列
 let isAdmin    = false;       // 管理者模式
 let adminToken = null;        // 登入後的 token（由 Apps Script 回傳）
 let currentFilter = 'all';
-let currentMonth  = 0;        // 0 = 全年，1–12 = 指定月份
-let pendingSessionId = null;  // 待報名場次
-let lastFetchHash = null;     // 比對資料是否有更新
+let currentMonth  = 0;
+let pendingSessionId = null;
+let lastFetchHash = null;
+let editRegToken  = null;   // 報名者編輯 token（從 URL 取得）
 
 // 台北時間今日零時（UTC+8）
 function getTodayTaipei() {
@@ -1142,7 +1195,15 @@ const TODAY = getTodayTaipei();
 /* ---------- INIT ---------- */
 window.addEventListener('DOMContentLoaded', () => {
   loadSessions();
-  setInterval(checkForUpdates, 30000); // 每 30 秒輪詢
+  setInterval(checkForUpdates, 30000);
+
+  // 偵測 URL 是否有 ?edit=TOKEN（報名者點信件連結）
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('edit');
+  if (token) {
+    editRegToken = token;
+    openEditRegModal(token);
+  }
 });
 
 /* ---------- DATA LOADING ---------- */
@@ -1376,6 +1437,83 @@ function switchYear(yr) {
   document.getElementById('tab116').classList.toggle('active', !is115);
   // Hero eyebrow 更新
   document.querySelector('.hero-eyebrow').textContent = `Chi Mei Hospital · ${yr} 年度`;
+}
+
+/* ---------- REGISTRATION EDIT (報名者) ---------- */
+async function openEditRegModal(token) {
+  openModal('editRegModal');
+  document.getElementById('editRegLoading').style.display = 'block';
+  document.getElementById('editRegContent').style.display = 'none';
+  document.getElementById('editRegCancelled').style.display = 'none';
+
+  try {
+    const res  = await fetch(`${APPS_SCRIPT_URL}?action=getRegistration&token=${token}&t=${Date.now()}`);
+    const json = await res.json();
+
+    if (!json.success) {
+      showToast(json.message || '無法載入報名資料', 'error');
+      closeModal('editRegModal');
+      return;
+    }
+
+    const reg     = json.registration;
+    const session = json.session;
+    const d       = new Date(session.date);
+    const wdays   = ['日','一','二','三','四','五','六'];
+
+    document.getElementById('editRegSub').textContent =
+      `${d.getMonth()+1}/${d.getDate()}（${wdays[d.getDay()]}）· ${session.venue || '場地待公告'}`;
+    document.getElementById('editRegType').value  = reg.type;
+    document.getElementById('editRegUnit').value  = reg.unit;
+    document.getElementById('editRegCount').value = reg.count;
+
+    document.getElementById('editRegLoading').style.display = 'none';
+    document.getElementById('editRegContent').style.display = 'block';
+
+  } catch(e) {
+    showToast('連線失敗，請重試', 'error');
+    closeModal('editRegModal');
+  }
+}
+
+async function doRegEdit() {
+  const type  = document.getElementById('editRegType').value;
+  const unit  = document.getElementById('editRegUnit').value.trim();
+  const count = parseInt(document.getElementById('editRegCount').value) || 0;
+  if (!unit || count < 1) { showToast('請填寫單位及人數', 'error'); return; }
+
+  try {
+    const res  = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'editRegistration', token: editRegToken, type, unit, count })
+    });
+    const json = await res.json();
+    if (!json.success) { showToast(json.message || '更新失敗', 'error'); return; }
+    closeModal('editRegModal');
+    showToast('報名資訊已更新，確認信已重新寄出', 'success');
+    loadSessions(true);
+  } catch(e) {
+    showToast('連線失敗，請重試', 'error');
+  }
+}
+
+async function doRegCancel() {
+  if (!confirm('確定要取消這筆報名嗎？名額將自動歸還。')) return;
+
+  try {
+    const res  = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'cancelRegistration', token: editRegToken })
+    });
+    const json = await res.json();
+    if (!json.success) { showToast(json.message || '取消失敗', 'error'); return; }
+
+    document.getElementById('editRegContent').style.display   = 'none';
+    document.getElementById('editRegCancelled').style.display = 'block';
+    loadSessions(true);
+  } catch(e) {
+    showToast('連線失敗，請重試', 'error');
+  }
 }
 
 /* ---------- LOGIN ---------- */
