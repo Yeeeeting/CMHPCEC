@@ -56,7 +56,11 @@
     --shadow-hover: 0 4px 12px rgba(74,69,146,0.14), 0 8px 24px rgba(74,69,146,0.1);
   }
 
-  html { height: 100%; overflow-x: hidden; }
+  html {
+    height: 100%;
+    overflow-x: hidden;
+    background: linear-gradient(180deg, var(--night-deep) 0%, var(--night-mid) 100%);
+  }
   body {
     font-family: 'Noto Sans TC', sans-serif;
     background: linear-gradient(180deg, var(--night-deep) 0%, var(--night-mid) 100%);
@@ -267,12 +271,13 @@
 
   /* ===== MAIN LAYOUT ===== */
   .main-container {
+    background: var(--cream);
+    width: 100%;
+  }
+  .content-inner {
     max-width: 960px;
     margin: 0 auto;
     padding: 24px 20px 64px;
-    position: relative;
-    box-shadow: 0 0 0 100vmax var(--cream);
-    clip-path: inset(0 -100vmax);
   }
 
   /* ===== SECTION TITLES ===== */
@@ -903,7 +908,7 @@
     .btn-tool { font-size: 11px; padding: 5px 10px; }
 
     /* Main */
-    .main-container { padding: 20px 16px 48px; }
+    .content-inner { padding: 20px 16px 48px; }
 
     /* Modal */
     .modal { padding: 22px 20px; border-radius: var(--radius-lg); }
@@ -966,7 +971,7 @@
     .toast { max-width: 100%; }
 
     /* Main */
-    .main-container { padding: 16px 12px 48px; }
+    .content-inner { padding: 16px 12px 48px; }
 
     /* Footer */
     .site-footer { font-size: 11px; padding: 16px 12px; }
@@ -1056,6 +1061,7 @@
 
 <!-- MAIN -->
 <main class="main-container">
+<div class="content-inner">
 
   <!-- 116 年度待公告頁 -->
   <div id="view116" class="hidden">
@@ -1133,6 +1139,7 @@
 
   </div><!-- /view115 -->
 
+</div><!-- /content-inner -->
 </main>
 
 <!-- FOOTER -->
