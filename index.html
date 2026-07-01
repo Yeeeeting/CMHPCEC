@@ -56,19 +56,16 @@
     --shadow-hover: 0 4px 12px rgba(74,69,146,0.14), 0 8px 24px rgba(74,69,146,0.1);
   }
 
-  html { height: 100%; }
+  html { height: 100%; overflow-x: hidden; }
   body {
     font-family: 'Noto Sans TC', sans-serif;
-    background: var(--cream);
+    background: linear-gradient(180deg, var(--night-deep) 0%, var(--night-mid) 100%);
     color: var(--text-primary);
     font-size: 16px;
     line-height: 1.7;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    overflow-x: hidden;
   }
-  .sticky-top { flex-shrink: 0; }
-  main.main-container { flex-shrink: 0; }
 
   /* ===== YEAR TABS ===== */
   .year-tabs {
@@ -273,6 +270,9 @@
     max-width: 960px;
     margin: 0 auto;
     padding: 24px 20px 64px;
+    position: relative;
+    box-shadow: 0 0 0 100vmax var(--cream);
+    clip-path: inset(0 -100vmax);
   }
 
   /* ===== SECTION TITLES ===== */
@@ -839,12 +839,8 @@
     color: #9B96C4;
     text-align: center;
     font-size: 12px;
-    padding: 20px;
+    padding: 32px 20px;
     letter-spacing: 0.04em;
-    flex: 1 0 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     position: relative;
     overflow: hidden;
   }
