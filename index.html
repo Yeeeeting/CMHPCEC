@@ -144,7 +144,7 @@
 
   /* ===== HEADER ===== */
   .site-header {
-    background: linear-gradient(120deg, rgba(26,27,58,0.9) 0%, rgba(45,42,92,0.9) 100%);
+    background: linear-gradient(120deg, rgba(26,27,58,0.72) 0%, rgba(45,42,92,0.72) 100%);
     padding: 0 24px;
     display: flex;
     align-items: center;
@@ -217,7 +217,7 @@
 
   /* ===== HERO BANNER — 星光引路 night sky with guiding light ===== */
   .hero {
-    background: linear-gradient(160deg, rgba(26,27,58,0.85) 0%, rgba(45,42,92,0.85) 45%, rgba(74,67,128,0.85) 100%);
+    background: linear-gradient(160deg, rgba(26,27,58,0.68) 0%, rgba(45,42,92,0.68) 45%, rgba(74,67,128,0.68) 100%);
     padding: 14px 24px 16px;
     text-align: center;
     position: relative;
@@ -293,13 +293,15 @@
   /* ===== MAIN LAYOUT ===== */
   .main-container {
     width: 100%;
+    padding: 0 10px;
   }
   .content-inner {
     max-width: 960px;
     margin: 0 auto;
     padding: 24px 20px 64px;
     background: var(--cream);
-    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    border-radius: var(--radius-xl);
+    margin-top: 10px;
     box-shadow: 0 12px 40px rgba(10,10,26,0.35);
     position: relative;
   }
@@ -706,7 +708,26 @@
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(30,27,46,0.25);
     animation: modal-in .2s ease;
+    position: relative;
   }
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--cream);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .modal-close:hover { background: var(--lavender-100); color: var(--lavender-700); }
+  .modal-close svg { width: 15px; height: 15px; }
   @keyframes modal-in {
     from { opacity: 0; transform: scale(0.95) translateY(8px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -904,7 +925,7 @@
 
   /* ===== FOOTER ===== */
   .site-footer {
-    background: linear-gradient(160deg, rgba(26,27,58,0.85) 0%, rgba(45,42,92,0.85) 60%, rgba(74,67,128,0.85) 100%);
+    background: linear-gradient(160deg, rgba(26,27,58,0.68) 0%, rgba(45,42,92,0.68) 60%, rgba(74,67,128,0.68) 100%);
     color: #9B96C4;
     text-align: center;
     font-size: 12px;
@@ -1214,6 +1235,9 @@
 <!-- LOGIN MODAL -->
 <div class="modal-overlay" id="loginModal">
   <div class="modal">
+    <button class="modal-close" onclick="closeModal('loginModal')" aria-label="關閉" title="關閉">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div class="modal-title">管理者登入</div>
     <div class="modal-subtitle">請輸入管理帳號密碼</div>
     <div class="login-info-row">
@@ -1237,6 +1261,9 @@
 <!-- REGISTER MODAL -->
 <div class="modal-overlay" id="registerModal">
   <div class="modal">
+    <button class="modal-close" onclick="closeModal('registerModal')" aria-label="關閉" title="關閉">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div class="modal-title" id="registerModalTitle">報名課程</div>
     <div class="modal-subtitle" id="registerModalSub"></div>
     <div class="form-group">
@@ -1287,6 +1314,9 @@
 <!-- EDIT SESSION MODAL (Admin) -->
 <div class="modal-overlay" id="editModal">
   <div class="modal">
+    <button class="modal-close" onclick="closeModal('editModal')" aria-label="關閉" title="關閉">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div class="modal-title">編輯場次資訊</div>
     <div class="modal-subtitle" id="editModalSub"></div>
     <input type="hidden" id="editSessionId">
@@ -1329,6 +1359,9 @@
 <!-- ADD SESSION MODAL (Admin) -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
+    <button class="modal-close" onclick="closeModal('addModal')" aria-label="關閉" title="關閉">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div class="modal-title">新增場次</div>
     <div class="modal-subtitle">手動新增課程場次</div>
     <div class="form-group">
@@ -1353,6 +1386,9 @@
 <!-- EDIT REGISTRATION MODAL (報名者) -->
 <div class="modal-overlay" id="editRegModal">
   <div class="modal">
+    <button class="modal-close" onclick="closeModal('editRegModal')" aria-label="關閉" title="關閉">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div class="modal-title">管理我的報名</div>
     <div class="modal-subtitle" id="editRegSub"></div>
 
@@ -2103,21 +2139,21 @@ function showToast(msg, type = '') {
     canvas.style.width  = vw+'px';
     canvas.style.height = vh+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    const count = Math.max(36, Math.min(80, Math.round((vw*vh)/16000)));
+    const count = Math.max(46, Math.min(100, Math.round((vw*vh)/12000)));
     stars = [];
     for (let i=0;i<count;i++){
       stars.push({
         x: rand(0,vw), y: rand(0,vh),
-        r: rand(0.5,1.6) * (Math.random()<0.12 ? 1.8:1),
-        gold: Math.random() < 0.2,
-        baseA: rand(0.3,0.85),
+        r: rand(0.7,2.0) * (Math.random()<0.14 ? 1.9:1),
+        gold: Math.random() < 0.22,
+        baseA: rand(0.45,1),
         period: rand(3000,7000),
         phase: rand(0,TAU),
       });
     }
   }
 
-  let nextShoot = rand(6000,14000);
+  let nextShoot = rand(2500,4500); // 開場不久就先來一道流星，讓使用者注意到
   let shooters = [];
   let bursts = [];
 
