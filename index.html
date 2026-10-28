@@ -1116,6 +1116,12 @@
     color: #EDEBFA;
   }
   .next-card.hidden { display: none; }
+  .next-card.guided { animation: nextGlow 1.4s ease; }
+  @keyframes nextGlow {
+    0%   { box-shadow: 0 0 0 0 rgba(232,196,104,0); }
+    35%  { box-shadow: 0 0 0 3px rgba(232,196,104,.85), 0 0 28px rgba(232,196,104,.45); }
+    100% { box-shadow: 0 0 0 0 rgba(232,196,104,0); }
+  }
   .next-date {
     width: 74px; height: 74px;
     border-radius: 14px;
@@ -2286,6 +2292,7 @@ async function loadSessions(silent = false) {
     dataLoaded = true;
     // 第一次載入：自動切到「下一場課」所在的年度
     if (firstLoad) {
+      setTimeout(() => window.guideToNextCourse && guideToNextCourse(), 1800);
       const yr = pickDefaultYear();
       if (yr && yr !== currentYear) { switchYear(yr); return; }
     }
@@ -3570,7 +3577,10 @@ function showToast(msg, type = '') {
       .filter(o => side === 'L' ? o.p[0] > 16 && o.p[0] < rect.left - 20 : o.p[0] > rect.right + 20 && o.p[0] < vw - 16)
       .filter(o => o.p[1] > Math.max(60, rect.top) && o.p[1] < vh - 20);
     if (visible.length < 4) return null;
-    const start = visible[Math.floor(Math.random() * visible.length)];
+    // 星軌：從上半部的一顆星出發，一路往下連，像一條往課程方向的小路
+    const upper = visible.filter(o => o.p[1] < vh * 0.55);
+    if (!upper.length) return null;
+    const start = upper[Math.floor(Math.random() * upper.length)];
     const path = [start];
     const want = 4 + Math.floor(Math.random() * 2);   // 4–5 顆
     while (path.length < want) {
@@ -3578,8 +3588,10 @@ function showToast(msg, type = '') {
       let best = null, bestD = Infinity;
       for (const o of visible) {
         if (path.includes(o)) continue;
-        const d = Math.hypot(o.p[0] - cur.p[0], o.p[1] - cur.p[1]);
-        if (d > 30 && d < 190 && d < bestD) { best = o; bestD = d; }
+        const dy = o.p[1] - cur.p[1], dx = Math.abs(o.p[0] - cur.p[0]);
+        if (dy < 25 || dx > 100) continue;          // 一定往下、左右不要偏太多
+        const d = Math.hypot(dx, dy);
+        if (d < 200 && d < bestD) { best = o; bestD = d; }
       }
       if (!best) break;
       path.push(best);
@@ -3646,6 +3658,14 @@ function showToast(msg, type = '') {
             ctx.lineTo(x0 + (x1 - x0) * f, y0 + (y1 - y0) * f);
           }
           ctx.stroke();
+          if (age < CONST_IN) {          // 畫線時，線頭有一顆小亮點往下走
+            const j = Math.min(segs, Math.floor(drawn) + 1), f = drawn - (j - 1);
+            const [x0, y0] = pts[j - 1], [x1, y1] = pts[Math.min(j, segs)];
+            const hx = x0 + (x1 - x0) * f, hy = y0 + (y1 - y0) * f;
+            const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, 7);
+            hg.addColorStop(0, 'rgba(255,236,180,0.9)'); hg.addColorStop(1, 'rgba(255,236,180,0)');
+            ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(hx, hy, 7, 0, TAU); ctx.fill();
+          }
           for (const [x, y] of pts) {   // 連到的星星稍微亮一點
             ctx.fillStyle = `rgba(255,240,200,${0.5 * k})`;
             ctx.beginPath(); ctx.arc(x, y, 1.6, 0, TAU); ctx.fill();
@@ -3709,6 +3729,71 @@ function showToast(msg, type = '') {
 
   resize();
   requestAnimationFrame(frame);
+
+  /* ---- 引路星：打開網頁時，一顆金色星星從標題上方沿著星空走到「下一場課程」 ---- */
+  let guided = false;
+  window.guideToNextCourse = function () {
+    if (guided || reduceMotion) return;
+    const card = document.getElementById('nextCard');
+    const content = document.querySelector('.content-inner');
+    if (!card || card.classList.contains('hidden') || !content) return;
+    const nr = card.getBoundingClientRect(), cr = content.getBoundingClientRect();
+    if (nr.top < 0 || nr.top > window.innerHeight - 60) return;   // 下一場不在畫面上就不演
+    guided = true;
+    const W = window.innerWidth, H = window.innerHeight, r = Math.min(window.devicePixelRatio || 1, 1.5);
+    const c = document.createElement('canvas');
+    c.setAttribute('aria-hidden', 'true');
+    c.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:120';
+    document.body.appendChild(c);
+    c.width = W * r; c.height = H * r;
+    const g = c.getContext('2d'); g.setTransform(r, 0, 0, r, 0, 0);
+    const wideGutter = cr.left >= 80;
+    const gx = wideGutter ? cr.left - 44 : Math.max(8, cr.left + 4);     // 走在卡片左側的星空
+    const P0 = [W / 2, 54];                                              // 從標題上方出發
+    const P3 = wideGutter ? [nr.left - 18, nr.top + nr.height / 2] : [nr.left + 22, nr.top + 6];
+    const P1 = [gx, P0[1] + 40], P2 = [gx, P3[1] - 90];
+    const bez = (t) => {
+      const u = 1 - t;
+      return [0, 1].map(k => u*u*u*P0[k] + 3*u*u*t*P1[k] + 3*u*t*t*P2[k] + t*t*t*P3[k]);
+    };
+    const trail = [];
+    const start = performance.now(), MOVE = 2200, END = 3200;
+    (function tick(now) {
+      const el = now - start;
+      g.clearRect(0, 0, W, H);
+      if (el > END) { c.remove(); return; }
+      const t = Math.min(1, el / MOVE);
+      const e = t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;      // 慢起、慢停
+      const [x, y] = bez(e);
+      if (el <= MOVE) trail.push({ x, y, born: now });
+      // 身後留下的小光點
+      for (const p of trail) {
+        const a = Math.max(0, 1 - (now - p.born) / 900);
+        if (a <= 0) continue;
+        g.fillStyle = `rgba(245,215,140,${0.55 * a})`;
+        g.beginPath(); g.arc(p.x, p.y, 1.3 + a, 0, TAU); g.fill();
+      }
+      // 引路星本體：抵達後輕輕亮一下再淡掉
+      const fade = el <= MOVE ? 1 : Math.max(0, 1 - (el - MOVE) / (END - MOVE));
+      const pulse = el > MOVE ? 1 + 0.6 * Math.sin(Math.min(1, (el - MOVE) / 500) * Math.PI) : 1;
+      const halo = g.createRadialGradient(x, y, 0, x, y, 18 * pulse);
+      halo.addColorStop(0, `rgba(255,226,150,${0.75 * fade})`);
+      halo.addColorStop(1, 'rgba(255,226,150,0)');
+      g.fillStyle = halo; g.beginPath(); g.arc(x, y, 18 * pulse, 0, TAU); g.fill();
+      g.save(); g.globalAlpha = fade; g.translate(x, y); g.rotate(el / 900); g.beginPath();
+      const sz = 7 * pulse;
+      for (let i = 0; i < 4; i++) {
+        const a2 = i * Math.PI / 2;
+        g.moveTo(0, 0);
+        g.quadraticCurveTo(Math.cos(a2 + .35) * sz * .35, Math.sin(a2 + .35) * sz * .35, Math.cos(a2) * sz, Math.sin(a2) * sz);
+        g.quadraticCurveTo(Math.cos(a2 - .35) * sz * .35, Math.sin(a2 - .35) * sz * .35, 0, 0);
+      }
+      g.fillStyle = '#FFE7A3'; g.shadowColor = 'rgba(232,180,60,.9)'; g.shadowBlur = 12; g.fill(); g.restore();
+      if (el > MOVE && !card.classList.contains('guided')) card.classList.add('guided');
+      requestAnimationFrame(tick);
+    })(start);
+    setTimeout(() => card.classList.remove('guided'), END + 1200);
+  };
 
   /* ---- 報名成功的小慶祝：疊在最上層，約 1.5 秒後自動清掉 ---- */
   window.celebrateRegistration = function (cx, cy) {
