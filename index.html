@@ -3658,17 +3658,25 @@ function showToast(msg, type = '') {
   let shooters = [];
   let bursts = [];
 
+  // 全站統一的五芒星：外圈半徑 r，內圈約 0.45r，尖角朝上
+  function pentaPath(c, r) {
+    const inner = r * 0.45;
+    for (let i = 0; i < 10; i++) {
+      const rad = i % 2 === 0 ? r : inner;
+      const ang = -Math.PI / 2 + i * Math.PI / 5;
+      const x = Math.cos(ang) * rad, y = Math.sin(ang) * rad;
+      i === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
+    }
+    c.closePath();
+    c.lineJoin = 'round';
+  }
+
   function drawStarShape(cx, cy, s, alpha, color) {
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.translate(cx, cy);
     ctx.beginPath();
-    for (let i=0;i<4;i++){
-      const a = i * Math.PI/2;
-      ctx.moveTo(0,0);
-      ctx.quadraticCurveTo(Math.cos(a+0.35)*s*0.35, Math.sin(a+0.35)*s*0.35, Math.cos(a)*s, Math.sin(a)*s);
-      ctx.quadraticCurveTo(Math.cos(a-0.35)*s*0.35, Math.sin(a-0.35)*s*0.35, 0, 0);
-    }
+    pentaPath(ctx, s);
     ctx.fillStyle = color;
     ctx.fill();
     ctx.restore();
@@ -3932,14 +3940,9 @@ function showToast(msg, type = '') {
       halo.addColorStop(0, `rgba(255,226,150,${0.75 * fade})`);
       halo.addColorStop(1, 'rgba(255,226,150,0)');
       g.fillStyle = halo; g.beginPath(); g.arc(x, y, 18 * pulse, 0, TAU); g.fill();
-      g.save(); g.globalAlpha = fade; g.translate(x, y); g.rotate(el / 900); g.beginPath();
+      g.save(); g.globalAlpha = fade; g.translate(x, y); g.rotate(Math.sin(el / 500) * 0.25); g.beginPath();
       const sz = 7 * pulse;
-      for (let i = 0; i < 4; i++) {
-        const a2 = i * Math.PI / 2;
-        g.moveTo(0, 0);
-        g.quadraticCurveTo(Math.cos(a2 + .35) * sz * .35, Math.sin(a2 + .35) * sz * .35, Math.cos(a2) * sz, Math.sin(a2) * sz);
-        g.quadraticCurveTo(Math.cos(a2 - .35) * sz * .35, Math.sin(a2 - .35) * sz * .35, 0, 0);
-      }
+      pentaPath(g, sz);
       g.fillStyle = '#FFE7A3'; g.shadowColor = 'rgba(232,180,60,.9)'; g.shadowBlur = 12; g.fill(); g.restore();
       if (el > MOVE && !card.classList.contains('guided')) card.classList.add('guided');
       requestAnimationFrame(tick);
@@ -3967,12 +3970,7 @@ function showToast(msg, type = '') {
     const start = performance.now(), DUR = 1500;
     function star4(x, y, s, rot, color, a) {
       g.save(); g.globalAlpha = a; g.translate(x, y); g.rotate(rot); g.beginPath();
-      for (let i = 0; i < 4; i++) {
-        const t = i * Math.PI / 2;
-        g.moveTo(0, 0);
-        g.quadraticCurveTo(Math.cos(t + .35) * s * .35, Math.sin(t + .35) * s * .35, Math.cos(t) * s, Math.sin(t) * s);
-        g.quadraticCurveTo(Math.cos(t - .35) * s * .35, Math.sin(t - .35) * s * .35, 0, 0);
-      }
+      pentaPath(g, s * 0.9);
       g.fillStyle = color; g.shadowColor = 'rgba(232,180,60,.9)'; g.shadowBlur = 14; g.fill(); g.restore();
     }
     (function tick(now) {
