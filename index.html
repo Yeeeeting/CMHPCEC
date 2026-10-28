@@ -15,7 +15,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1A1B3A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600&display=swap" rel="stylesheet">
 <style>
   /* ===== RESET & BASE ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -70,6 +70,8 @@
     overflow-x: hidden;
     background: var(--night-deep);
   }
+  /* 全站只用兩種字體：內文 Noto Sans TC、標題與日期 Noto Serif TC */
+  button, input, select, textarea, optgroup { font-family: inherit; }
   body {
     font-family: 'Noto Sans TC', sans-serif;
     background: transparent; /* 必須透明：body 底色會畫在星空 canvas 之上，把星星蓋掉 */
@@ -1072,7 +1074,7 @@
     width: 22px; height: 22px; flex-shrink: 0;
     border-radius: 50%;
     background: var(--lavender-500); color: white;
-    font-family: Georgia, serif; font-style: italic; font-weight: 700; font-size: 13px;
+    font-family: 'Noto Serif TC', serif; font-weight: 600; font-size: 13px;
     display: flex; align-items: center; justify-content: center;
   }
   .howto-title { font-size: 14px; font-weight: 700; color: var(--lavender-900); white-space: nowrap; }
