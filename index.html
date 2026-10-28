@@ -355,8 +355,11 @@
 
   /* ===== STICKY FILTERS BAR ===== */
   .sticky-filters-bar {
-    background: var(--cream);
-    border-top: 1px solid var(--border);
+    /* 不用整條米白底色：改成跟上方星空一致的半透明夜色，按鈕本身保留米白 */
+    background: rgba(45,42,92,0.45);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255,255,255,0.08);
     padding: 10px 24px 8px;
   }
   .sticky-filters-inner {
@@ -372,8 +375,8 @@
     gap: 10px;
   }
   .month-filter-row .month-filter-label {
-    font-size: 11px;
-    color: var(--text-muted);
+    font-size: 12px;
+    color: var(--lavender-100);
     letter-spacing: 0.07em;
     white-space: nowrap;
     flex-shrink: 0;
@@ -398,8 +401,8 @@
     font-size: 14px;
     padding: 7px 16px;
     border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--surface);
+    border: 1px solid transparent;
+    background: var(--cream);
     color: var(--text-secondary);
     cursor: pointer;
     transition: all .15s;
@@ -434,8 +437,8 @@
     font-size: 13px;
     padding: 6px 13px;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: var(--surface);
+    border: 1px solid transparent;
+    background: var(--cream);
     color: var(--text-secondary);
     cursor: pointer;
     transition: all .15s;
@@ -461,17 +464,15 @@
   .month-chip.all-full .month-dot { background: var(--lavender-300); }
   .month-chip.all-cancel .month-dot { display: none; }
   .month-chip.past {
-    opacity: 0.42;
+    opacity: 0.5;
     color: var(--text-muted);
-    border-color: var(--border);
     background: var(--cream);
   }
-  .month-chip.past:hover { opacity: 0.65; border-color: var(--border-md); color: var(--text-secondary); }
+  .month-chip.past:hover { opacity: 0.75; border-color: var(--border-md); color: var(--text-secondary); }
   .month-chip.past.active { opacity: 1; }
   .month-chip.all-months-chip {
     font-weight: 500;
-    border-right: 1px solid var(--border-md);
-    margin-right: 4px;
+    margin-right: 6px;
     padding-right: 15px;
   }
 
