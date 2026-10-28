@@ -262,6 +262,7 @@
 
   /* ===== HERO BANNER — 星光引路 night sky with guiding light ===== */
   .hero {
+    overflow-x: clip;   /* 光暈不超出畫面寬度，避免手機可以左右拖動 */
     background: transparent;
     padding: 14px 24px 16px;
     text-align: center;
@@ -295,7 +296,7 @@
     position: absolute;
     left: 50%;
     bottom: -60%;
-    width: 340px;
+    width: min(340px, 100vw);
     height: 340px;
     transform: translateX(-50%);
     background: radial-gradient(circle, rgba(232,196,104,0.22) 0%, rgba(232,196,104,0.06) 45%, transparent 70%);
@@ -1145,6 +1146,12 @@
   }
   .next-meta { font-size: 14px; margin-top: 4px; color: #EDEBFA; }
   .next-meta .pending { color: #FFD98A; }
+  .next-meta .seg { white-space: nowrap; }
+  .adm-reg-n { color: var(--text-secondary); }
+  .activity-fab .fab-label { transition: opacity .15s; }
+  .activity-fab.mini { padding: 11px; gap: 0; }
+  .activity-fab.mini .fab-label { display: none; }
+  .activity-fab.mini .act-badge { position: absolute; top: -4px; right: -4px; }
   .next-units { font-size: 13px; color: #CFC9F0; margin-top: 4px; line-height: 1.6; }
   .next-side { text-align: right; }
   .next-count { font-size: 13px; color: #CFC9F0; white-space: nowrap; }
@@ -1218,6 +1225,16 @@
   .past-toggle.is-open svg { transform: rotate(180deg); }
 
   @media (max-width: 640px) {
+    /* 下一場卡片：時間、場地各自成段自然換行，不在行尾留「・」；狀態改成小標籤 */
+    .next-meta .sep { display: none; }
+    .next-meta .seg { display: inline-block; margin-right: 8px; }
+    .next-meta .next-state {
+      display: table; margin-top: 6px;
+      font-size: 12px; font-weight: 600;
+      padding: 2px 10px; border-radius: 20px;
+      background: rgba(255,255,255,.14); color: #FFF3D6;
+    }
+    .next-meta .next-state.open { background: rgba(109,175,139,.35); color: #E3F6EA; }
     .howto-brief { display: none; }
     .howto-toggle { margin-left: auto; }
     .howto-list { font-size: 13px; }
@@ -1260,6 +1277,7 @@
   .adm-reg-main { font-size: 14px; color: var(--text-primary); }
   .adm-reg-main b { font-weight: 700; color: var(--lavender-700); }
   .adm-reg-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 640px) { .adm-reg-sub { white-space: normal; overflow-wrap: anywhere; } }   /* 手機上信箱完整顯示 */
   .adm-reg-btn {
     font-family: 'Noto Sans TC', sans-serif;
     font-size: 12px; font-weight: 500;
@@ -1700,6 +1718,19 @@
     .modal-title { font-size: 16px; }
   }
 
+  /* iPhone／iPad 輸入框字小於 16px 時，點進去會自動放大畫面；手機與觸控裝置一律用 16px */
+  @media (max-width: 768px), (pointer: coarse) {
+    .form-input, .form-select, .adm-reg-count,
+    input[type="text"], input[type="email"], input[type="number"], input[type="password"], input[type="tel"], select, textarea {
+      font-size: 16px;
+    }
+  }
+  /* 窄手機：狀態篩選 5 顆按鈕排得下，不會被切到 */
+  @media (max-width: 400px) {
+    .sticky-filters-bar .filter-bar { gap: 4px; }
+    .sticky-filters-bar .filter-chip { font-size: 12px; padding: 5px 8px; }
+  }
+
   /* 窄手機：「管理者登入」縮成「管理者」，讓兩顆按鈕跟名稱排在同一行 */
   .lbl-short { display: none; }
   @media (max-width: 400px) {
@@ -1989,7 +2020,7 @@
 </aside>
 <button class="activity-fab" id="activityFab" onclick="openActivity()" aria-label="開啟最新動態">
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5c.5 4.6 2.1 7.4 4.6 8.9 1.5.9 3.4 1.4 5.9 1.6-2.5.2-4.4.7-5.9 1.6-2.5 1.5-4.1 4.3-4.6 8.9-.5-4.6-2.1-7.4-4.6-8.9C5.9 12.7 4 12.2 1.5 12c2.5-.2 4.4-.7 5.9-1.6C9.9 8.9 11.5 6.1 12 1.5Z"/></svg>
-  最新動態
+  <span class="fab-label">最新動態</span>
   <span class="act-badge" id="actBadge"></span>
 </button>
 
@@ -2459,11 +2490,11 @@ const ACT_ICONS = {
 function actText(it) {
   const who = `${(it.unitType || '').replace('實習生', '')} ${it.unit || ''}`.trim();
   switch (it.type) {
-    case 'register':      return `${who} 報名 <b>${it.count}</b> 人`;
+    case 'register':      return `${who} <span class="nowrap">報名 <b>${it.count}</b> 人</span>`;
     case 'edit':          return it.oldCount && it.oldCount !== it.count
-                            ? `${who} 人數 ${it.oldCount} → <b>${it.count}</b> 人`
+                            ? `${who} <span class="nowrap">人數 ${it.oldCount} → <b>${it.count}</b> 人</span>`
                             : `${who} 修改報名資料`;
-    case 'cancel':        return `${who} 取消報名（${it.count} 人）`;
+    case 'cancel':        return `${who} <span class="nowrap">取消報名（${it.count} 人）</span>`;
     case 'venue':         return `場地確定：<b>${it.note}</b>`;
     case 'sessionCancel': return '此場次已取消';
     default:              return '';
@@ -2550,6 +2581,16 @@ function goToSession(id) {
   row.scrollIntoView({ behavior: 'smooth', block: 'center' });
   row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
 }
+
+// 往下捲動時，右下角按鈕縮成小圓鈕，避免擋到內容；停下來約 0.8 秒後恢復
+let fabScrollT;
+window.addEventListener('scroll', () => {
+  const fab = document.getElementById('activityFab');
+  if (!fab || !fab.classList.contains('show')) return;
+  fab.classList.add('mini');
+  clearTimeout(fabScrollT);
+  fabScrollT = setTimeout(() => fab.classList.remove('mini'), 800);
+}, { passive: true });
 
 // 視窗大小改變時，手機寬度才顯示背景遮罩
 window.addEventListener('resize', () => {
@@ -2837,6 +2878,10 @@ function printSummary() {
 }
 
 const COURSE_TITLE = '安寧緩和醫療教育課程';
+// 已報名單位：每個單位當成一整塊，換行時整塊換，不會斷在名稱中間
+function unitTags(str) {
+  return String(str || '').split('、').filter(Boolean).map(t => `<span class="nowrap">${t}</span>`).join('、');
+}
 const PENDING_CAPACITY = 15;   // 還沒借到場地時，保守先開放的名額
 
 // 場地未定、名額也還沒填的場次 → 先以暫定 15 名開放報名（與後端 Code.gs 同一規則）
@@ -2895,7 +2940,7 @@ function buildCard(s) {
   const countHtml = hasCap ? `<strong>${s.registered||0}</strong> / ${s.capacity} 人` : '—';
   const capDisplay = s.capacity ? `${s.registered||0} / ${s.capacity} 人` : '—';
   const regText = s.registrants
-    ? `<div class="card-registrants"><div class="card-registrants-label">已報名單位</div>👥 ${s.registrants}</div>` : '';
+    ? `<div class="card-registrants"><div class="card-registrants-label">已報名單位</div>👥 ${unitTags(s.registrants)}</div>` : '';
 
   let btnHtml = '';
   if (!isAdmin) {
@@ -2946,7 +2991,7 @@ function buildCard(s) {
       <div class="row-body-inner">
         <div class="row-body-content">
           <div class="row-detail">
-            <div class="card-info-row">${clockSvg}${d.getFullYear()-1911} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日（週${wday}）13:00 – 14:00</div>
+            <div class="card-info-row">${clockSvg}<span><span class="nowrap">${d.getFullYear()-1911} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日（週${wday}）</span><span class="nowrap">13:00 – 14:00</span></span></div>
             <div class="card-info-row">${pinSvg}${venueDisplay}</div>
             ${hasCap ? `
             <div class="card-capacity-bar-wrap">
@@ -2999,9 +3044,9 @@ function renderNextCard() {
   const canReg = !isLocked && !isFull && !isAdmin;
   const pct = s.capacity ? Math.min(100, Math.round((s.registered || 0) / s.capacity * 100)) : 0;
   const venue = s.venue
-    ? `<span class="nowrap">${s.venue}</span>${(VENUE_DB[s.venue]?.building) ? '・<span class="nowrap">' + VENUE_DB[s.venue].building + '</span>' : ''}`
-    : '<span class="pending nowrap">場地確認中</span>';
-  const stateText = `・<span class="nowrap">${isFull ? '已額滿' : isLocked ? '已截止報名' : '可報名'}</span>`;
+    ? `<span class="seg">${s.venue}</span>${(VENUE_DB[s.venue]?.building) ? '<span class="sep">・</span><span class="seg">' + VENUE_DB[s.venue].building + '</span>' : ''}`
+    : '<span class="seg pending">場地確認中</span>';
+  const stateText = `<span class="sep">・</span><span class="seg next-state ${isFull ? 'full' : isLocked ? 'locked' : 'open'}">${isFull ? '已額滿' : isLocked ? '已截止報名' : '可報名'}</span>`;
   box.innerHTML = `
     <div class="next-date">
       <span class="next-date-day">${d.getMonth()+1}/${d.getDate()}</span>
@@ -3009,8 +3054,8 @@ function renderNextCard() {
     </div>
     <div class="next-info">
       <div class="next-label">${nextTitle} <span class="next-countdown">${countdown}</span></div>
-      <div class="next-meta"><span class="nowrap">13:00 – 14:00</span>・${venue}${stateText}</div>
-      <div class="next-units">${s.registrants ? '已報名：' + s.registrants : '目前還沒有單位報名'}</div>
+      <div class="next-meta"><span class="seg">13:00 – 14:00</span><span class="sep">・</span>${venue}${stateText}</div>
+      <div class="next-units">${s.registrants ? '已報名：' + unitTags(s.registrants) : '目前還沒有單位報名'}</div>
     </div>
     <div class="next-side">
       <div class="next-count"><strong>${s.registered || 0}</strong> / ${s.capacity || '—'} 人</div>
@@ -3356,8 +3401,8 @@ function renderAdminRegs() {
   box.innerHTML = admRegs.map((r, i) => `
     <div class="adm-reg" id="admReg${i}">
       <div class="adm-reg-info">
-        <div class="adm-reg-main">${r.type.replace('實習生','')} ${r.unit}・<b>${r.count}</b> 人</div>
-        <div class="adm-reg-sub">${r.name}${r.email ? '・' + r.email : ''}${r.phone ? '・' + r.phone : ''}</div>
+        <div class="adm-reg-main">${r.unit} <span class="nowrap adm-reg-n"><b>${r.count}</b> 人</span></div>
+        <div class="adm-reg-sub">${r.type.replace('實習生','')}・${r.name}${r.email ? '・' + r.email : ''}${r.phone ? '・' + r.phone : ''}</div>
       </div>
       <button class="adm-reg-btn" onclick="admEditCount(${i})">改人數</button>
       <button class="adm-reg-btn danger" onclick="admConfirmCancel(${i})">取消報名</button>
