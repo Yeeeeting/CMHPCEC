@@ -1970,6 +1970,34 @@
     .site-header, .hero, .sticky-filters-bar, .content-inner, .site-footer,
     .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.12; }
   }
+
+  /* ===== 已報名職類分析 ===== */
+  .type-stats { background: var(--surface); border-radius: var(--radius-md); margin: 0 0 14px; box-shadow: 0 1px 2px rgba(74,69,146,0.06); }
+  .type-stats summary {
+    list-style: none; display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; min-height: 48px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .type-stats summary::-webkit-details-marker { display: none; }
+  .ts-icon { width: 18px; height: 18px; color: var(--lavender-500); flex-shrink: 0; }
+  .ts-title { font-size: 14px; font-weight: 700; color: var(--lavender-900); white-space: nowrap; }
+  .ts-brief { flex: 1; font-size: 13px; color: var(--text-muted); }
+  .ts-chev { width: 18px; height: 18px; color: var(--text-muted); margin-left: auto; transition: transform .25s ease; flex-shrink: 0; }
+  .type-stats[open] .ts-chev { transform: rotate(180deg); }
+  .ts-body { padding: 0 14px 14px; border-top: 1px solid var(--lavender-50); }
+  .ts-scope { display: flex; gap: 6px; padding: 12px 0 10px; }
+  .ts-row { display: grid; grid-template-columns: 76px minmax(0,1fr) 92px; align-items: center; gap: 10px; padding: 5px 0; }
+  .ts-name { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+  .ts-bar { height: 10px; border-radius: 6px; background: var(--lavender-50); overflow: hidden; }
+  .ts-bar span { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--lavender-300), var(--lavender-500)); transition: width .4s ease; }
+  .ts-num { font-size: 13px; color: var(--text-muted); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ts-num b { color: var(--text-primary); font-weight: 700; }
+  .ts-pct { display: inline-block; min-width: 38px; margin-left: 6px; color: var(--text-muted); }
+  .ts-empty { font-size: 13px; color: var(--text-muted); padding: 10px 0; }
+  .ts-note { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  @media (max-width: 640px) {
+    .ts-brief { display: none; }
+    .ts-row { grid-template-columns: 64px minmax(0,1fr) 84px; gap: 8px; }
+  }
 </style>
 </head>
 <body>
@@ -2134,6 +2162,24 @@
       <div class="stat-label">額滿場次</div>
     </div>
   </div>
+
+  <!-- 職類分析 -->
+  <details class="type-stats" id="typeStats" ontoggle="if(this.open) loadTypeStats()">
+    <summary>
+      <svg class="ts-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="20" x2="4" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="13"/><line x1="22" y1="20" x2="2" y2="20"/></svg>
+      <span class="ts-title">已報名職類分析</span>
+      <span class="ts-brief" id="tsBrief"></span>
+      <svg class="ts-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="ts-body">
+      <div class="ts-scope">
+        <button class="act-scope-btn active" data-ts="all" onclick="setTsScope('all')">整個年度</button>
+        <button class="act-scope-btn" data-ts="upcoming" onclick="setTsScope('upcoming')">還沒上課的場次</button>
+      </div>
+      <div id="tsChart"></div>
+      <div class="ts-note" id="tsNote"></div>
+    </div>
+  </details>
 
   <!-- COURSE GRID -->
   <div class="course-grid" id="courseGrid"></div>
@@ -2468,7 +2514,7 @@ const TODAY = getTodayTaipei();
 /* ---------- INIT ---------- */
 window.addEventListener('DOMContentLoaded', () => {
   renderSkeleton();
-  loadSessions().then(loadActivity);
+  loadSessions().then(() => { loadActivity(); loadTypeStats(); });   // 職類分析先抓一次，收合時也看得到總人數
   setInterval(checkForUpdates, 15000);   // 每 15 秒自動更新一次
   // 分頁切回來時立刻更新一次
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdates(); });
@@ -2533,6 +2579,62 @@ async function checkForUpdates() {
   if (document.hidden) return;   // 分頁沒在看時不更新，減少後端負擔
   await loadSessions(true);
   loadActivity();
+  if (document.getElementById('typeStats')?.open) loadTypeStats();   // 只有展開時才更新職類分析
+}
+
+/* ---------- 已報名職類分析（後端從報名資料統計，暫存 1 分鐘） ---------- */
+let typeStats = null, tsScope = 'all';
+// 依評鑑順序：檢、護、營、呼、聽、物、職、心、語，其他職類排在後面
+const TYPE_ORDER = ['醫檢','護理','營養','呼吸治療','聽力','物理治療','職能治療','心理','語言治療','藥事','醫學系見'];
+function typeShort(t) { return String(t).replace('實習生','').replace('見實習生','見') || '其他'; }
+function typeRank(t) {
+  const k = typeShort(t);
+  const i = TYPE_ORDER.findIndex(o => k.startsWith(o));
+  return i === -1 ? 99 : i;
+}
+async function loadTypeStats() {
+  const chart = document.getElementById('tsChart');
+  if (!typeStats) chart.innerHTML = '<div class="ts-empty">統計中…</div>';
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getTypeStats&t=${Date.now()}`);
+    const json = await res.json();
+    if (!json.success) throw new Error();
+    typeStats = json;
+    renderTypeStats();
+  } catch (e) {
+    if (!typeStats) chart.innerHTML = '<div class="ts-empty">目前讀不到統計資料（請確認 Code.gs 已更新並重新部署）</div>';
+  }
+}
+function setTsScope(sc) {
+  tsScope = sc;
+  document.querySelectorAll('[data-ts]').forEach(b => b.classList.toggle('active', b.dataset.ts === sc));
+  renderTypeStats();
+}
+function renderTypeStats() {
+  const chart = document.getElementById('tsChart');
+  const note = document.getElementById('tsNote');
+  if (!typeStats) return;
+  const y = (typeStats.years || {})[currentYear] || { all: {}, upcoming: {} };
+  const map = y[tsScope] || {};
+  const rows = Object.entries(map).filter(([, n]) => n > 0)
+    .sort((a, b) => typeRank(a[0]) - typeRank(b[0]) || b[1] - a[1]);
+  const total = rows.reduce((a, [, n]) => a + n, 0);
+  const max = Math.max(1, ...rows.map(([, n]) => n));
+  document.getElementById('tsBrief').textContent = total ? `${rows.length} 個職類・共 ${total} 人` : '';
+  if (!rows.length) {
+    chart.innerHTML = `<div class="ts-empty">${tsScope === 'upcoming' ? '還沒上課的場次目前沒有人報名' : `${currentYear} 年度目前還沒有人報名`}</div>`;
+  } else {
+    chart.innerHTML = rows.map(([t, n]) => {
+      const pct = Math.round(n / total * 100);
+      return `<div class="ts-row">
+        <span class="ts-name">${typeShort(t)}</span>
+        <span class="ts-bar"><span style="width:${Math.max(3, n / max * 100)}%"></span></span>
+        <span class="ts-num"><b>${n}</b> 人<span class="ts-pct">${pct}%</span></span>
+      </div>`;
+    }).join('');
+  }
+  const t = new Date(typeStats.updatedAt);
+  note.textContent = isNaN(t) ? '' : `統計時間 ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}・已排除取消的報名與取消的場次`;
 }
 
 /* ---------- 最新動態（近兩個月的報名異動） ---------- */
@@ -3233,6 +3335,7 @@ function setFilter(f, btn) {
 
 /* ---------- YEAR SWITCH ---------- */
 function switchYear(yr) {
+  setTimeout(() => { if (typeStats) renderTypeStats(); }, 0);
   currentYear = yr;
   currentMonths.clear();
   showPast = false;
