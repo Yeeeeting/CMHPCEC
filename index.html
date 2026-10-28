@@ -1989,6 +1989,9 @@
   .ts-scope { display: flex; gap: 6px; padding: 10px 0 8px; }
   .ts-row { display: grid; grid-template-columns: 64px minmax(0,1fr) 82px; align-items: center; gap: 8px; padding: 6px 0; }
   .ts-name { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ts-fill { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; padding: 2px 0 10px; font-size: 13px; color: var(--text-secondary); }
+  .ts-fill b { font-size: 18px; color: var(--lavender-700); }
+  .ts-fill span { font-size: 12px; color: var(--text-muted); }
   .ts-row-head { padding: 0 0 2px; font-size: 11px; color: var(--text-muted); }
   .ts-row-head span:last-child { text-align: right; }
   .ts-bar { height: 10px; border-radius: 6px; background: var(--lavender-50); overflow: hidden; }
@@ -2628,23 +2631,30 @@ function renderTypeStats() {
     .sort((a, b) => typeRank(a[0]) - typeRank(b[0]) || b[1] - a[1]);
   const total = rows.reduce((a, [, n]) => a + n, 0);
   const max = Math.max(1, ...rows.map(([, n]) => n));
+  // 總名額：這個年度（或還沒上課）、沒取消的場次名額加總
+  const capList = sessions.filter(x => x.year === currentYear && x.status !== 'cancel' &&
+    (tsScope === 'all' || new Date(x.date) >= TODAY));
+  const totalCap = capList.reduce((a, x) => a + (Number(x.capacity) || 0), 0);
+  const capPct = n => totalCap ? (n / totalCap * 100) : 0;
+  const fmtPct = v => v > 0 && v < 1 ? '<1%' : `${Math.round(v)}%`;
   document.getElementById('tsYear').textContent = `${currentYear} 年度`;
   document.getElementById('tsBrief').textContent = total ? `・${rows.length} 個職類・共 ${total} 人` : '';
   if (actTab === 'stats') document.querySelector('.act-range').textContent = `${currentYear} 年度`;
   if (!rows.length) {
     chart.innerHTML = `<div class="ts-empty">${tsScope === 'upcoming' ? '還沒上課的場次目前沒有人報名' : `${currentYear} 年度目前還沒有人報名`}</div>`;
   } else {
-    chart.innerHTML = `<div class="ts-row ts-row-head"><span>職類</span><span></span><span>人數　占比</span></div>` + rows.map(([t, n]) => {
-      const pct = Math.round(n / total * 100);
+    chart.innerHTML = `<div class="ts-fill">報名率 <b>${fmtPct(capPct(total))}</b><span>已報名 ${total} 人 ÷ 總名額 ${totalCap} 人</span></div>
+      <div class="ts-row ts-row-head"><span>職類</span><span></span><span>人數　占名額</span></div>` + rows.map(([t, n]) => {
+      const pct = fmtPct(capPct(n));
       return `<div class="ts-row">
         <span class="ts-name" title="${t}">${typeShort(t)}</span>
         <span class="ts-bar"><span style="width:${Math.max(3, n / max * 100)}%"></span></span>
-        <span class="ts-num"><b>${n}</b> 人<span class="ts-pct">${pct}%</span></span>
+        <span class="ts-num"><b>${n}</b> 人<span class="ts-pct">${pct}</span></span>
       </div>`;
     }).join('');
   }
   const t = new Date(typeStats.updatedAt);
-  note.textContent = isNaN(t) ? '' : `占比＝該職類人數 ÷ 總人數・統計時間 ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}・已排除取消的報名與取消的場次`;
+  note.textContent = isNaN(t) ? '' : `占名額＝該職類人數 ÷ 總名額（不含取消的場次）・統計時間 ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}・已排除取消的報名與取消的場次`;
 }
 
 /* ---------- 最新動態（近兩個月的報名異動） ---------- */
