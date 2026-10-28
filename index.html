@@ -957,6 +957,145 @@
   body.admin-mode .card-edit-btn { display: block; }
   body.admin-mode .btn-register { display: none; }
 
+  /* ===== 報名須知 ===== */
+  .howto {
+    background: var(--lavender-50);
+    border-radius: var(--radius-md);
+    margin-bottom: 14px;
+  }
+  .howto summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .howto summary::-webkit-details-marker { display: none; }
+  .howto-icon {
+    width: 22px; height: 22px; flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--lavender-500); color: white;
+    font-family: Georgia, serif; font-style: italic; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .howto-title { font-size: 14px; font-weight: 700; color: var(--lavender-900); white-space: nowrap; }
+  .howto-brief { flex: 1; min-width: 0; font-size: 13px; color: var(--text-secondary); }
+  .howto-toggle {
+    display: inline-flex; align-items: center; gap: 2px;
+    font-size: 12px; color: var(--lavender-700); white-space: nowrap;
+  }
+  .howto-toggle svg { width: 15px; height: 15px; transition: transform .2s ease; }
+  .howto[open] .howto-toggle svg { transform: rotate(180deg); }
+  .howto-close-text { display: none; }
+  .howto[open] .howto-open-text { display: none; }
+  .howto[open] .howto-close-text { display: inline; }
+  .howto-list {
+    margin: 0 14px;
+    padding: 4px 0 0 20px;
+    border-top: 1px solid var(--lavender-100);
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.75;
+  }
+  .howto-list li { padding: 4px 0; }
+  .howto-list b { color: var(--text-primary); font-weight: 600; }
+  .howto-contact { font-size: 13px; color: var(--lavender-700); padding: 8px 14px 14px 34px; }
+
+  /* ===== 下一場課程 ===== */
+  .next-card {
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr) auto;
+    align-items: center;
+    gap: 6px 18px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(1.2px 1.2px at 12% 30%, rgba(255,255,255,.8), transparent),
+      radial-gradient(1px 1px at 38% 78%, rgba(255,255,255,.6), transparent),
+      radial-gradient(1.3px 1.3px at 72% 20%, rgba(255,255,255,.75), transparent),
+      radial-gradient(160px 90px at 100% 0%, rgba(232,196,104,.22), transparent),
+      linear-gradient(135deg, #2D2A5C 0%, #4A4380 100%);
+    color: #EDEBFA;
+  }
+  .next-card.hidden { display: none; }
+  .next-date {
+    width: 74px; height: 74px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.1);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    line-height: 1.1;
+  }
+  .next-date-day { font-family: 'Noto Serif TC', serif; font-size: 24px; font-weight: 600; color: #FFF7DE; }
+  .next-date-wday { font-size: 12px; color: #CFC9F0; margin-top: 4px; }
+  .next-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; letter-spacing: .06em;
+    color: var(--starlight-gold-soft);
+  }
+  .next-countdown {
+    font-size: 11px; font-weight: 600; letter-spacing: 0;
+    background: var(--starlight-gold); color: var(--night-deep);
+    padding: 1px 8px; border-radius: 20px;
+  }
+  .next-meta { font-size: 14px; margin-top: 4px; color: #EDEBFA; }
+  .next-meta .pending { color: #FFD98A; }
+  .next-units { font-size: 13px; color: #CFC9F0; margin-top: 4px; line-height: 1.6; }
+  .next-side { text-align: right; }
+  .next-count { font-size: 13px; color: #CFC9F0; white-space: nowrap; }
+  .next-count strong { font-size: 24px; font-weight: 700; color: #FFFFFF; font-variant-numeric: tabular-nums; }
+  .next-bar { width: 120px; height: 5px; border-radius: 4px; background: rgba(255,255,255,.15); margin: 6px 0 10px auto; overflow: hidden; }
+  .next-bar span { display: block; height: 100%; border-radius: 4px; background: var(--starlight-gold); }
+  .next-btn {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 16px; min-height: 38px;
+    border: none; border-radius: 20px;
+    background: var(--cream); color: var(--lavender-900);
+    cursor: pointer;
+  }
+  .next-btn:hover { background: white; }
+  .next-btn.go { background: var(--starlight-gold); color: var(--night-deep); }
+
+  /* ===== 已結束場次收合列 ===== */
+  .past-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px dashed var(--border-md);
+    border-radius: var(--radius-md);
+    background: transparent;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px; color: var(--text-muted);
+    cursor: pointer;
+  }
+  .past-toggle:hover { background: var(--surface); color: var(--lavender-700); border-color: var(--lavender-300); }
+  .past-toggle svg { width: 15px; height: 15px; transition: transform .2s ease; }
+  .past-toggle.is-open svg { transform: rotate(180deg); }
+
+  @media (max-width: 640px) {
+    .howto-brief { display: none; }
+    .howto-toggle { margin-left: auto; }
+    .howto-list { font-size: 13px; }
+    .howto-contact { padding-left: 14px; }
+    .next-card {
+      grid-template-columns: auto minmax(0,1fr);
+      padding: 14px;
+      gap: 10px 14px;
+    }
+    .next-date { width: 62px; height: 62px; }
+    .next-date-day { font-size: 20px; }
+    .next-side {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 12px;
+      text-align: left;
+    }
+    .next-bar { flex: 1; margin: 0; width: auto; }
+    .next-btn { flex-shrink: 0; }
+  }
+
   /* ===== 管理者：報名名單 ===== */
   .adm-reg-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .adm-reg-add {
@@ -1611,6 +1750,30 @@
     </div>
   </div>
 
+  <!-- 報名須知 -->
+  <details class="howto" id="howto">
+    <summary>
+      <span class="howto-icon">i</span>
+      <span class="howto-title">報名須知</span>
+      <span class="howto-brief">開課前 14 天截止・人數含帶班老師・確認信可修改或取消</span>
+      <span class="howto-toggle"><span class="howto-open-text">看完整說明</span><span class="howto-close-text">收起</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </summary>
+    <ol class="howto-list">
+      <li><b>怎麼報名：</b>點選想參加的場次，展開後按「立即報名」，填寫姓名、信箱、職類、單位和人數。</li>
+      <li><b>人數怎麼填：</b>同一個單位可以一起報名，人數請填<b>所有參加的人（含帶班老師）</b>。</li>
+      <li><b>報名截止：</b>每場在<b>開課前 14 天</b>截止，之後顯示「已截止報名」。</li>
+      <li><b>場地確認中的場次：</b>也可以先報名，先開放 15 個名額，場地確定後會寄信通知。</li>
+      <li><b>修改或取消：</b>報名後會收到確認信，點信裡的「管理我的報名」就能改人數或取消，名額會自動退回。</li>
+      <li><b>上課當天：</b>請在開始前 5 分鐘到場地報到。</li>
+    </ol>
+    <div class="howto-contact">有問題請洽 教學部 楊宜婷・分機 57429</div>
+  </details>
+
+  <!-- 下一場課程 -->
+  <div class="next-card hidden" id="nextCard"></div>
+
   <!-- STATS ROW -->
   <div class="stats-row" id="statsRow">
     <div class="stat-card">
@@ -2157,6 +2320,7 @@ function goToSession(id) {
   const s = sessions.find(x => x.id === id);
   if (!s) { showToast('這個場次目前不在清單中', ''); return; }
   if (s.year !== currentYear) switchYear(s.year);
+  if (new Date(s.date) < TODAY && !showPast) { showPast = true; renderCards(); }
   if (currentFilter !== 'all' || currentMonths.size) {
     currentFilter = 'all';
     currentMonths.clear();
@@ -2203,6 +2367,7 @@ function markUpdatedCards(oldData, newData) {
 
 /* ---------- RENDER ---------- */
 function renderAll() {
+  renderNextCard();
   renderStats();
   buildMonthChips();
   renderCards();
@@ -2264,6 +2429,9 @@ function clearMonthFilter() {
   buildMonthChips();
 }
 
+let showPast = false;
+function togglePast() { showPast = !showPast; renderCards(); }
+
 function renderCards() {
   const grid = document.getElementById('courseGrid');
   let filtered = sessions.filter(s => s.year === currentYear);
@@ -2305,14 +2473,25 @@ function renderCards() {
   document.getElementById('cardCount').textContent = `${monthLabel}共 ${filtered.length} 場`;
 
   filtered = filtered.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
-  const distinctMonths = new Set(filtered.map(s => new Date(s.date).getMonth() + 1));
-  const showDividers = distinctMonths.size > 1;
 
+  // 「全部場次」且沒選月份時，已結束的場次先收起來，讓接下來的課排在最前面
   let html = '';
+  const collapsePast = currentFilter === 'all' && currentMonths.size === 0;
+  const pastList = collapsePast ? filtered.filter(s => new Date(s.date) < TODAY) : [];
+  if (pastList.length && pastList.length < filtered.length) {
+    html += `<button class="past-toggle ${showPast ? 'is-open' : ''}" onclick="togglePast()">
+      ${showPast ? '收起已結束的場次' : `已結束的 ${pastList.length} 場已收起，點此顯示`}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>`;
+    if (!showPast) filtered = filtered.filter(s => new Date(s.date) >= TODAY);
+  }
+  const distinctMonths2 = new Set(filtered.map(s => new Date(s.date).getMonth() + 1));
+  const showDividers2 = distinctMonths2.size > 1;
+
   let lastMonth = null;
   filtered.forEach(s => {
     const m = new Date(s.date).getMonth() + 1;
-    if (showDividers && m !== lastMonth) {
+    if (showDividers2 && m !== lastMonth) {
       const color = MONTH_COLORS[m];
       html += `<div class="month-divider"><span class="month-divider-dot" style="background:${color}"></span>${m} 月</div>`;
       lastMonth = m;
@@ -2363,7 +2542,7 @@ function buildCard(s) {
 
   const statusClass = isCancel ? 'status-cancel' : isPast ? 'status-ended' : isFull ? 'status-full' : isLocked ? 'status-locked' : 'status-open';
   const badgeClass  = isCancel ? 'badge-cancel'  : isPast ? 'badge-cancel' : isFull ? 'badge-full'  : isLocked ? 'badge-locked' : 'badge-open';
-  const badgeText   = isCancel ? '已取消' : isPast ? '已結束' : isFull ? '額滿' : isLocked ? '報名未開放' : '可報名';
+  const badgeText   = isCancel ? '已取消' : isPast ? '已結束' : isFull ? '額滿' : isLocked ? '已截止報名' : '可報名';
 
   const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
   const weekdays = ['日','一','二','三','四','五','六'];
@@ -2392,7 +2571,7 @@ function buildCard(s) {
     } else if (isPast) {
       btnHtml = `<button class="btn-register" disabled>已結束</button>`;
     } else if (isLocked) {
-      btnHtml = `<button class="btn-register btn-locked" disabled>📋 開課前 ${daysUntil} 天・報名未開放</button>`;
+      btnHtml = `<button class="btn-register btn-locked" disabled>已截止報名（開課前 14 天截止）</button>`;
     } else {
       btnHtml = `<button class="btn-register open" onclick="openRegisterModal('${s.id}')">立即報名</button>`;
     }
@@ -2457,6 +2636,46 @@ function buildCard(s) {
   </div>`;
 }
 
+/* ---------- 下一場課程 ---------- */
+function renderNextCard() {
+  const box = document.getElementById('nextCard');
+  const upcoming = sessions
+    .filter(s => new Date(s.date) >= TODAY && s.status !== 'cancel')
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (!upcoming.length) { box.classList.add('hidden'); return; }
+  const s = upcoming[0];
+  const d = new Date(s.date);
+  const wd = ['日','一','二','三','四','五','六'][d.getDay()];
+  const days = Math.round((d - TODAY) / 86400000);
+  const countdown = days <= 0 ? '今天' : days === 1 ? '明天' : `還有 ${days} 天`;
+  const isLocked = days <= 14 && !s.adminUnlocked;
+  const isFull = s.remaining === 0;
+  const canReg = !isLocked && !isFull && !isAdmin;
+  const pct = s.capacity ? Math.min(100, Math.round((s.registered || 0) / s.capacity * 100)) : 0;
+  const venue = s.venue
+    ? `<span class="nowrap">${s.venue}</span>${(VENUE_DB[s.venue]?.building) ? '・<span class="nowrap">' + VENUE_DB[s.venue].building + '</span>' : ''}`
+    : '<span class="pending nowrap">場地確認中</span>';
+  const stateText = `・<span class="nowrap">${isFull ? '已額滿' : isLocked ? '已截止報名' : '可報名'}</span>`;
+  box.innerHTML = `
+    <div class="next-date">
+      <span class="next-date-day">${d.getMonth()+1}/${d.getDate()}</span>
+      <span class="next-date-wday">週${wd}</span>
+    </div>
+    <div class="next-info">
+      <div class="next-label">下一場課程 <span class="next-countdown">${countdown}</span></div>
+      <div class="next-meta"><span class="nowrap">13:00 – 14:00</span>・${venue}${stateText}</div>
+      <div class="next-units">${s.registrants ? '已報名：' + s.registrants : '目前還沒有單位報名'}</div>
+    </div>
+    <div class="next-side">
+      <div class="next-count"><strong>${s.registered || 0}</strong> / ${s.capacity || '—'} 人</div>
+      <div class="next-bar"><span style="width:${pct}%"></span></div>
+      ${canReg
+        ? `<button class="next-btn go" onclick="openRegisterModal('${s.id}')">立即報名</button>`
+        : `<button class="next-btn" onclick="goToSession('${s.id}')">查看場次</button>`}
+    </div>`;
+  box.classList.remove('hidden');
+}
+
 /* ---------- FILTER ---------- */
 function setFilter(f, btn) {
   currentFilter = f;
@@ -2470,6 +2689,7 @@ function setFilter(f, btn) {
 function switchYear(yr) {
   currentYear = yr;
   currentMonths.clear();
+  showPast = false;
   currentFilter = 'all';
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   const allChip = document.querySelector('.filter-chip[data-filter="all"]');
