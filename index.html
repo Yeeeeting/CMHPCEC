@@ -2547,7 +2547,8 @@ async function doRegEdit() {
     const json = await res.json();
     if (!json.success) { showToast(json.message || '更新失敗', 'error'); return; }
     closeModal('editRegModal');
-    showToast('報名資訊已更新，確認信已重新寄出', 'success');
+    if (json.emailFailed) showToast('已完成，但通知信沒有寄出（可能已達今日寄信上限），資料已正確更新，不需要重新操作', 'error');
+    else showToast('報名資訊已更新，確認信已重新寄出', 'success');
     loadSessions(true);
   } catch(e) {
     showToast('連線失敗，請重試', 'error');
@@ -2564,6 +2565,7 @@ async function doRegCancel() {
     });
     const json = await res.json();
     if (!json.success) { showToast(json.message || '取消失敗', 'error'); return; }
+    if (json.emailFailed) showToast('已完成，但通知信沒有寄出（可能已達今日寄信上限），資料已正確更新，不需要重新操作', 'error');
 
     document.getElementById('editRegContent').style.display   = 'none';
     document.getElementById('editRegCancelled').style.display = 'block';
@@ -2659,6 +2661,7 @@ async function submitRegistration() {
   if (!s || s.remaining <= 0) { showToast('此場次名額已滿或無法報名', 'error'); return; }
   if (count > s.remaining) { showToast(`目前尚餘 ${s.remaining} 名，請調整人數`, 'error'); return; }
 
+  let mailFailed = false;
   const payload = { action: 'register', sessionId: pendingSessionId, name, email, phone, type, unit, count, timestamp: new Date().toISOString() };
 
   try {
@@ -2666,6 +2669,7 @@ async function submitRegistration() {
       const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
       const json = await res.json();
       if (!json.success) { showToast(json.message || '報名失敗', 'error'); return; }
+      if (json.emailFailed) mailFailed = true;
     }
     // 樂觀更新本機
     s.registered = (s.registered || 0) + count;
@@ -2676,12 +2680,14 @@ async function submitRegistration() {
     renderAll();
     closeModal('registerModal');
     if (adminRegMode) {
-      showToast(email ? `已代為報名，確認信已寄至 ${email}` : '已代為報名（未填信箱，不寄確認信）', 'success');
+      if (mailFailed && email) showToast('已代為報名，但確認信沒有寄出（可能已達今日寄信上限）', 'error');
+      else showToast(email ? `已代為報名，確認信已寄至 ${email}` : '已代為報名（未填信箱，不寄確認信）', 'success');
       await loadSessions(true);
       loadActivity();
       if (reopenEditAfterReg) { reopenEditAfterReg = false; openEditModal(pendingSessionId); }
     } else {
-      showToast(`報名成功！確認信已寄至 ${email}`, 'success');
+      if (mailFailed) showToast('報名成功！但確認信暫時沒有寄出（可能已達今日寄信上限），報名已完成，請勿重複報名', 'error');
+      else showToast(`報名成功！確認信已寄至 ${email}`, 'success');
     }
   } catch(e) {
     showToast('網路錯誤，請重試', 'error');
@@ -2786,6 +2792,7 @@ async function admPost(payload, okMsg) {
     const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
     const json = await res.json();
     if (!json.success) { showToast(json.message || '更新失敗', 'error'); }
+    else if (json.emailFailed) showToast(okMsg + '（通知信沒有寄出，可能已達今日寄信上限）', 'error');
     else showToast(okMsg, 'success');
   } catch (e) {
     showToast('網路錯誤，請重試', 'error');
