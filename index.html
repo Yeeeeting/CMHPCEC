@@ -2841,8 +2841,9 @@ const PENDING_CAPACITY = 15;   // 還沒借到場地時，保守先開放的名�
 function applyPendingVenue(s) {
   if (!s.venue && !Number(s.capacity) && s.status !== 'cancel') {
     s.capacity  = PENDING_CAPACITY;
-    s.remaining = Math.max(0, PENDING_CAPACITY - (s.registered || 0));
   }
+  // 剩餘名額一律用「名額 − 已報名」重算，避免 Sheet 裡的剩餘欄沒跟著更新而顯示錯誤（例如 0/24 卻顯示額滿）
+  if (Number(s.capacity) > 0) s.remaining = Math.max(0, Number(s.capacity) - (Number(s.registered) || 0));
   return s;
 }
 const expandedIds = new Set();   // 記住哪些場次是展開的（自動更新資料重繪時不會被收起）
