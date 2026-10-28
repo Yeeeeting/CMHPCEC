@@ -918,20 +918,26 @@
   .admin-toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-tool {
     font-family: 'Noto Sans TC', sans-serif;
-    font-size: 12px;
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.08);
-    color: var(--lavender-100);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 9px 18px;
+    min-height: 40px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--cream);
+    color: var(--lavender-900);
     cursor: pointer;
-    transition: background .15s;
+    transition: background .15s, transform .15s, box-shadow .15s;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 7px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   }
-  .btn-tool:hover { background: rgba(255,255,255,0.18); }
-  .btn-tool svg { width: 13px; height: 13px; }
+  .btn-tool:hover { background: #FFFFFF; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+  .btn-tool svg { width: 16px; height: 16px; color: var(--lavender-500); }
+  .btn-tool.primary { background: var(--starlight-gold); color: var(--night-deep); }
+  .btn-tool.primary:hover { background: #F2D17E; }
+  .btn-tool.primary svg { color: var(--night-deep); }
 
   /* 管理者編輯按鈕（在展開區內） */
   .card-edit-btn {
@@ -1368,7 +1374,7 @@
 
     /* Admin toolbar */
     .admin-toolbar { padding: 12px 16px; }
-    .btn-tool { font-size: 11px; padding: 5px 10px; }
+    .btn-tool { font-size: 13px; padding: 8px 12px; }
 
     /* Main */
     .content-inner { padding: 20px 16px 48px; }
@@ -1430,7 +1436,7 @@
 
     /* Admin toolbar */
     .admin-toolbar-actions { width: 100%; }
-    .btn-tool { flex: 1; justify-content: center; font-size: 11px; }
+    .btn-tool { flex: 1 1 auto; justify-content: center; font-size: 13px; }
 
     /* Toast */
     .toast-container { bottom: 16px; right: 12px; left: 12px; }
@@ -1538,7 +1544,7 @@
   <div class="admin-toolbar" id="adminToolbar">
     <div class="admin-toolbar-title">🔐 管理者模式</div>
     <div class="admin-toolbar-actions">
-      <button class="btn-tool" onclick="downloadCSV()">
+      <button class="btn-tool primary" onclick="downloadCSV()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         下載整年報名 CSV
       </button>
