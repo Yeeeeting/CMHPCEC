@@ -58,11 +58,11 @@
 
   html {
     overflow-x: hidden;
-    background: var(--night-deep);
+    background: var(--cream);
   }
   body {
     font-family: 'Noto Sans TC', sans-serif;
-    background: linear-gradient(180deg, var(--night-deep) 0%, var(--night-mid) 100%);
+    background: var(--cream);
     color: var(--text-primary);
     font-size: 16px;
     line-height: 1.7;
@@ -440,6 +440,12 @@
   }
   .month-chip.past:hover { opacity: 0.65; border-color: var(--border-md); color: var(--text-secondary); }
   .month-chip.past.active { opacity: 1; }
+  .month-chip.all-months-chip {
+    font-weight: 500;
+    border-right: 1px solid var(--border-md);
+    margin-right: 4px;
+    padding-right: 15px;
+  }
 
   /* 月份 chip active 顏色跟隨狀態篩選 */
   .month-chip.active                      { background: var(--lavender-100); border-color: var(--lavender-300); color: var(--lavender-700); font-weight: 500; }
@@ -1050,7 +1056,7 @@
     <div class="month-filter-row">
       <span class="month-filter-label">月份</span>
       <div class="month-filter-bar" id="monthFilterBar">
-        <button class="month-chip active" data-month="0" onclick="setMonthFilter(0, this)">全年</button>
+        <button class="month-chip all-months-chip active" data-month="0" onclick="clearMonthFilter()">全年</button>
       </div>
     </div>
   </div>
@@ -1366,7 +1372,7 @@ let sessions   = [];          // 全部場次陣列
 let isAdmin    = false;       // 管理者模式
 let adminToken = null;        // 登入後的 token（由 Apps Script 回傳）
 let currentFilter = 'all';
-let currentMonth  = 0;
+let currentMonths = new Set();  // 複選月份；空集合＝全年
 let pendingSessionId = null;
 let lastFetchHash = null;
 let editRegToken  = null;   // 報名者編輯 token（從 URL 取得）
@@ -1461,8 +1467,8 @@ function buildMonthChips() {
   const yr115 = sessions.filter(s => s.year === 115);
   const monthsPresent = [...new Set(yr115.map(s => new Date(s.date).getMonth() + 1))].sort((a,b)=>a-b);
   const bar = document.getElementById('monthFilterBar');
-  const allActive = currentMonth === 0 ? 'active' : '';
-  let html = `<button class="month-chip ${allActive}" data-month="0" onclick="setMonthFilter(0,this)">全年</button>`;
+  const allActive = currentMonths.size === 0 ? 'active' : '';
+  let html = `<button class="month-chip all-months-chip ${allActive}" data-month="0" onclick="clearMonthFilter()">全年</button>`;
   monthsPresent.forEach(m => {
     const inMonth = yr115.filter(s => new Date(s.date).getMonth()+1 === m);
     const allPast = inMonth.every(s => new Date(s.date) < TODAY);
@@ -1470,14 +1476,24 @@ function buildMonthChips() {
     const allCancelled = inMonth.every(s => s.status === 'cancel');
     const dotClass = allCancelled || allPast ? 'all-cancel' : hasOpen ? 'has-open' : 'all-full';
     const pastClass = allPast ? 'past' : '';
-    const isActive = currentMonth === m ? 'active' : '';
-    html += `<button class="month-chip ${dotClass} ${pastClass} ${isActive}" data-month="${m}" onclick="setMonthFilter(${m},this)">${m} 月<span class="month-dot"></span></button>`;
+    const isActive = currentMonths.has(m) ? 'active' : '';
+    html += `<button class="month-chip ${dotClass} ${pastClass} ${isActive}" data-month="${m}" onclick="toggleMonthFilter(${m})">${m} 月<span class="month-dot"></span></button>`;
   });
   bar.innerHTML = html;
 }
 
-function setMonthFilter(m, btn) {
-  currentMonth = m;
+function toggleMonthFilter(m) {
+  if (currentMonths.has(m)) {
+    currentMonths.delete(m);
+  } else {
+    currentMonths.add(m);
+  }
+  renderCards();
+  buildMonthChips();
+}
+
+function clearMonthFilter() {
+  currentMonths.clear();
   renderCards();
   buildMonthChips();
 }
@@ -1486,9 +1502,9 @@ function renderCards() {
   const grid = document.getElementById('courseGrid');
   let filtered = sessions.filter(s => s.year === 115);
 
-  // 月份篩選
-  if (currentMonth > 0) {
-    filtered = filtered.filter(s => new Date(s.date).getMonth() + 1 === currentMonth);
+  // 月份篩選（複選）
+  if (currentMonths.size > 0) {
+    filtered = filtered.filter(s => currentMonths.has(new Date(s.date).getMonth() + 1));
   }
 
   // 狀態篩選
@@ -1516,7 +1532,8 @@ function renderCards() {
     filtered = filtered.filter(s => new Date(s.date) < TODAY && s.status !== 'cancel');
   }
 
-  const monthLabel = currentMonth > 0 ? `${currentMonth} 月・` : '';
+  const sortedMonths = [...currentMonths].sort((a,b)=>a-b);
+  const monthLabel = sortedMonths.length > 0 ? `${sortedMonths.join('、')} 月・` : '';
   document.getElementById('cardCount').textContent = `${monthLabel}共 ${filtered.length} 場`;
   grid.innerHTML = filtered.map(s => buildCard(s)).join('');
 }
