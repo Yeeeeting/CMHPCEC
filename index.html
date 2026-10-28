@@ -1971,33 +1971,31 @@
     .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.12; }
   }
 
-  /* ===== 已報名職類分析 ===== */
-  .type-stats { background: var(--surface); border-radius: var(--radius-md); margin: 0 0 14px; box-shadow: 0 1px 2px rgba(74,69,146,0.06); }
-  .type-stats summary {
-    list-style: none; display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px; min-height: 48px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  /* ===== 最新動態：分頁（動態／職類分析） ===== */
+  .act-tabs { display: flex; gap: 4px; padding: 10px 14px 0; border-bottom: 1px solid var(--lavender-100); }
+  .act-tab {
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    padding: 8px 14px; min-height: 40px;
+    background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    color: var(--text-muted); cursor: pointer;
   }
-  .type-stats summary::-webkit-details-marker { display: none; }
-  .ts-icon { width: 18px; height: 18px; color: var(--lavender-500); flex-shrink: 0; }
-  .ts-title { font-size: 14px; font-weight: 700; color: var(--lavender-900); white-space: nowrap; }
-  .ts-brief { flex: 1; font-size: 13px; color: var(--text-muted); }
-  .ts-chev { width: 18px; height: 18px; color: var(--text-muted); margin-left: auto; transition: transform .25s ease; flex-shrink: 0; }
-  .type-stats[open] .ts-chev { transform: rotate(180deg); }
-  .ts-body { padding: 0 14px 14px; border-top: 1px solid var(--lavender-50); }
-  .ts-scope { display: flex; gap: 6px; padding: 12px 0 10px; }
-  .ts-row { display: grid; grid-template-columns: 76px minmax(0,1fr) 92px; align-items: center; gap: 10px; padding: 5px 0; }
+  .act-tab.active { color: var(--lavender-700); border-bottom-color: var(--lavender-500); }
+  .act-pane { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+  .act-pane.hidden { display: none; }
+  .ts-pane { overflow-y: auto; padding: 12px 14px 16px; overscroll-behavior: contain; }
+  .ts-head { font-size: 13px; color: var(--text-secondary); }
+  .ts-head #tsYear { font-weight: 700; color: var(--lavender-900); }
+  .ts-brief { color: var(--text-muted); }
+  .ts-scope { display: flex; gap: 6px; padding: 10px 0 8px; }
+  .ts-row { display: grid; grid-template-columns: 64px minmax(0,1fr) 82px; align-items: center; gap: 8px; padding: 6px 0; }
   .ts-name { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
   .ts-bar { height: 10px; border-radius: 6px; background: var(--lavender-50); overflow: hidden; }
   .ts-bar span { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--lavender-300), var(--lavender-500)); transition: width .4s ease; }
   .ts-num { font-size: 13px; color: var(--text-muted); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .ts-num b { color: var(--text-primary); font-weight: 700; }
-  .ts-pct { display: inline-block; min-width: 38px; margin-left: 6px; color: var(--text-muted); }
+  .ts-pct { display: inline-block; min-width: 34px; margin-left: 4px; }
   .ts-empty { font-size: 13px; color: var(--text-muted); padding: 10px 0; }
-  .ts-note { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
-  @media (max-width: 640px) {
-    .ts-brief { display: none; }
-    .ts-row { grid-template-columns: 64px minmax(0,1fr) 84px; gap: 8px; }
-  }
+  .ts-note { font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -2163,24 +2161,6 @@
     </div>
   </div>
 
-  <!-- 職類分析 -->
-  <details class="type-stats" id="typeStats" ontoggle="if(this.open) loadTypeStats()">
-    <summary>
-      <svg class="ts-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="20" x2="4" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="13"/><line x1="22" y1="20" x2="2" y2="20"/></svg>
-      <span class="ts-title">已報名職類分析</span>
-      <span class="ts-brief" id="tsBrief"></span>
-      <svg class="ts-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </summary>
-    <div class="ts-body">
-      <div class="ts-scope">
-        <button class="act-scope-btn active" data-ts="all" onclick="setTsScope('all')">整個年度</button>
-        <button class="act-scope-btn" data-ts="upcoming" onclick="setTsScope('upcoming')">還沒上課的場次</button>
-      </div>
-      <div id="tsChart"></div>
-      <div class="ts-note" id="tsNote"></div>
-    </div>
-  </details>
-
   <!-- COURSE GRID -->
   <div class="course-grid" id="courseGrid"></div>
 
@@ -2210,12 +2190,27 @@
       </button>
     </div>
   </div>
-  <div class="act-scope">
-    <button class="act-scope-btn active" data-scope="all" onclick="setActScope('all')">全部</button>
-    <button class="act-scope-btn" data-scope="upcoming" onclick="setActScope('upcoming')">只看還沒上課的場次</button>
+  <div class="act-tabs" role="tablist">
+    <button class="act-tab active" data-tab="feed" role="tab" onclick="setActTab('feed')">動態</button>
+    <button class="act-tab" data-tab="stats" role="tab" onclick="setActTab('stats')">職類分析</button>
   </div>
-  <div class="act-summary" id="actSummary"></div>
-  <div class="act-list" id="actList"></div>
+  <div class="act-pane" id="actPaneFeed">
+    <div class="act-scope">
+      <button class="act-scope-btn active" data-scope="all" onclick="setActScope('all')">全部</button>
+      <button class="act-scope-btn" data-scope="upcoming" onclick="setActScope('upcoming')">只看還沒上課的場次</button>
+    </div>
+    <div class="act-summary" id="actSummary"></div>
+    <div class="act-list" id="actList"></div>
+  </div>
+  <div class="act-pane ts-pane hidden" id="actPaneStats">
+    <div class="ts-head"><span id="tsYear"></span><span class="ts-brief" id="tsBrief"></span></div>
+    <div class="ts-scope">
+      <button class="act-scope-btn active" data-ts="all" onclick="setTsScope('all')">整個年度</button>
+      <button class="act-scope-btn" data-ts="upcoming" onclick="setTsScope('upcoming')">還沒上課的場次</button>
+    </div>
+    <div id="tsChart"></div>
+    <div class="ts-note" id="tsNote"></div>
+  </div>
 </aside>
 <button class="activity-fab" id="activityFab" onclick="openActivity()" aria-label="開啟最新動態">
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c.4 0 .8.2 1 .6l2.4 4.9 5.4.8c.9.1 1.3 1.2.6 1.9l-3.9 3.8.9 5.4c.2.9-.8 1.6-1.6 1.2L12 18.3l-4.8 2.5c-.8.4-1.8-.3-1.6-1.2l.9-5.4-3.9-3.8c-.7-.7-.3-1.8.6-1.9l5.4-.8L11 2.8c.2-.4.6-.6 1-.6Z"/></svg>
@@ -2514,7 +2509,7 @@ const TODAY = getTodayTaipei();
 /* ---------- INIT ---------- */
 window.addEventListener('DOMContentLoaded', () => {
   renderSkeleton();
-  loadSessions().then(() => { loadActivity(); loadTypeStats(); });   // 職類分析先抓一次，收合時也看得到總人數
+  loadSessions().then(loadActivity);
   setInterval(checkForUpdates, 15000);   // 每 15 秒自動更新一次
   // 分頁切回來時立刻更新一次
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdates(); });
@@ -2579,11 +2574,20 @@ async function checkForUpdates() {
   if (document.hidden) return;   // 分頁沒在看時不更新，減少後端負擔
   await loadSessions(true);
   loadActivity();
-  if (document.getElementById('typeStats')?.open) loadTypeStats();   // 只有展開時才更新職類分析
+  if (actTab === 'stats' && document.getElementById('activityPanel').classList.contains('show')) loadTypeStats();   // 看分析分頁時才更新
 }
 
 /* ---------- 已報名職類分析（後端從報名資料統計，暫存 1 分鐘） ---------- */
-let typeStats = null, tsScope = 'all';
+let typeStats = null, tsScope = 'all', actTab = 'feed';
+function setActTab(tab) {
+  actTab = tab;
+  document.querySelectorAll('.act-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('actPaneFeed').classList.toggle('hidden', tab !== 'feed');
+  document.getElementById('actPaneStats').classList.toggle('hidden', tab !== 'stats');
+  document.getElementById('actMarkRead').style.visibility = tab === 'feed' ? '' : 'hidden';
+  document.querySelector('.act-range').textContent = tab === 'feed' ? '近兩個月' : `${currentYear} 年度`;
+  if (tab === 'stats') { renderTypeStats(); loadTypeStats(); }
+}
 // 依評鑑順序：檢、護、營、呼、聽、物、職、心、語，其他職類排在後面
 const TYPE_ORDER = ['醫檢','護理','營養','呼吸治療','聽力','物理治療','職能治療','心理','語言治療','藥事','醫學系見'];
 function typeShort(t) { return String(t).replace('實習生','').replace('見實習生','見') || '其他'; }
@@ -2613,14 +2617,16 @@ function setTsScope(sc) {
 function renderTypeStats() {
   const chart = document.getElementById('tsChart');
   const note = document.getElementById('tsNote');
-  if (!typeStats) return;
+  if (!typeStats) { chart.innerHTML = '<div class="ts-empty">統計中…</div>'; return; }
   const y = (typeStats.years || {})[currentYear] || { all: {}, upcoming: {} };
   const map = y[tsScope] || {};
   const rows = Object.entries(map).filter(([, n]) => n > 0)
     .sort((a, b) => typeRank(a[0]) - typeRank(b[0]) || b[1] - a[1]);
   const total = rows.reduce((a, [, n]) => a + n, 0);
   const max = Math.max(1, ...rows.map(([, n]) => n));
-  document.getElementById('tsBrief').textContent = total ? `${rows.length} 個職類・共 ${total} 人` : '';
+  document.getElementById('tsYear').textContent = `${currentYear} 年度`;
+  document.getElementById('tsBrief').textContent = total ? `・${rows.length} 個職類・共 ${total} 人` : '';
+  if (actTab === 'stats') document.querySelector('.act-range').textContent = `${currentYear} 年度`;
   if (!rows.length) {
     chart.innerHTML = `<div class="ts-empty">${tsScope === 'upcoming' ? '還沒上課的場次目前沒有人報名' : `${currentYear} 年度目前還沒有人報名`}</div>`;
   } else {
