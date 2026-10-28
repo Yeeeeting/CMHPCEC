@@ -476,12 +476,36 @@
     background: var(--surface);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
+    border-left-width: 4px;
+    border-left-style: solid;
     overflow: hidden;
     box-shadow: var(--shadow-card);
     transition: box-shadow .2s, transform .2s;
     position: relative;
     display: flex;
     flex-direction: column;
+  }
+  .course-card.cancelled { border-left-color: var(--border-md) !important; }
+
+  /* 月份分組標題（複選多個月份／全年檢視時顯示，標示目前捲動到哪個月） */
+  .month-divider {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 4px 2px;
+    margin-top: 4px;
+  }
+  .month-divider:first-child { margin-top: 0; }
+  .month-divider-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
   }
   .course-card:hover {
     box-shadow: var(--shadow-hover);
@@ -1374,6 +1398,13 @@ let adminToken = null;        // 登入後的 token（由 Apps Script 回傳）
 let currentFilter = 'all';
 let currentMonths = new Set();  // 複選月份；空集合＝全年
 let currentYear   = 115;        // 目前檢視的年度
+
+// 月份色系（取自「星光引路」夜空插畫：深靛夜色 → 金色星光 → 霞光漸層，全年循環）
+const MONTH_COLORS = {
+  1:'#2A2756', 2:'#332F66', 3:'#443A74', 4:'#4A4380',
+  5:'#5C6FA0', 6:'#C9A06C', 7:'#E8C468', 8:'#E8A878',
+  9:'#E8A092', 10:'#C97A86', 11:'#8C5C74', 12:'#5C3F66',
+};
 let pendingSessionId = null;
 let lastFetchHash = null;
 let editRegToken  = null;   // 報名者編輯 token（從 URL 取得）
@@ -1537,9 +1568,24 @@ function renderCards() {
   const sortedMonths = [...currentMonths].sort((a,b)=>a-b);
   const monthLabel = sortedMonths.length > 0 ? `${sortedMonths.join('、')} 月・` : '';
   document.getElementById('cardCount').textContent = `${monthLabel}共 ${filtered.length} 場`;
-  grid.innerHTML = filtered.length
-    ? filtered.map(s => buildCard(s)).join('')
-    : `<div class="grid-empty">目前沒有符合條件的場次。</div>`;
+
+  filtered = filtered.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+  const distinctMonths = new Set(filtered.map(s => new Date(s.date).getMonth() + 1));
+  const showDividers = distinctMonths.size > 1;
+
+  let html = '';
+  let lastMonth = null;
+  filtered.forEach(s => {
+    const m = new Date(s.date).getMonth() + 1;
+    if (showDividers && m !== lastMonth) {
+      const color = MONTH_COLORS[m];
+      html += `<div class="month-divider"><span class="month-divider-dot" style="background:${color}"></span>${m} 月</div>`;
+      lastMonth = m;
+    }
+    html += buildCard(s);
+  });
+
+  grid.innerHTML = filtered.length ? html : `<div class="grid-empty">目前沒有符合條件的場次。</div>`;
 }
 
 function buildCard(s) {
@@ -1591,8 +1637,10 @@ function buildCard(s) {
     }
   }
 
+  const monthAccent = MONTH_COLORS[d.getMonth() + 1];
+
   return `
-  <div class="course-card ${statusClass} ${isCancel?'cancelled':''}" data-id="${s.id}">
+  <div class="course-card ${statusClass} ${isCancel?'cancelled':''}" data-id="${s.id}" style="border-left-color:${monthAccent}">
     <div class="card-status-bar"></div>
     <div class="card-update-dot"></div>
     <div class="card-header">
