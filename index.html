@@ -62,7 +62,7 @@
   }
   body {
     font-family: 'Noto Sans TC', sans-serif;
-    background: var(--night-deep);
+    background: transparent; /* 必須透明：body 底色會畫在星空 canvas 之上，把星星蓋掉 */
     color: var(--text-primary);
     font-size: 16px;
     line-height: 1.7;
