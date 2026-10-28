@@ -2813,8 +2813,10 @@ function monthSummary(list) {
     const fullN = active.filter(s => new Date(s.date) >= TODAY && s.remaining === 0).length;
     if (openN) parts.push(`<b class="ok">可報名 ${openN}</b>`);
     if (fullN) parts.push(`額滿 ${fullN}`);
-    if (active.length && active.every(s => !s.venue)) parts.push('<span class="tba">場地確認中</span>');
-    parts.push(`已報 ${reg} / ${cap} 人`);
+    const allPending = active.length && active.every(s => !s.venue);
+    if (allPending) parts.push(`<span class="tba">場地確認中・每場暫定 ${PENDING_CAPACITY} 名</span>`);
+    // 月份這行顯示的是「整個月合計」，加上「本月合計」避免誤會成單場名額
+    parts.push(`本月合計已報 ${reg} / ${cap} 人`);
   }
   if (list.length - active.length) parts.push(`取消 ${list.length - active.length}`);
   return parts.join('・');
