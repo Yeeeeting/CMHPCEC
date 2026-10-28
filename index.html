@@ -957,6 +957,48 @@
   body.admin-mode .card-edit-btn { display: block; }
   body.admin-mode .btn-register { display: none; }
 
+  /* ===== 管理者：報名名單 ===== */
+  .adm-reg-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .adm-reg-add {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: white; background: var(--sage-600);
+    border: none; border-radius: 20px;
+    padding: 6px 14px; cursor: pointer;
+  }
+  .adm-reg-add:hover { background: var(--sage-800); }
+  .adm-reg-list { display: flex; flex-direction: column; gap: 6px; }
+  .adm-reg-empty, .adm-reg-loading { font-size: 13px; color: var(--text-muted); padding: 10px 12px; background: var(--cream); border-radius: var(--radius-sm); }
+  .adm-reg {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+    padding: 8px 8px 8px 12px;
+  }
+  .adm-reg-info { flex: 1; min-width: 0; }
+  .adm-reg-main { font-size: 14px; color: var(--text-primary); }
+  .adm-reg-main b { font-weight: 700; color: var(--lavender-700); }
+  .adm-reg-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .adm-reg-btn {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px; font-weight: 500;
+    padding: 6px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text-secondary); cursor: pointer; white-space: nowrap;
+  }
+  .adm-reg-btn:hover { background: var(--lavender-50); color: var(--lavender-700); }
+  .adm-reg-btn.danger { color: var(--red-600); border-color: var(--red-300); }
+  .adm-reg-btn.danger:hover { background: var(--red-50); }
+  .adm-reg-btn.primary { background: var(--lavender-500); color: white; border-color: var(--lavender-500); }
+  .adm-reg-count { width: 64px; font-size: 14px; padding: 5px 8px; border: 1px solid var(--lavender-300); border-radius: var(--radius-sm); }
+  .card-actions .adm-help-btn {
+    width: 100%; min-height: 44px;
+    font-family: 'Noto Sans TC', sans-serif; font-size: 14px; font-weight: 500;
+    border-radius: var(--radius-md); border: none; cursor: pointer;
+    background: var(--sage-100); color: var(--sage-800);
+  }
+  .card-actions .adm-help-btn:hover { background: #C8E8D6; }
+
   /* ===== STATS ROW ===== */
   .stats-row {
     display: grid;
@@ -1679,7 +1721,7 @@
       <input type="text" class="form-input" id="regName" placeholder="請輸入真實姓名（帶班老師或負責人）" autocomplete="off">
     </div>
     <div class="form-group">
-      <label class="form-label">電子信箱 <span style="color:var(--red-600);font-size:12px;">必填・報名確認信將寄至此信箱</span></label>
+      <label class="form-label">電子信箱 <span id="regEmailHint" style="color:var(--red-600);font-size:12px;">必填・報名確認信將寄至此信箱</span></label>
       <input type="email" class="form-input" id="regEmail" placeholder="請輸入電子信箱" autocomplete="off">
     </div>
     <div class="form-group">
@@ -1746,7 +1788,14 @@
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">備註（已報名單位等）</label>
+      <div class="adm-reg-head">
+        <label class="form-label" style="margin:0;">報名名單</label>
+        <button type="button" class="adm-reg-add" onclick="adminRegisterFromEdit()">＋ 幫忙報名</button>
+      </div>
+      <div class="adm-reg-list" id="admRegList"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">備註（場次上顯示的已報名單位，報名異動時系統會自動更新）</label>
       <input type="text" class="form-input" id="editRegistrants" placeholder="護理5A學生16位、藥事4位...">
     </div>
     <div class="form-group" id="unlockGroup" style="display:none;">
@@ -2395,7 +2444,8 @@ function buildCard(s) {
           </div>
           <div class="card-actions">
             ${btnHtml}
-            ${isAdmin ? `<button class="card-edit-btn" onclick="openEditModal('${s.id}')">✏️ 編輯場次</button>` : ''}
+            ${isAdmin && !isCancel && !isPast ? `<button class="adm-help-btn" onclick="reopenEditAfterReg=false; openRegisterModal('${s.id}', true)">＋ 幫忙報名</button>` : ''}
+            ${isAdmin ? `<button class="card-edit-btn" onclick="openEditModal('${s.id}')">✏️ 編輯場次／報名名單</button>` : ''}
           </div>
           ${regText}
         </div>
@@ -2566,12 +2616,20 @@ function doLogout() {
 }
 
 /* ---------- REGISTER ---------- */
-function openRegisterModal(id) {
+let adminRegMode = false;       // 管理者代為報名：信箱選填、不受 14 天鎖定
+let reopenEditAfterReg = false; // 從「編輯場次」進來的，報名完回到編輯視窗
+
+function openRegisterModal(id, asAdmin = false) {
   pendingSessionId = id;
+  adminRegMode = !!(asAdmin && isAdmin);
+  document.getElementById('regEmailHint').textContent = adminRegMode
+    ? '選填・有填才會寄報名確認信（含修改連結）給對方'
+    : '必填・報名確認信將寄至此信箱';
+  document.getElementById('regEmailHint').style.color = adminRegMode ? 'var(--text-muted)' : 'var(--red-600)';
   const s = sessions.find(x => x.id === id);
   if (!s) return;
   const d = new Date(s.date);
-  document.getElementById('registerModalTitle').textContent = '報名課程';
+  document.getElementById('registerModalTitle').textContent = adminRegMode ? '管理者代為報名' : '報名課程';
   document.getElementById('registerModalSub').textContent =
     `${d.getMonth()+1}/${d.getDate()} · 13:00–14:00 · ${s.venue||'場地確認中（確定後寄信通知）'} · 尚餘 ${s.remaining} 名`;
   ['regName','regEmail','regPhone','regUnit','regCount'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
@@ -2587,10 +2645,10 @@ async function submitRegistration() {
   const unit  = document.getElementById('regUnit').value.trim();
   const count = parseInt(document.getElementById('regCount').value) || 0;
 
-  if (!name || !email || !type || !unit || count < 1) {
-    showToast('請填寫姓名、信箱、職類、單位及人數', 'error'); return;
+  if (!name || (!email && !adminRegMode) || !type || !unit || count < 1) {
+    showToast(adminRegMode ? '請填寫姓名、職類、單位及人數' : '請填寫姓名、信箱、職類、單位及人數', 'error'); return;
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     showToast('請輸入正確的電子信箱格式', 'error'); return;
   }
 
@@ -2614,7 +2672,14 @@ async function submitRegistration() {
     s.registrants = s.registrants ? s.registrants + '、' + tag : tag;
     renderAll();
     closeModal('registerModal');
-    showToast(`報名成功！確認信已寄至 ${email}`, 'success');
+    if (adminRegMode) {
+      showToast(email ? `已代為報名，確認信已寄至 ${email}` : '已代為報名（未填信箱，不寄確認信）', 'success');
+      await loadSessions(true);
+      loadActivity();
+      if (reopenEditAfterReg) { reopenEditAfterReg = false; openEditModal(pendingSessionId); }
+    } else {
+      showToast(`報名成功！確認信已寄至 ${email}`, 'success');
+    }
   } catch(e) {
     showToast('網路錯誤，請重試', 'error');
   }
@@ -2640,6 +2705,103 @@ function openEditModal(id) {
   document.getElementById('unlockGroup').style.display = showUnlock ? 'block' : 'none';
 
   openModal('editModal');
+  loadAdminRegs(id);
+}
+
+/* ---------- 管理者：報名名單（代為修改人數／取消） ---------- */
+let admRegs = [];
+
+async function loadAdminRegs(id) {
+  const box = document.getElementById('admRegList');
+  box.innerHTML = '<div class="adm-reg-loading">讀取報名名單中…</div>';
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'listRegistrations', sessionId: id, token: adminToken }) });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || '');
+    admRegs = json.registrations || [];
+    renderAdminRegs();
+  } catch (e) {
+    box.innerHTML = '<div class="adm-reg-empty">讀不到報名名單（請確認 Code.gs 已更新並重新部署）</div>';
+  }
+}
+
+function renderAdminRegs() {
+  const box = document.getElementById('admRegList');
+  if (!admRegs.length) { box.innerHTML = '<div class="adm-reg-empty">這場目前還沒有人報名</div>'; return; }
+  box.innerHTML = admRegs.map((r, i) => `
+    <div class="adm-reg" id="admReg${i}">
+      <div class="adm-reg-info">
+        <div class="adm-reg-main">${r.type.replace('實習生','')} ${r.unit}・<b>${r.count}</b> 人</div>
+        <div class="adm-reg-sub">${r.name}${r.email ? '・' + r.email : ''}${r.phone ? '・' + r.phone : ''}</div>
+      </div>
+      <button class="adm-reg-btn" onclick="admEditCount(${i})">改人數</button>
+      <button class="adm-reg-btn danger" onclick="admConfirmCancel(${i})">取消</button>
+    </div>`).join('');
+}
+
+function admEditCount(i) {
+  const r = admRegs[i];
+  document.getElementById('admReg' + i).innerHTML = `
+    <div class="adm-reg-info">
+      <div class="adm-reg-main">${r.type.replace('實習生','')} ${r.unit}</div>
+      <div class="adm-reg-sub">原本 ${r.count} 人</div>
+    </div>
+    <input type="number" class="adm-reg-count" id="admCount${i}" min="1" value="${r.count}">
+    <button class="adm-reg-btn primary" onclick="admSaveCount(${i})">儲存</button>
+    <button class="adm-reg-btn" onclick="renderAdminRegs()">返回</button>`;
+  document.getElementById('admCount' + i).focus();
+}
+
+function admConfirmCancel(i) {
+  const r = admRegs[i];
+  document.getElementById('admReg' + i).innerHTML = `
+    <div class="adm-reg-info">
+      <div class="adm-reg-main">確定取消 ${r.unit} 的 ${r.count} 人？</div>
+      <div class="adm-reg-sub">${r.email ? '會寄取消通知信給 ' + r.email : '未留信箱，不寄通知'}</div>
+    </div>
+    <button class="adm-reg-btn danger" onclick="admDoCancel(${i})">確定取消</button>
+    <button class="adm-reg-btn" onclick="renderAdminRegs()">返回</button>`;
+}
+
+async function admSaveCount(i) {
+  const r = admRegs[i];
+  const count = parseInt(document.getElementById('admCount' + i).value) || 0;
+  if (count < 1) { showToast('人數至少 1 人；要整筆取消請按「取消」', 'error'); return; }
+  if (count === r.count) { renderAdminRegs(); return; }
+  await admPost({ action: 'editRegistration', token: r.token, type: r.type, unit: r.unit, count }, `已將 ${r.unit} 改為 ${count} 人`);
+}
+
+async function admDoCancel(i) {
+  const r = admRegs[i];
+  await admPost({ action: 'cancelRegistration', token: r.token }, `已取消 ${r.unit} 的報名`);
+}
+
+async function admPost(payload, okMsg) {
+  const id = document.getElementById('editSessionId').value;
+  document.getElementById('admRegList').innerHTML = '<div class="adm-reg-loading">更新中…</div>';
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const json = await res.json();
+    if (!json.success) { showToast(json.message || '更新失敗', 'error'); }
+    else showToast(okMsg, 'success');
+  } catch (e) {
+    showToast('網路錯誤，請重試', 'error');
+  }
+  await loadSessions(true);
+  loadActivity();
+  const s = sessions.find(x => x.id === id);
+  if (s) {   // 同步編輯視窗裡的容額與備註，避免按「儲存」時用舊資料覆蓋
+    document.getElementById('editRegistrants').value = s.registrants || '';
+    document.getElementById('editCapacity').value = s.capacity || '';
+  }
+  loadAdminRegs(id);
+}
+
+function adminRegisterFromEdit() {
+  const id = document.getElementById('editSessionId').value;
+  reopenEditAfterReg = true;
+  closeModal('editModal');
+  openRegisterModal(id, true);
 }
 
 async function saveSessionEdit() {
