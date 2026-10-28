@@ -1946,7 +1946,9 @@ const TODAY = getTodayTaipei();
 /* ---------- INIT ---------- */
 window.addEventListener('DOMContentLoaded', () => {
   loadSessions().then(loadActivity);
-  setInterval(checkForUpdates, 30000);
+  setInterval(checkForUpdates, 15000);   // 每 15 秒自動更新一次
+  // 分頁切回來時立刻更新一次
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdates(); });
 
   // 偵測 URL 是否有 ?edit=TOKEN（報名者點信件連結）
   const params = new URLSearchParams(window.location.search);
@@ -1984,6 +1986,7 @@ async function loadSessions(silent = false) {
 }
 
 async function checkForUpdates() {
+  if (document.hidden) return;   // 分頁沒在看時不更新，減少後端負擔
   await loadSessions(true);
   loadActivity();
 }
