@@ -3177,6 +3177,12 @@ async function submitRegistration() {
     s.registrants = s.registrants ? s.registrants + '、' + tag : tag;
     renderAll();
     closeModal('registerModal');
+    if (window.celebrateRegistration) {
+      const row = document.querySelector(`.course-row[data-id="${pendingSessionId}"] .row-date`);
+      const rc = row ? row.getBoundingClientRect() : null;
+      const inView = rc && rc.top > 0 && rc.bottom < window.innerHeight;
+      inView ? celebrateRegistration(rc.left + rc.width / 2, rc.top + rc.height / 2) : celebrateRegistration();
+    }
     if (adminRegMode) {
       if (mailFailed && email) showToast('已代為報名，但確認信沒有寄出（可能已達今日寄信上限）', 'error');
       else showToast(email ? `已代為報名，確認信已寄至 ${email}` : '已代為報名（未填信箱，不寄確認信）', 'success');
@@ -3484,6 +3490,7 @@ function showToast(msg, type = '') {
         baseA: rand(0.45,1),
         period: rand(3000,7000),
         phase: rand(0,TAU),
+        z: rand(0.25, 1),          // 遠近：越大越近，視差移動越多
       });
     }
   }
@@ -3525,6 +3532,63 @@ function showToast(msg, type = '') {
     spawnBurst(e.clientX, e.clientY);
   }, {passive:true});
 
+  /* ---- 視差：滑鼠（桌機）與捲動 ---- */
+  const finePointer = window.matchMedia('(pointer: fine)').matches;
+  let mx = 0, my = 0, tx = 0, ty = 0;   // 目前位移／目標位移（-1 ~ 1）
+  if (finePointer && !reduceMotion) {
+    window.addEventListener('mousemove', (e) => {
+      tx = (e.clientX / vw - 0.5) * 2;
+      ty = (e.clientY / vh - 0.5) * 2;
+    }, { passive: true });
+  }
+  const PARALLAX_MOUSE = 9;     // 最近的星星最多移動幾 px
+  const PARALLAX_SCROLL = 0.05; // 捲動 100px，最近的星星移動 5px
+  function starPos(st) {
+    let x = st.x, y = st.y;
+    if (!reduceMotion) {
+      x += mx * PARALLAX_MOUSE * st.z;
+      y += my * PARALLAX_MOUSE * st.z;
+      y -= (window.scrollY * PARALLAX_SCROLL * st.z) % vh;
+      if (y < -10) y += vh + 20;
+    }
+    return [x, y];
+  }
+
+  /* ---- 偶爾連成星座 ---- */
+  let nextConst = rand(9000, 14000);   // 第一次稍早一點出現
+  let constellation = null;            // { idx:[…], born }
+  function cardRect() {
+    const el = document.querySelector('.content-inner');
+    return el ? el.getBoundingClientRect() : null;
+  }
+  function makeConstellation(now) {
+    // 只在課程卡片左右兩側的星空出現，不碰到標題文字和按鈕；兩側太窄（手機）就不出現
+    const rect = cardRect();
+    if (!rect || rect.left < 120) return null;
+    const side = Math.random() < 0.5 ? 'L' : 'R';
+    const visible = stars.map((st, i) => ({ i, p: starPos(st) }))
+      .filter(o => side === 'L' ? o.p[0] > 16 && o.p[0] < rect.left - 20 : o.p[0] > rect.right + 20 && o.p[0] < vw - 16)
+      .filter(o => o.p[1] > Math.max(60, rect.top) && o.p[1] < vh - 20);
+    if (visible.length < 4) return null;
+    const start = visible[Math.floor(Math.random() * visible.length)];
+    const path = [start];
+    const want = 4 + Math.floor(Math.random() * 2);   // 4–5 顆
+    while (path.length < want) {
+      const cur = path[path.length - 1];
+      let best = null, bestD = Infinity;
+      for (const o of visible) {
+        if (path.includes(o)) continue;
+        const d = Math.hypot(o.p[0] - cur.p[0], o.p[1] - cur.p[1]);
+        if (d > 30 && d < 190 && d < bestD) { best = o; bestD = d; }
+      }
+      if (!best) break;
+      path.push(best);
+    }
+    return path.length >= 3 ? { idx: path.map(o => o.i), born: now } : null;
+  }
+  const CONST_IN = 1600, CONST_HOLD = 2600, CONST_OUT = 2200;
+  window.__sky = { showConstellation() { nextConst = 0; }, state() { return { constellation, nextConst }; } };   // 測試用
+
   let paused = false;
   let last = performance.now();
   function frame(now){
@@ -3536,17 +3600,58 @@ function showToast(msg, type = '') {
     ctx.clearRect(0,0,vw,vh);
     ctx.globalCompositeOperation = 'lighter';
 
+    // 視差位移慢慢跟上（不會一下子跳動）
+    mx += (tx - mx) * 0.04;
+    my += (ty - my) * 0.04;
+
     for (const s of stars){
       const a = s.baseA * (reduceMotion ? 0.7 : (0.35 + 0.65*((Math.sin(now/s.period*TAU + s.phase)+1)/2)));
       const color = s.gold ? '232,196,104' : '225,228,245';
       const r = s.r * (s.gold?1.6:1);
-      const grad = ctx.createRadialGradient(s.x,s.y,0, s.x,s.y, r*4);
+      const [sx, sy] = starPos(s);
+      const grad = ctx.createRadialGradient(sx,sy,0, sx,sy, r*4);
       grad.addColorStop(0, `rgba(${color},${a})`);
       grad.addColorStop(1, `rgba(${color},0)`);
       ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(s.x,s.y,r*4,0,TAU);
+      ctx.arc(sx,sy,r*4,0,TAU);
       ctx.fill();
+    }
+
+    // 星座連線
+    if (!reduceMotion) {
+      nextConst -= dt;
+      if (!constellation && nextConst <= 0) {
+        constellation = makeConstellation(now);
+        nextConst = rand(20000, 30000);
+      }
+      if (constellation) {
+        const age = now - constellation.born;
+        const total = CONST_IN + CONST_HOLD + CONST_OUT;
+        if (age > total) constellation = null;
+        else {
+          const k = age < CONST_IN ? age / CONST_IN : age < CONST_IN + CONST_HOLD ? 1 : 1 - (age - CONST_IN - CONST_HOLD) / CONST_OUT;
+          const pts = constellation.idx.map(i => stars[i] ? starPos(stars[i]) : null).filter(Boolean);
+          // 線條一段一段畫出來
+          const segs = pts.length - 1;
+          const drawn = age < CONST_IN ? (age / CONST_IN) * segs : segs;
+          ctx.strokeStyle = `rgba(245,227,173,${0.32 * k})`;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(pts[0][0], pts[0][1]);
+          for (let j = 1; j <= segs; j++) {
+            const f = Math.min(1, Math.max(0, drawn - (j - 1)));
+            if (f <= 0) break;
+            const [x0, y0] = pts[j - 1], [x1, y1] = pts[j];
+            ctx.lineTo(x0 + (x1 - x0) * f, y0 + (y1 - y0) * f);
+          }
+          ctx.stroke();
+          for (const [x, y] of pts) {   // 連到的星星稍微亮一點
+            ctx.fillStyle = `rgba(255,240,200,${0.5 * k})`;
+            ctx.beginPath(); ctx.arc(x, y, 1.6, 0, TAU); ctx.fill();
+          }
+        }
+      }
     }
 
     if (!reduceMotion){
@@ -3604,6 +3709,60 @@ function showToast(msg, type = '') {
 
   resize();
   requestAnimationFrame(frame);
+
+  /* ---- 報名成功的小慶祝：疊在最上層，約 1.5 秒後自動清掉 ---- */
+  window.celebrateRegistration = function (cx, cy) {
+    if (reduceMotion) return;
+    const c = document.createElement('canvas');
+    c.setAttribute('aria-hidden', 'true');
+    c.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:400';
+    document.body.appendChild(c);
+    const W = window.innerWidth, H = window.innerHeight, r = Math.min(window.devicePixelRatio || 1, 1.5);
+    c.width = W * r; c.height = H * r;
+    const g = c.getContext('2d'); g.setTransform(r, 0, 0, r, 0, 0);
+    const x0 = cx ?? W / 2, y0 = cy ?? H * 0.45;
+    const sparks = [];
+    for (let i = 0; i < 18; i++) {
+      const ang = (i / 18) * TAU + rand(-0.2, 0.2), spd = rand(90, 190);
+      sparks.push({ vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, size: rand(7, 12), spin: rand(-3, 3), gold: Math.random() < 0.75 });
+    }
+    const shoot = { x: W * rand(0.1, 0.3), y: H * rand(0.08, 0.18), vx: W * 0.9, vy: H * 0.28 };
+    const start = performance.now(), DUR = 1500;
+    function star4(x, y, s, rot, color, a) {
+      g.save(); g.globalAlpha = a; g.translate(x, y); g.rotate(rot); g.beginPath();
+      for (let i = 0; i < 4; i++) {
+        const t = i * Math.PI / 2;
+        g.moveTo(0, 0);
+        g.quadraticCurveTo(Math.cos(t + .35) * s * .35, Math.sin(t + .35) * s * .35, Math.cos(t) * s, Math.sin(t) * s);
+        g.quadraticCurveTo(Math.cos(t - .35) * s * .35, Math.sin(t - .35) * s * .35, 0, 0);
+      }
+      g.fillStyle = color; g.shadowColor = 'rgba(232,180,60,.9)'; g.shadowBlur = 14; g.fill(); g.restore();
+    }
+    (function tick(now) {
+      const t = (now - start) / 1000, p = (now - start) / DUR;
+      g.clearRect(0, 0, W, H);
+      if (p >= 1) { c.remove(); return; }
+      // 散開的星星：先快後慢、稍微往下飄、逐漸淡出
+      const ease = 1 - Math.pow(1 - Math.min(1, p * 1.4), 3);
+      for (const s of sparks) {
+        const x = x0 + s.vx * ease, y = y0 + s.vy * ease + 40 * p * p;
+        star4(x, y, s.size * (1 - p * 0.35), s.spin * t, s.gold ? '#F7D774' : '#B3A9E2', Math.max(0, 1 - Math.pow(p, 1.8)));
+      }
+      // 流星：在後半段劃過
+      const sp = (p - 0.25) / 0.6;
+      if (sp > 0 && sp < 1) {
+        const hx = shoot.x + shoot.vx * sp, hy = shoot.y + shoot.vy * sp;
+        const tl = 0.14;
+        const grad = g.createLinearGradient(hx - shoot.vx * tl, hy - shoot.vy * tl, hx, hy);
+        grad.addColorStop(0, 'rgba(232,196,104,0)');
+        grad.addColorStop(1, `rgba(255,240,190,${0.9 * (1 - sp * 0.6)})`);
+        g.strokeStyle = grad; g.lineWidth = 2.2; g.lineCap = 'round';
+        g.beginPath(); g.moveTo(hx - shoot.vx * tl, hy - shoot.vy * tl); g.lineTo(hx, hy); g.stroke();
+        star4(hx, hy, 5, 0, '#FFF3C4', 1 - sp * 0.6);
+      }
+      requestAnimationFrame(tick);
+    })(start);
+  };
 })();
 
 /* ================================================================
