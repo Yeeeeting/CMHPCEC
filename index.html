@@ -584,6 +584,8 @@
   }
   .row-meta span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
   .row-meta svg { width: 13px; height: 13px; color: var(--lavender-300); flex-shrink: 0; }
+  .row-meta .venue-pending { color: var(--amber-700); }
+  .row-meta .venue-pending svg { color: var(--amber-500); }
 
   .row-status { grid-area: status; justify-self: end; }
   .card-badge {
@@ -1418,7 +1420,7 @@
         <option value="open">開放報名</option>
         <option value="full">額滿</option>
         <option value="cancel">取消</option>
-        <option value="tba">待公告</option>
+        <option value="tba">場地確認中（可報名）</option>
       </select>
     </div>
     <div class="form-group">
@@ -1601,7 +1603,7 @@ async function loadSessions(silent = false) {
       markUpdatedCards(sessions, json.sessions);
     }
     lastFetchHash = newHash;
-    sessions = json.sessions;
+    sessions = json.sessions.map(applyPendingVenue);
     renderAll();
   } catch(e) {
     if (!silent) showToast('無法連線後端，請確認網路或 Apps Script 設定', 'error');
@@ -1635,7 +1637,7 @@ function renderAll() {
 
 function renderStats() {
   const yrSessions = sessions.filter(s => s.year === currentYear);
-  const open  = yrSessions.filter(s => s.status !== 'cancel' && s.status !== 'tba' && s.remaining > 0);
+  const open  = yrSessions.filter(s => s.status !== 'cancel' && s.remaining > 0);
   const total = yrSessions.length;
   const totalReg  = yrSessions.reduce((a,s) => a + (s.registered||0), 0);
   const fullCount = yrSessions.filter(s => s.remaining === 0 && s.status !== 'cancel').length;
@@ -1655,7 +1657,7 @@ function buildMonthChips() {
   monthsPresent.forEach(m => {
     const inMonth = yrSessions.filter(s => new Date(s.date).getMonth()+1 === m);
     const allPast = inMonth.every(s => new Date(s.date) < TODAY);
-    const hasOpen = !allPast && inMonth.some(s => s.status !== 'cancel' && s.status !== 'tba' && s.remaining > 0);
+    const hasOpen = !allPast && inMonth.some(s => s.status !== 'cancel' && s.remaining > 0);
     const allCancelled = inMonth.every(s => s.status === 'cancel');
     const dotClass = allCancelled || allPast ? 'all-cancel' : hasOpen ? 'has-open' : 'all-full';
     const pastClass = allPast ? 'past' : '';
@@ -1692,18 +1694,18 @@ function renderCards() {
 
   // 狀態篩選
   if (currentFilter === 'open') {
-    // 可報名：未過期 + 非取消 + 非待公告 + 有名額 + 未鎖定
+    // 可報名：未過期 + 非取消 + 有名額 + 未鎖定（場地確認中也可報名）
     filtered = filtered.filter(s => {
       const d = new Date(s.date);
       const daysUntil = Math.ceil((d - TODAY) / (1000 * 60 * 60 * 24));
       const isLocked = daysUntil <= 14 && !s.adminUnlocked;
-      return d >= TODAY && s.status !== 'cancel' && s.status !== 'tba' && s.remaining > 0 && !isLocked;
+      return d >= TODAY && s.status !== 'cancel' && s.remaining > 0 && !isLocked;
     });
   }
   if (currentFilter === 'full') {
-    // 額滿：未過期 + 非取消 + 非待公告 + 剩餘=0
+    // 額滿：未過期 + 非取消 + 剩餘=0
     filtered = filtered.filter(s =>
-      new Date(s.date) >= TODAY && s.status !== 'cancel' && s.status !== 'tba' && s.remaining === 0
+      new Date(s.date) >= TODAY && s.status !== 'cancel' && s.remaining === 0
     );
   }
   if (currentFilter === 'cancel') {
@@ -1739,6 +1741,16 @@ function renderCards() {
 }
 
 const COURSE_TITLE = '安寧緩和醫療教育課程';
+const PENDING_CAPACITY = 15;   // 還沒借到場地時，保守先開放的名額
+
+// 場地未定、名額也還沒填的場次 → 先以暫定 15 名開放報名（與後端 Code.gs 同一規則）
+function applyPendingVenue(s) {
+  if (!s.venue && !Number(s.capacity) && s.status !== 'cancel') {
+    s.capacity  = PENDING_CAPACITY;
+    s.remaining = Math.max(0, PENDING_CAPACITY - (s.registered || 0));
+  }
+  return s;
+}
 const expandedIds = new Set();   // 記住哪些場次是展開的（自動更新資料重繪時不會被收起）
 
 function toggleRow(id) {
@@ -1757,8 +1769,8 @@ function rowKey(e, id) {
 function buildCard(s) {
   const d = new Date(s.date);
   const isCancel = s.status === 'cancel';
-  const isTba    = s.status === 'tba';
-  const isFull   = s.remaining === 0 && !isCancel && !isTba;
+  const isPendingVenue = !s.venue && !isCancel;   // 場地還沒借到，但先開放報名（暫定名額）
+  const isFull   = s.remaining === 0 && !isCancel;
 
   // 課程前 14 天鎖定報名（除非管理者手動開放）
   const msUntil   = d - TODAY;
@@ -1766,9 +1778,9 @@ function buildCard(s) {
   const isPast    = d < TODAY;
   const isLocked  = !isPast && daysUntil <= 14 && !s.adminUnlocked;
 
-  const statusClass = isCancel ? 'status-cancel' : isTba ? 'status-tba' : isPast ? 'status-ended' : isFull ? 'status-full' : isLocked ? 'status-locked' : 'status-open';
-  const badgeClass  = isCancel ? 'badge-cancel'  : isTba ? 'badge-tba'  : isPast ? 'badge-cancel' : isFull ? 'badge-full'  : isLocked ? 'badge-locked' : 'badge-open';
-  const badgeText   = isCancel ? '已取消' : isTba ? '待公告' : isPast ? '已結束' : isFull ? '額滿' : isLocked ? '報名未開放' : '可報名';
+  const statusClass = isCancel ? 'status-cancel' : isPast ? 'status-ended' : isFull ? 'status-full' : isLocked ? 'status-locked' : 'status-open';
+  const badgeClass  = isCancel ? 'badge-cancel'  : isPast ? 'badge-cancel' : isFull ? 'badge-full'  : isLocked ? 'badge-locked' : 'badge-open';
+  const badgeText   = isCancel ? '已取消' : isPast ? '已結束' : isFull ? '額滿' : isLocked ? '報名未開放' : '可報名';
 
   const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
   const weekdays = ['日','一','二','三','四','五','六'];
@@ -1781,8 +1793,8 @@ function buildCard(s) {
   const buildingText = s.building || (s.venue ? (VENUE_DB[s.venue]?.building || '') : '');
   const venueDisplay = s.venue
     ? `${venueText}${buildingText ? `・${buildingText}` : ''}`
-    : '場地待公告';
-  const hasCap = !isCancel && !isTba && s.capacity;
+    : '場地確認中，確定後會寄信通知已報名的人，並更新在這裡';
+  const hasCap = !isCancel && s.capacity;
   const countHtml = hasCap ? `<strong>${s.registered||0}</strong> / ${s.capacity} 人` : '—';
   const capDisplay = s.capacity ? `${s.registered||0} / ${s.capacity} 人` : '—';
   const regText = s.registrants
@@ -1792,8 +1804,6 @@ function buildCard(s) {
   if (!isAdmin) {
     if (isCancel) {
       btnHtml = `<button class="btn-register" disabled>此場次已取消</button>`;
-    } else if (isTba) {
-      btnHtml = `<button class="btn-register" disabled>場地待公告</button>`;
     } else if (isFull) {
       btnHtml = `<button class="btn-register" disabled>名額已滿</button>`;
     } else if (isPast) {
@@ -1823,7 +1833,7 @@ function buildCard(s) {
         <div class="row-title">${COURSE_TITLE}</div>
         <div class="row-meta">
           <span>${clockSvg}13:00 – 14:00</span>
-          <span>${pinSvg}${s.venue ? venueText : '場地待公告'}</span>
+          ${s.venue ? `<span>${pinSvg}${venueText}</span>` : `<span class="venue-pending">${pinSvg}場地確認中</span>`}
         </div>
       </div>
       <div class="row-status">
@@ -1844,7 +1854,7 @@ function buildCard(s) {
             ${hasCap ? `
             <div class="card-capacity-bar-wrap">
               <div class="capacity-label">
-                <span>報名情況</span>
+                <span>報名情況${isPendingVenue && !isPast ? '（場地確認前暫定名額）' : ''}</span>
                 <span class="capacity-count">${capDisplay}</span>
               </div>
               <div class="capacity-track">
@@ -1925,7 +1935,7 @@ async function openEditRegModal(token) {
     const wdays   = ['日','一','二','三','四','五','六'];
 
     document.getElementById('editRegSub').textContent =
-      `${d.getMonth()+1}/${d.getDate()}（${wdays[d.getDay()]}）· ${session.venue || '場地待公告'}`;
+      `${d.getMonth()+1}/${d.getDate()}（${wdays[d.getDay()]}）· ${session.venue || '場地確認中'}`;
     document.getElementById('editRegType').value  = reg.type;
     document.getElementById('editRegUnit').value  = reg.unit;
     document.getElementById('editRegCount').value = reg.count;
@@ -2032,7 +2042,7 @@ function openRegisterModal(id) {
   const d = new Date(s.date);
   document.getElementById('registerModalTitle').textContent = '報名課程';
   document.getElementById('registerModalSub').textContent =
-    `${d.getMonth()+1}/${d.getDate()} · 13:00–14:00 · ${s.venue||'待公告'} · 尚餘 ${s.remaining} 名`;
+    `${d.getMonth()+1}/${d.getDate()} · 13:00–14:00 · ${s.venue||'場地確認中（確定後寄信通知）'} · 尚餘 ${s.remaining} 名`;
   ['regName','regEmail','regPhone','regUnit','regCount'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('regType').value = '';
   openModal('registerModal');
@@ -2187,7 +2197,7 @@ function downloadCSV() {
     const d = new Date(s.date);
     const wday = weekdays[d.getDay()];
     const dateStr = `${d.getFullYear()-1911}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-    const statusMap = { open:'開放報名', full:'額滿', cancel:'已取消', tba:'待公告' };
+    const statusMap = { open:'開放報名', full:'額滿', cancel:'已取消', tba:'場地確認中' };
     return [
       dateStr, wday, '1300-1400', s.venue||'待公告', s.capacity||'', s.registered||0,
       s.remaining||0, statusMap[s.status]||s.status, s.registrants||''
