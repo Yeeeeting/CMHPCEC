@@ -1960,6 +1960,16 @@
   @media (prefers-reduced-motion: reduce) {
     button:active { transform: none !important; }
   }
+
+  /* 平板、電腦：整體文字與元件放大一點（手機維持原樣） */
+  @media (min-width: 641px) {
+    .site-header, .hero, .sticky-filters-bar, .content-inner, .site-footer,
+    .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.08; }
+  }
+  @media (min-width: 1200px) {
+    .site-header, .hero, .sticky-filters-bar, .content-inner, .site-footer,
+    .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.12; }
+  }
 </style>
 </head>
 <body>
