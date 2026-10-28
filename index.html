@@ -208,6 +208,35 @@
     letter-spacing: 0.03em;
   }
   .btn-admin-login:hover { background: rgba(232,196,104,0.18); }
+  .btn-myreg {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--cream);
+    color: var(--lavender-900);
+    cursor: pointer;
+    letter-spacing: 0.03em;
+  }
+  .btn-myreg:hover { background: white; }
+  .myreg-result { font-size: 14px; line-height: 1.7; border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 4px; }
+  .myreg-result.ok   { background: var(--sage-50); color: var(--sage-800); }
+  .myreg-result.none { background: var(--amber-50); color: var(--amber-700); }
+  .howto-link { background: none; border: none; padding: 0; font: inherit; color: var(--lavender-700); text-decoration: underline; cursor: pointer; }
+
+  /* 讀取中的骨架畫面 */
+  .skel-row {
+    height: 72px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(90deg, #F1EEF8 0%, #FAF8FD 50%, #F1EEF8 100%);
+    background-size: 200% 100%;
+    animation: skel 1.4s ease-in-out infinite;
+  }
+  .skel-row.short { height: 22px; width: 120px; margin: 6px 4px; }
+  .skel-note { text-align: center; font-size: 13px; color: var(--text-muted); padding: 6px 0 2px; }
+  @keyframes skel { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+  @media (prefers-reduced-motion: reduce) { .skel-row { animation: none; } }
   .btn-logout { background: rgba(255,100,80,0.15); border-color: rgba(255,120,100,0.3); color: #F5B8A8; }
   .admin-badge {
     font-size: 11px;
@@ -1534,6 +1563,7 @@
     .year-tab   { flex: 1; text-align: center; font-size: 12px; padding: 5px 10px; }
     .header-right { margin-left: auto; }
     .btn-admin-login { font-size: 12px; padding: 5px 12px; }
+    .btn-myreg { font-size: 12px; padding: 5px 12px; }
 
     /* Hero */
     .hero { padding: 10px 16px 12px; }
@@ -1563,6 +1593,15 @@
     /* Modal */
     .modal { padding: 22px 20px; border-radius: var(--radius-lg); }
     .modal-title { font-size: 16px; }
+  }
+
+  /* 窄手機：「管理者登入」縮成「管理者」，讓兩顆按鈕跟名稱排在同一行 */
+  .lbl-short { display: none; }
+  @media (max-width: 400px) {
+    .lbl-long { display: none; }
+    .lbl-short { display: inline; }
+    .brand-name { font-size: 12px; }
+    .header-right { gap: 6px; }
   }
 
   /* 手機（480px 以下） */
@@ -1669,7 +1708,8 @@
     <button class="year-tab" id="tab116" onclick="switchYear(116)">116 年度</button>
   </div>
   <div class="header-right" id="headerRight">
-    <button class="btn-admin-login" onclick="openLoginModal()">管理者登入</button>
+    <button class="btn-myreg" onclick="openMyRegModal()">我的報名</button>
+    <button class="btn-admin-login" onclick="openLoginModal()"><span class="lbl-long">管理者登入</span><span class="lbl-short">管理者</span></button>
   </div>
 </header>
 
@@ -1765,7 +1805,7 @@
       <li><b>人數怎麼填：</b>同一個單位可以一起報名，人數請填<b>所有參加的人（含帶班老師）</b>。</li>
       <li><b>報名截止：</b>每場在<b>開課前 14 天</b>截止，之後顯示「已截止報名」。</li>
       <li><b>場地確認中的場次：</b>也可以先報名，先開放 15 個名額，場地確定後會寄信通知。</li>
-      <li><b>修改或取消：</b>報名後會收到確認信，點信裡的「管理我的報名」就能改人數或取消，名額會自動退回。</li>
+      <li><b>修改或取消：</b>報名後會收到確認信，點信裡的「管理我的報名」就能改人數或取消，名額會自動退回。找不到確認信？<button type="button" class="howto-link" onclick="openMyRegModal()">按這裡重新寄送</button>，或點右上角的「我的報名」。</li>
       <li><b>上課當天：</b>請在開始前 5 分鐘到場地報到。</li>
     </ol>
     <div class="howto-contact">有問題請洽 教學部 楊宜婷・分機 57429</div>
@@ -1846,6 +1886,27 @@
 <!-- ===================== MODALS ===================== -->
 
 <!-- LOGIN MODAL -->
+<!-- 查詢／修改我的報名 -->
+<div class="modal-overlay" id="myRegModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('myRegModal')" aria-label="關閉" title="關閉">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="modal-title">查詢／修改我的報名</div>
+    <div class="modal-subtitle">找不到確認信也沒關係，輸入報名時填的信箱，系統會把你所有還沒上課的報名和修改連結重新寄給你</div>
+    <div class="form-group">
+      <label class="form-label">報名時填的電子信箱</label>
+      <input type="email" class="form-input" id="myRegEmail" placeholder="例：abc@mail.chimei.org.tw" autocomplete="email"
+             onkeydown="if(event.key==='Enter') submitMyReg()">
+    </div>
+    <div id="myRegResult"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('myRegModal')">關閉</button>
+      <button class="btn-primary" id="myRegBtn" onclick="submitMyReg()">寄送修改連結</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="loginModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('loginModal')" aria-label="關閉" title="關閉">
@@ -2108,6 +2169,7 @@ const TODAY = getTodayTaipei();
 
 /* ---------- INIT ---------- */
 window.addEventListener('DOMContentLoaded', () => {
+  renderSkeleton();
   loadSessions().then(loadActivity);
   setInterval(checkForUpdates, 15000);   // 每 15 秒自動更新一次
   // 分頁切回來時立刻更新一次
@@ -2128,6 +2190,7 @@ async function loadSessions(silent = false) {
     if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
       showToast('尚未設定後端網址，請填入 APPS_SCRIPT_URL', 'error');
       sessions = [];
+      dataLoaded = true;
       renderAll();
       return;
     }
@@ -2138,12 +2201,17 @@ async function loadSessions(silent = false) {
       showUpdateBanner('有場次資訊已更新，請查看最新狀態。');
       markUpdatedCards(sessions, json.sessions);
     }
+    // 自動更新時，資料沒變就不重畫（避免畫面閃動）
+    if (silent && dataLoaded && newHash === lastFetchHash) return;
     lastFetchHash = newHash;
     sessions = json.sessions.map(applyPendingVenue);
+    dataLoaded = true;
     renderAll();
   } catch(e) {
-    if (!silent) showToast('無法連線後端，請確認網路或 Apps Script 設定', 'error');
+    if (!silent) showToast('目前連線不穩，請稍後重新整理，或洽教學部（分機 57429）', 'error');
+    if (dataLoaded) return;   // 已有資料時，暫時連不上就保留畫面上的資料
     sessions = [];
+    dataLoaded = true;
     renderAll();
   }
 }
@@ -2157,6 +2225,7 @@ async function checkForUpdates() {
 /* ---------- 最新動態（近兩個月的報名異動） ---------- */
 let activityItems = [];
 let activityLoaded = false;
+let lastActRender = 0;
 const ACT_AUTO_OPEN_MIN = 1680;   // 課程清單右邊空間夠放面板時，才預設打開（疊在上面、不推動版面）
 
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -2173,10 +2242,12 @@ async function loadActivity() {
     const res  = await fetch(`${APPS_SCRIPT_URL}?action=getActivity&t=${Date.now()}`);
     const json = await res.json();
     if (!json.success || !Array.isArray(json.items)) return;   // 後端尚未更新：不顯示
+    const sameAsBefore = activityLoaded && JSON.stringify(json.items) === JSON.stringify(activityItems);
     activityItems = json.items;
     const first = !activityLoaded;
     activityLoaded = true;
-    renderActivity();
+    // 內容有變才重畫；沒變時每分鐘重畫一次，讓「幾分鐘前」保持正確
+    if (!sameAsBefore || Date.now() - lastActRender > 60000) { renderActivity(); lastActRender = Date.now(); }
     if (first) initActivityState();
   } catch (e) { /* 動態讀不到不影響報名 */ }
 }
@@ -2366,7 +2437,10 @@ function markUpdatedCards(oldData, newData) {
 }
 
 /* ---------- RENDER ---------- */
+let dataLoaded = false;   // 第一次資料回來前顯示骨架畫面
+
 function renderAll() {
+  if (!dataLoaded) { renderSkeleton(); return; }
   renderNextCard();
   renderStats();
   buildMonthChips();
@@ -2636,6 +2710,13 @@ function buildCard(s) {
   </div>`;
 }
 
+function renderSkeleton() {
+  ['statTotal','statOpen','statRegistered','statFull'].forEach(id => document.getElementById(id).textContent = '—');
+  document.getElementById('cardCount').textContent = '';
+  document.getElementById('courseGrid').innerHTML =
+    '<div class="skel-row short"></div><div class="skel-row"></div><div class="skel-row"></div><div class="skel-row"></div><div class="skel-note">課程資料讀取中…</div>';
+}
+
 /* ---------- 下一場課程 ---------- */
 function renderNextCard() {
   const box = document.getElementById('nextCard');
@@ -2795,6 +2876,38 @@ async function doRegCancel() {
   }
 }
 
+/* ---------- 查詢／修改我的報名 ---------- */
+function openMyRegModal() {
+  document.getElementById('myRegResult').innerHTML = '';
+  document.getElementById('myRegBtn').disabled = false;
+  openModal('myRegModal');
+  setTimeout(() => document.getElementById('myRegEmail').focus(), 50);
+}
+
+async function submitMyReg() {
+  const email = document.getElementById('myRegEmail').value.trim();
+  const out = document.getElementById('myRegResult');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('請輸入正確的電子信箱', 'error'); return; }
+  const btn = document.getElementById('myRegBtn');
+  btn.disabled = true; btn.textContent = '查詢中…';
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'resendLinks', email }) });
+    const json = await res.json();
+    if (!json.success) {
+      out.innerHTML = `<div class="myreg-result none">${json.message || '查詢失敗，請稍後再試'}</div>`;
+    } else if (json.found === 0) {
+      out.innerHTML = `<div class="myreg-result none">查不到這個信箱還沒上課的報名。<br>請確認信箱有沒有打錯，或換成報名時填的那個信箱試試。也可以洽教學部（分機 57429）。</div>`;
+    } else if (json.found === -1) {
+      out.innerHTML = `<div class="myreg-result ok">剛剛已經寄過囉，請先到信箱（也看一下垃圾郵件匣）找「我的報名與修改連結」這封信。3 分鐘後可以再寄一次。</div>`;
+    } else {
+      out.innerHTML = `<div class="myreg-result ok">已寄出！找到 <b>${json.found}</b> 筆還沒上課的報名，修改連結已寄到 ${email}。<br>幾分鐘內沒收到的話，請看一下垃圾郵件匣。</div>`;
+    }
+  } catch (e) {
+    out.innerHTML = '<div class="myreg-result none">目前連線不穩，請稍後再試，或洽教學部（分機 57429）。</div>';
+  }
+  btn.disabled = false; btn.textContent = '寄送修改連結';
+}
+
 /* ---------- LOGIN ---------- */
 function openLoginModal() { openModal('loginModal'); }
 
@@ -2834,7 +2947,7 @@ function doLogout() {
   isAdmin = false;
   adminToken = null;
   document.body.classList.remove('admin-mode');
-  document.getElementById('headerRight').innerHTML = `<button class="btn-admin-login" onclick="openLoginModal()">管理者登入</button>`;
+  document.getElementById('headerRight').innerHTML = `<button class="btn-myreg" onclick="openMyRegModal()">我的報名</button><button class="btn-admin-login" onclick="openLoginModal()"><span class="lbl-long">管理者登入</span><span class="lbl-short">管理者</span></button>`;
   document.getElementById('adminToolbar').classList.remove('show');
   showToast('已登出管理者模式');
   renderCards();
