@@ -139,12 +139,11 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 12px rgba(30,27,46,0.18);
   }
 
   /* ===== HEADER ===== */
   .site-header {
-    background: linear-gradient(120deg, rgba(26,27,58,0.72) 0%, rgba(45,42,92,0.72) 100%);
+    background: transparent;  /* 頂部不分區，只留文字浮在星空上 */
     padding: 0 24px;
     display: flex;
     align-items: center;
@@ -217,12 +216,10 @@
 
   /* ===== HERO BANNER — 星光引路 night sky with guiding light ===== */
   .hero {
-    background: linear-gradient(160deg, rgba(26,27,58,0.68) 0%, rgba(45,42,92,0.68) 45%, rgba(74,67,128,0.68) 100%);
+    background: transparent;
     padding: 14px 24px 16px;
     text-align: center;
     position: relative;
-    overflow: hidden;
-    border-top: 1px solid rgba(232,196,104,0.1);
   }
   /* 原本固定的星星點點已交由 #skyFx 動態畫布接手（見頁尾 script），這裡保留極淡一層增加層次 */
   .hero::before {
@@ -356,10 +353,7 @@
   /* ===== STICKY FILTERS BAR ===== */
   .sticky-filters-bar {
     /* 不用整條米白底色：改成跟上方星空一致的半透明夜色，按鈕本身保留米白 */
-    background: rgba(45,42,92,0.45);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255,255,255,0.08);
+    background: transparent;
     padding: 10px 24px 8px;
   }
   .sticky-filters-inner {
