@@ -2303,6 +2303,7 @@
         <option>營養實習生</option>
         <option>語言治療實習生</option>
         <option>聽力實習生</option>
+        <option>醫事放射實習生</option>
         <option>醫學系見實習生</option>
         <option>其他職類</option>
       </select>
@@ -2431,6 +2432,7 @@
           <option>營養實習生</option>
           <option>語言治療實習生</option>
           <option>聽力實習生</option>
+          <option>醫事放射實習生</option>
           <option>醫學系見實習生</option>
           <option>其他職類</option>
         </select>
@@ -2589,7 +2591,7 @@ function setActTab(tab) {
   if (tab === 'stats') { renderTypeStats(); loadTypeStats(); }
 }
 // 依評鑑順序：檢、護、營、呼、聽、物、職、心、語，其他職類排在後面
-const TYPE_ORDER = ['醫檢','護理','營養','呼吸治療','聽力','物理治療','職能治療','心理','語言治療','藥事','醫學系見'];
+const TYPE_ORDER = ['醫檢','護理','營養','呼吸治療','聽力','物理治療','職能治療','心理','語言治療','醫事放射','藥事','醫學系見'];
 function typeShort(t) { return String(t).replace('實習生','').replace('見實習生','見') || '其他'; }
 function typeRank(t) {
   const k = typeShort(t);
