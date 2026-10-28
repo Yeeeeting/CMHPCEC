@@ -482,42 +482,24 @@
   body[data-filter="cancel"] .month-chip.active { background: #EDEAF2;             border-color: #9992A8;             color: #4A4560; }
   body[data-filter="ended"]  .month-chip.active { background: #E8E6F0;             border-color: #7A7490;             color: #3A3555; }
 
-  /* ===== COURSE GRID ===== */
+  /* ===== COURSE LIST（可展開式課程清單） ===== */
   .course-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
   .grid-empty {
-    grid-column: 1 / -1;
     text-align: center;
     padding: 48px 20px;
     color: var(--text-muted);
     font-size: 14px;
     background: var(--surface);
     border: 1px dashed var(--border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
   }
 
-  /* ===== COURSE CARD ===== */
-  .course-card {
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-    border-left-width: 4px;
-    border-left-style: solid;
-    overflow: hidden;
-    box-shadow: var(--shadow-card);
-    transition: box-shadow .2s, transform .2s;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-  }
-  .course-card.cancelled { border-left-color: var(--border-md) !important; }
-
-  /* 月份分組標題（複選多個月份／全年檢視時顯示，標示目前捲動到哪個月） */
+  /* 月份分組標題（全年或複選多個月份時顯示） */
   .month-divider {
-    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -525,157 +507,233 @@
     font-size: 15px;
     font-weight: 600;
     color: var(--text-secondary);
-    padding: 4px 2px;
-    margin-top: 4px;
+    padding: 14px 4px 2px;
   }
-  .month-divider:first-child { margin-top: 0; }
-  .month-divider-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .course-card:hover {
-    box-shadow: var(--shadow-hover);
-    transform: translateY(-2px);
-  }
-  .course-card.cancelled { opacity: 0.55; }
-  .course-card.full .card-body { background: var(--lavender-50); }
+  .month-divider:first-child { padding-top: 0; }
+  .month-divider-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-  /* Card status bar */
-  .card-status-bar {
-    height: 3px;
-    border-radius: 0;
+  /* 每一場課程 */
+  .course-row {
+    --accent: var(--lavender-300);
+    position: relative;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 2px rgba(74,69,146,0.06);
+    transition: box-shadow .2s ease, background .2s ease;
   }
-  .status-open   .card-status-bar { background: var(--sage-400); }
-  .status-full   .card-status-bar { background: var(--lavender-500); }
-  .status-cancel .card-status-bar { background: var(--border-md); }
-  .status-tba    .card-status-bar { background: var(--amber-500); }
-  .status-locked .card-status-bar { background: var(--border-md); }
+  .course-row:hover { box-shadow: 0 2px 10px rgba(74,69,146,0.10); }
+  .course-row.is-open { box-shadow: 0 4px 18px rgba(74,69,146,0.12); }
 
-  .card-header {
-    padding: 14px 16px 10px;
+  /* 收合時的資訊列 */
+  .row-head {
+    display: grid;
+    grid-template-columns: 64px minmax(0,1fr) auto 92px 32px;
+    grid-template-areas: "date main status count chev";
+    align-items: center;
+    gap: 16px;
+    padding: 10px 12px 10px 10px;
+    min-height: 72px;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .row-head:focus-visible { outline: 2px solid var(--lavender-500); outline-offset: 2px; }
+
+  /* 日期色塊 */
+  .row-date {
+    grid-area: date;
+    position: relative;
+    width: 64px;
+    height: 56px;
+    border-radius: var(--radius-sm);
+    background: var(--lavender-50);
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+    overflow: hidden;
   }
-  .card-date-block { flex: 1; }
-  .card-date {
+  .row-date::before {           /* 月份色條，延續原本卡片左側的月份色 */
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+  }
+  .row-date-day {
     font-family: 'Noto Serif TC', serif;
-    font-size: 21px;
+    font-size: 20px;
     font-weight: 600;
     color: var(--lavender-900);
-    line-height: 1.2;
   }
-  .card-weekday {
+  .row-date-wday { font-size: 12px; color: var(--lavender-700); margin-top: 3px; }
+
+  .row-main { grid-area: main; min-width: 0; }
+  .row-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .row-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 12px;
+    margin-top: 3px;
     font-size: 13px;
-    color: var(--text-secondary);
-    margin-top: 2px;
+    color: var(--text-muted);
   }
+  .row-meta span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .row-meta svg { width: 13px; height: 13px; color: var(--lavender-300); flex-shrink: 0; }
+
+  .row-status { grid-area: status; justify-self: end; }
   .card-badge {
+    display: inline-block;
     font-size: 12px;
     font-weight: 500;
     padding: 4px 12px;
     border-radius: 20px;
-    flex-shrink: 0;
     letter-spacing: 0.04em;
+    white-space: nowrap;
   }
   .badge-open   { background: var(--sage-100); color: var(--sage-800); }
   .badge-full   { background: var(--lavender-100); color: var(--lavender-700); }
   .badge-cancel { background: #F0EDEA; color: #7A7470; }
   .badge-tba    { background: var(--amber-50); color: var(--amber-700); }
-  .badge-locked { background: #F0EDEA; color: #6B6480; }
+  .badge-locked { background: #F3EFE8; color: #6B6480; }
 
-  .card-body { padding: 0 16px 14px; flex: 1; }
+  .row-count {
+    grid-area: count;
+    text-align: right;
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .row-count strong {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row-chev {
+    grid-area: chev;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    transition: transform .25s ease, background .2s ease, color .2s ease;
+  }
+  .row-chev svg { width: 18px; height: 18px; }
+  .row-head:hover .row-chev { background: var(--lavender-50); color: var(--lavender-700); }
+  .course-row.is-open .row-chev { transform: rotate(180deg); color: var(--lavender-700); }
+
+  /* 狀態區分 */
+  .status-open .row-date   { background: var(--sage-50); }
+  .status-open .row-count strong { color: var(--sage-600); }
+  .status-full .row-date   { background: var(--lavender-50); }
+  .status-full .row-count strong { color: var(--lavender-700); }
+  .status-ended, .status-cancel { background: #FCFBF9; box-shadow: none; }
+  .status-ended .row-date, .status-cancel .row-date { background: var(--cream); }
+  .status-ended .row-date-day, .status-cancel .row-date-day { color: var(--text-muted); }
+  .status-ended .row-title, .status-cancel .row-title { color: var(--text-secondary); font-weight: 500; }
+  .status-ended .row-count strong { color: var(--text-muted); }
+  .status-cancel .row-date-day,
+  .status-cancel .row-title { text-decoration: line-through; text-decoration-color: rgba(107,100,128,0.5); }
+  .status-cancel { opacity: 0.7; }
+  .status-tba .row-date { background: var(--amber-50); }
+
+  /* 展開區：用 grid-template-rows 0fr→1fr 做平滑高度動畫 */
+  .row-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .26s ease;
+  }
+  .course-row.is-open .row-body { grid-template-rows: 1fr; }
+  .row-body-inner { overflow: hidden; min-height: 0; }
+  .row-body-content {
+    margin: 0 12px 0 90px;
+    padding: 14px 0 16px;
+    border-top: 1px solid var(--lavender-50);
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 220px;
+    gap: 14px 24px;
+    align-items: end;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity .22s ease, transform .22s ease;
+  }
+  .course-row.is-open .row-body-content { opacity: 1; transform: none; }
+
   .card-info-row {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    align-items: flex-start;
+    gap: 8px;
     font-size: 14px;
     color: var(--text-secondary);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
   }
-  .card-info-row svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--lavender-500); }
+  .card-info-row svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--lavender-500); margin-top: 3px; }
 
-  .card-capacity-bar-wrap {
-    margin: 12px 0 10px;
-  }
+  .card-capacity-bar-wrap { margin-top: 10px; max-width: 420px; }
   .capacity-label {
     display: flex;
     justify-content: space-between;
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-bottom: 5px;
   }
   .capacity-count { color: var(--text-primary); font-weight: 500; }
-  .capacity-track {
-    height: 5px;
-    background: var(--lavender-50);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .capacity-fill {
-    height: 100%;
-    border-radius: 10px;
-    transition: width .4s ease;
-  }
+  .capacity-track { height: 6px; background: var(--lavender-50); border-radius: 10px; overflow: hidden; }
+  .capacity-fill  { height: 100%; border-radius: 10px; transition: width .4s ease; }
   .fill-low    { background: var(--sage-400); }
   .fill-medium { background: var(--amber-500); }
   .fill-high   { background: var(--red-600); }
   .fill-full   { background: var(--lavender-500); }
 
   .card-registrants {
+    grid-column: 1 / -1;
     font-size: 13px;
     color: var(--text-secondary);
     background: var(--cream);
     border-radius: var(--radius-sm);
-    padding: 8px 10px;
-    margin-top: 10px;
-    max-height: 54px;
-    overflow: hidden;
-    transition: max-height .25s ease;
-    cursor: pointer;
+    padding: 8px 12px;
+    line-height: 1.7;
   }
-  .card-registrants.expanded { max-height: 200px; }
-  .card-registrants:empty { display: none; }
+  .card-registrants-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
 
-  .card-actions { padding: 0 16px 14px; }
+  .card-actions { display: flex; flex-direction: column; gap: 8px; }
   .btn-register {
     width: 100%;
     font-family: 'Noto Sans TC', sans-serif;
     font-size: 15px;
     font-weight: 500;
-    padding: 10px;
+    padding: 11px 10px;
+    min-height: 44px;
     border-radius: var(--radius-md);
     border: none;
     cursor: pointer;
-    transition: all .15s;
+    transition: background .15s;
     letter-spacing: 0.02em;
   }
-  .btn-register.open {
-    background: var(--lavender-500);
-    color: white;
-  }
+  .btn-register.open { background: var(--lavender-500); color: white; }
   .btn-register.open:hover { background: var(--lavender-700); }
   .btn-register:disabled {
     background: var(--lavender-50);
     color: var(--text-muted);
     cursor: not-allowed;
-    border: 1px solid var(--lavender-100);
   }
-  .btn-register.btn-locked:disabled {
-    background: #F5F3F0;
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-    font-size: 13px;
-  }
+  .btn-register.btn-locked:disabled { background: #F5F3F0; color: var(--text-secondary); font-size: 13px; }
 
-  /* Update dot on card */
+  /* 資料有更新時的提示點 */
   .card-update-dot {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 8px;
+    left: 8px;
     width: 8px;
     height: 8px;
     background: var(--amber-500);
@@ -683,8 +741,49 @@
     border: 2px solid white;
     animation: pulse-amber 1.8s infinite;
     display: none;
+    z-index: 2;
   }
   .card-update-dot.show { display: block; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .row-body, .row-body-content, .row-chev { transition: none; }
+  }
+
+  /* 手機：單欄資訊布局 */
+  @media (max-width: 640px) {
+    .row-head {
+      grid-template-columns: 56px minmax(0,1fr) 28px;
+      grid-template-areas:
+        "date main   chev"
+        "date status chev";
+      gap: 4px 12px;
+      padding: 10px 10px 10px 8px;
+      min-height: 76px;
+    }
+    .row-date { width: 56px; height: 60px; }
+    .row-date-day { font-size: 18px; }
+    .row-title { font-size: 15px; }
+    .row-meta { font-size: 12px; gap: 0 10px; }
+    .row-status {
+      justify-self: start;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 2px;
+    }
+    .row-count { display: none; }
+    .row-count-inline { font-size: 12px; color: var(--text-muted); }
+    .row-count-inline strong { font-size: 13px; color: var(--text-primary); font-weight: 600; }
+    .row-chev { width: 28px; height: 28px; }
+    .row-body-content {
+      margin: 0 12px;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .card-capacity-bar-wrap { max-width: none; }
+    .card-badge { font-size: 11px; padding: 3px 10px; }
+  }
+  @media (min-width: 641px) { .row-count-inline { display: none; } }
 
   /* ===== MODAL OVERLAY ===== */
   .modal-overlay {
@@ -832,22 +931,21 @@
   .btn-tool:hover { background: rgba(255,255,255,0.18); }
   .btn-tool svg { width: 13px; height: 13px; }
 
-  /* Edit overlay on card (admin only) */
+  /* 管理者編輯按鈕（在展開區內） */
   .card-edit-btn {
     display: none;
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
+    width: 100%;
+    min-height: 44px;
     background: var(--lavender-500);
     color: white;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     font-family: 'Noto Sans TC', sans-serif;
-    font-size: 11px;
-    padding: 4px 10px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    z-index: 5;
   }
+  .card-edit-btn:hover { background: var(--lavender-700); }
   body.admin-mode .card-edit-btn { display: block; }
   body.admin-mode .btn-register { display: none; }
 
@@ -986,9 +1084,6 @@
     .stat-num   { font-size: 22px; }
     .stat-label { font-size: 12px; }
 
-    /* Cards */
-    .course-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .card-date   { font-size: 18px; }
 
     /* Admin toolbar */
     .admin-toolbar { padding: 12px 16px; }
@@ -1027,11 +1122,6 @@
     .stat-num   { font-size: 20px; }
     .stat-label { font-size: 11px; }
 
-    /* Cards — 單欄 */
-    .course-grid { grid-template-columns: 1fr; gap: 10px; }
-    .card-date   { font-size: 20px; }
-    .card-info-row { font-size: 13px; }
-    .btn-register  { font-size: 14px; }
 
     /* Section header */
     .section-title { font-size: 15px; }
@@ -1069,7 +1159,6 @@
     .year-tab   { font-size: 11px; padding: 4px 8px; }
     .filter-chip { font-size: 11px; padding: 5px 10px; }
     .stat-num   { font-size: 18px; }
-    .card-date  { font-size: 18px; }
   }
 
   /* ===== HELPERS ===== */
@@ -1536,7 +1625,7 @@ function markUpdatedCards(oldData, newData) {
   newData.forEach(s => {
     const old = oldMap[s.id];
     if (old && (old.venue !== s.venue || old.capacity !== s.capacity || old.registered !== s.registered)) {
-      const dot = document.querySelector(`.course-card[data-id="${s.id}"] .card-update-dot`);
+      const dot = document.querySelector(`.course-row[data-id="${s.id}"] .card-update-dot`);
       if (dot) dot.classList.add('show');
     }
   });
@@ -1654,12 +1743,27 @@ function renderCards() {
   grid.innerHTML = filtered.length ? html : `<div class="grid-empty">目前沒有符合條件的場次。</div>`;
 }
 
+const COURSE_TITLE = '安寧緩和醫療教育課程';
+const expandedIds = new Set();   // 記住哪些場次是展開的（自動更新資料重繪時不會被收起）
+
+function toggleRow(id) {
+  const row = document.querySelector(`.course-row[data-id="${id}"]`);
+  if (!row) return;
+  const open = !row.classList.contains('is-open');
+  row.classList.toggle('is-open', open);
+  row.querySelector('.row-head').setAttribute('aria-expanded', open);
+  row.querySelector('.row-body').setAttribute('aria-hidden', !open);
+  if (open) expandedIds.add(id); else expandedIds.delete(id);
+}
+function rowKey(e, id) {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleRow(id); }
+}
+
 function buildCard(s) {
   const d = new Date(s.date);
   const isCancel = s.status === 'cancel';
   const isTba    = s.status === 'tba';
   const isFull   = s.remaining === 0 && !isCancel && !isTba;
-  const isOpen   = !isCancel && !isTba && s.remaining > 0;
 
   // 課程前 14 天鎖定報名（除非管理者手動開放）
   const msUntil   = d - TODAY;
@@ -1667,8 +1771,8 @@ function buildCard(s) {
   const isPast    = d < TODAY;
   const isLocked  = !isPast && daysUntil <= 14 && !s.adminUnlocked;
 
-  const statusClass = isCancel ? 'status-cancel' : isTba ? 'status-tba' : isPast ? 'status-cancel' : isFull ? 'status-full' : isLocked ? 'status-locked' : 'status-open';
-  const badgeClass  = isCancel ? 'badge-cancel'  : isTba ? 'badge-tba'  : isPast ? 'badge-cancel'  : isFull ? 'badge-full'  : isLocked ? 'badge-locked' : 'badge-open';
+  const statusClass = isCancel ? 'status-cancel' : isTba ? 'status-tba' : isPast ? 'status-ended' : isFull ? 'status-full' : isLocked ? 'status-locked' : 'status-open';
+  const badgeClass  = isCancel ? 'badge-cancel'  : isTba ? 'badge-tba'  : isPast ? 'badge-cancel' : isFull ? 'badge-full'  : isLocked ? 'badge-locked' : 'badge-open';
   const badgeText   = isCancel ? '已取消' : isTba ? '待公告' : isPast ? '已結束' : isFull ? '額滿' : isLocked ? '報名未開放' : '可報名';
 
   const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
@@ -1683,8 +1787,11 @@ function buildCard(s) {
   const venueDisplay = s.venue
     ? `${venueText}${buildingText ? `・${buildingText}` : ''}`
     : '場地待公告';
-  const regText   = s.registrants ? `<div class="card-registrants" onclick="this.classList.toggle('expanded')" title="點擊展開/收合">👥 ${s.registrants}</div>` : '';
+  const hasCap = !isCancel && !isTba && s.capacity;
+  const countHtml = hasCap ? `<strong>${s.registered||0}</strong> / ${s.capacity} 人` : '—';
   const capDisplay = s.capacity ? `${s.registered||0} / ${s.capacity} 人` : '—';
+  const regText = s.registrants
+    ? `<div class="card-registrants"><div class="card-registrants-label">已報名單位</div>👥 ${s.registrants}</div>` : '';
 
   let btnHtml = '';
   if (!isAdmin) {
@@ -1704,42 +1811,60 @@ function buildCard(s) {
   }
 
   const monthAccent = MONTH_COLORS[d.getMonth() + 1];
+  const isOpenRow = expandedIds.has(s.id);
+  const clockSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const pinSvg   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
 
   return `
-  <div class="course-card ${statusClass} ${isCancel?'cancelled':''}" data-id="${s.id}" style="border-left-color:${monthAccent}">
-    <div class="card-status-bar"></div>
+  <div class="course-row ${statusClass} ${isOpenRow ? 'is-open' : ''}" data-id="${s.id}" style="--accent:${monthAccent}">
     <div class="card-update-dot"></div>
-    <div class="card-header">
-      <div class="card-date-block">
-        <div class="card-date">${dateStr} (${wday})</div>
+    <div class="row-head" role="button" tabindex="0" aria-expanded="${isOpenRow}"
+         onclick="toggleRow('${s.id}')" onkeydown="rowKey(event,'${s.id}')">
+      <div class="row-date">
+        <span class="row-date-day">${dateStr}</span>
+        <span class="row-date-wday">週${wday}</span>
       </div>
-      <span class="card-badge ${badgeClass}">${badgeText}</span>
-    </div>
-    <div class="card-body">
-      <div class="card-info-row">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        13:00 – 14:00
-      </div>
-      <div class="card-info-row">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        ${venueDisplay}
-      </div>
-      ${!isCancel && !isTba && s.capacity ? `
-      <div class="card-capacity-bar-wrap">
-        <div class="capacity-label">
-          <span>報名情況</span>
-          <span class="capacity-count">${capDisplay}</span>
+      <div class="row-main">
+        <div class="row-title">${COURSE_TITLE}</div>
+        <div class="row-meta">
+          <span>${clockSvg}13:00 – 14:00</span>
+          <span>${pinSvg}${s.venue ? venueText : '場地待公告'}</span>
         </div>
-        <div class="capacity-track">
-          <div class="capacity-fill ${fillClass}" style="width:${fillPct}%"></div>
+      </div>
+      <div class="row-status">
+        <span class="card-badge ${badgeClass}">${badgeText}</span>
+        ${hasCap ? `<span class="row-count-inline">${countHtml}</span>` : ''}
+      </div>
+      <div class="row-count">${countHtml}</div>
+      <div class="row-chev" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+    <div class="row-body" aria-hidden="${!isOpenRow}">
+      <div class="row-body-inner">
+        <div class="row-body-content">
+          <div class="row-detail">
+            <div class="card-info-row">${clockSvg}${d.getFullYear()-1911} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日（週${wday}）13:00 – 14:00</div>
+            <div class="card-info-row">${pinSvg}${venueDisplay}</div>
+            ${hasCap ? `
+            <div class="card-capacity-bar-wrap">
+              <div class="capacity-label">
+                <span>報名情況</span>
+                <span class="capacity-count">${capDisplay}</span>
+              </div>
+              <div class="capacity-track">
+                <div class="capacity-fill ${fillClass}" style="width:${fillPct}%"></div>
+              </div>
+            </div>` : ''}
+          </div>
+          <div class="card-actions">
+            ${btnHtml}
+            ${isAdmin ? `<button class="card-edit-btn" onclick="openEditModal('${s.id}')">✏️ 編輯場次</button>` : ''}
+          </div>
+          ${regText}
         </div>
-      </div>` : ''}
-      ${regText}
+      </div>
     </div>
-    <div class="card-actions">
-      ${btnHtml}
-    </div>
-    ${isAdmin ? `<button class="card-edit-btn" onclick="openEditModal('${s.id}')">✏️ 編輯</button>` : ''}
   </div>`;
 }
 
