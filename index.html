@@ -460,6 +460,16 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
   }
+  .grid-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+  }
 
   /* ===== COURSE CARD ===== */
   .course-card {
@@ -1024,13 +1034,13 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-eyebrow">Chi Mei Hospital · 115 年度</div>
+  <div class="hero-eyebrow" id="heroEyebrow">Chi Mei Hospital · 115 年度</div>
   <h1>安寧緩和醫療教育課程 · 線上報名系統</h1>
   <p class="hero-sub">每月第 2、4 週週二 · 13:00–14:00 · 全院各職類實見習生</p>
   <div class="hero-meta">
     <div class="hero-meta-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      民國 115 年 1 月 – 12 月
+      <span id="heroDateRange">民國 115 年 1 月 – 12 月</span>
     </div>
     <div class="hero-meta-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1067,18 +1077,8 @@
 <main class="main-container">
 <div class="content-inner">
 
-  <!-- 116 年度待公告頁 -->
-  <div id="view116" class="hidden">
-    <div class="tba-page">
-      <div class="tba-icon">🌙</div>
-      <h2 class="tba-title">116 年度課程</h2>
-      <p class="tba-desc">116 年度安寧緩和醫療教育課程<br>規劃中，敬請期待。</p>
-      <p class="tba-sub">課程資訊公告後將於本系統更新，屆時開放報名。</p>
-    </div>
-  </div>
-
-  <!-- 115 年度主內容 -->
-  <div id="view115">
+  <!-- 課程主內容（依 currentYear 切換年度資料） -->
+  <div id="viewCourses">
 
   <!-- ADMIN TOOLBAR -->
   <div class="admin-toolbar" id="adminToolbar">
@@ -1113,7 +1113,7 @@
   <div class="stats-row" id="statsRow">
     <div class="stat-card">
       <div class="stat-num" id="statTotal">0</div>
-      <div class="stat-label">115年 總場次</div>
+      <div class="stat-label" id="statTotalLabel">115年 總場次</div>
     </div>
     <div class="stat-card">
       <div class="stat-num" id="statOpen">0</div>
@@ -1133,7 +1133,7 @@
   <div class="section-header">
     <h2 class="section-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      115 年度課程場次
+      <span id="sectionYearTitle">115 年度課程場次</span>
     </h2>
     <span style="font-size:12px;color:var(--text-muted)" id="cardCount"></span>
   </div>
@@ -1141,7 +1141,7 @@
   <!-- COURSE GRID -->
   <div class="course-grid" id="courseGrid"></div>
 
-  </div><!-- /view115 -->
+  </div><!-- /viewCourses -->
 
 </div><!-- /content-inner -->
 </main>
@@ -1373,6 +1373,7 @@ let isAdmin    = false;       // 管理者模式
 let adminToken = null;        // 登入後的 token（由 Apps Script 回傳）
 let currentFilter = 'all';
 let currentMonths = new Set();  // 複選月份；空集合＝全年
+let currentYear   = 115;        // 目前檢視的年度
 let pendingSessionId = null;
 let lastFetchHash = null;
 let editRegToken  = null;   // 報名者編輯 token（從 URL 取得）
@@ -1452,25 +1453,26 @@ function renderAll() {
 }
 
 function renderStats() {
-  const yr115 = sessions.filter(s => s.year === 115);
-  const open  = yr115.filter(s => s.status !== 'cancel' && s.status !== 'tba' && s.remaining > 0);
-  const total115 = yr115.length;
-  const totalReg  = yr115.reduce((a,s) => a + (s.registered||0), 0);
-  const fullCount = yr115.filter(s => s.remaining === 0 && s.status !== 'cancel').length;
-  document.getElementById('statTotal').textContent = total115;
+  const yrSessions = sessions.filter(s => s.year === currentYear);
+  const open  = yrSessions.filter(s => s.status !== 'cancel' && s.status !== 'tba' && s.remaining > 0);
+  const total = yrSessions.length;
+  const totalReg  = yrSessions.reduce((a,s) => a + (s.registered||0), 0);
+  const fullCount = yrSessions.filter(s => s.remaining === 0 && s.status !== 'cancel').length;
+  document.getElementById('statTotal').textContent = total;
   document.getElementById('statOpen').textContent  = open.length;
   document.getElementById('statRegistered').textContent = totalReg;
   document.getElementById('statFull').textContent  = fullCount;
+  document.getElementById('statTotalLabel').textContent = `${currentYear}年 總場次`;
 }
 
 function buildMonthChips() {
-  const yr115 = sessions.filter(s => s.year === 115);
-  const monthsPresent = [...new Set(yr115.map(s => new Date(s.date).getMonth() + 1))].sort((a,b)=>a-b);
+  const yrSessions = sessions.filter(s => s.year === currentYear);
+  const monthsPresent = [...new Set(yrSessions.map(s => new Date(s.date).getMonth() + 1))].sort((a,b)=>a-b);
   const bar = document.getElementById('monthFilterBar');
   const allActive = currentMonths.size === 0 ? 'active' : '';
   let html = `<button class="month-chip all-months-chip ${allActive}" data-month="0" onclick="clearMonthFilter()">全年</button>`;
   monthsPresent.forEach(m => {
-    const inMonth = yr115.filter(s => new Date(s.date).getMonth()+1 === m);
+    const inMonth = yrSessions.filter(s => new Date(s.date).getMonth()+1 === m);
     const allPast = inMonth.every(s => new Date(s.date) < TODAY);
     const hasOpen = !allPast && inMonth.some(s => s.status !== 'cancel' && s.status !== 'tba' && s.remaining > 0);
     const allCancelled = inMonth.every(s => s.status === 'cancel');
@@ -1500,7 +1502,7 @@ function clearMonthFilter() {
 
 function renderCards() {
   const grid = document.getElementById('courseGrid');
-  let filtered = sessions.filter(s => s.year === 115);
+  let filtered = sessions.filter(s => s.year === currentYear);
 
   // 月份篩選（複選）
   if (currentMonths.size > 0) {
@@ -1535,7 +1537,9 @@ function renderCards() {
   const sortedMonths = [...currentMonths].sort((a,b)=>a-b);
   const monthLabel = sortedMonths.length > 0 ? `${sortedMonths.join('、')} 月・` : '';
   document.getElementById('cardCount').textContent = `${monthLabel}共 ${filtered.length} 場`;
-  grid.innerHTML = filtered.map(s => buildCard(s)).join('');
+  grid.innerHTML = filtered.length
+    ? filtered.map(s => buildCard(s)).join('')
+    : `<div class="grid-empty">目前沒有符合條件的場次。</div>`;
 }
 
 function buildCard(s) {
@@ -1636,14 +1640,32 @@ function setFilter(f, btn) {
 
 /* ---------- YEAR SWITCH ---------- */
 function switchYear(yr) {
-  const is115 = yr === 115;
-  document.getElementById('view115').classList.toggle('hidden', !is115);
-  document.getElementById('view116').classList.toggle('hidden', is115);
-  document.getElementById('filtersBar').classList.toggle('hidden', !is115);
-  document.getElementById('tab115').classList.toggle('active', is115);
-  document.getElementById('tab116').classList.toggle('active', !is115);
-  // Hero eyebrow 更新
-  document.querySelector('.hero-eyebrow').textContent = `Chi Mei Hospital · ${yr} 年度`;
+  currentYear = yr;
+  currentMonths.clear();
+  currentFilter = 'all';
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  const allChip = document.querySelector('.filter-chip[data-filter="all"]');
+  if (allChip) allChip.classList.add('active');
+  document.body.setAttribute('data-filter', 'all');
+
+  document.getElementById('tab115').classList.toggle('active', yr === 115);
+  document.getElementById('tab116').classList.toggle('active', yr === 116);
+  document.getElementById('heroEyebrow').textContent = `Chi Mei Hospital · ${yr} 年度`;
+  document.getElementById('sectionYearTitle').textContent = `${yr} 年度課程場次`;
+
+  const yrSessions = sessions.filter(s => s.year === yr).slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+  if (yrSessions.length) {
+    const first = new Date(yrSessions[0].date);
+    const last  = new Date(yrSessions[yrSessions.length - 1].date);
+    const firstM = first.getFullYear() - 1911, lastM = last.getFullYear() - 1911;
+    document.getElementById('heroDateRange').textContent = firstM === lastM
+      ? `民國 ${firstM} 年 ${first.getMonth()+1} 月 – ${last.getMonth()+1} 月`
+      : `民國 ${firstM} 年 ${first.getMonth()+1} 月 – ${lastM} 年 ${last.getMonth()+1} 月`;
+  } else {
+    document.getElementById('heroDateRange').textContent = `民國 ${yr} 年度`;
+  }
+
+  renderAll();
 }
 
 /* ---------- REGISTRATION EDIT (報名者) ---------- */
@@ -1896,7 +1918,8 @@ async function addSession() {
   if (!date) { showToast('請選擇日期', 'error'); return; }
 
   const newId = 'S_' + date.replace(/-/g,'') + '_' + Math.random().toString(36).substr(2,4);
-  const payload = { action: 'addSession', id: newId, date, venue, capacity, status:'open', token: adminToken };
+  const year  = currentYear;
+  const payload = { action: 'addSession', id: newId, date, year, venue, capacity, status:'open', token: adminToken };
 
   try {
     if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
@@ -1904,7 +1927,7 @@ async function addSession() {
       const json = await res.json();
       if (!json.success) { showToast(json.message || '新增失敗', 'error'); return; }
     }
-    sessions.push({ id: newId, date, year: 115, venue, capacity, registered: 0, remaining: capacity, status:'open', registrants:'' });
+    sessions.push({ id: newId, date, year, venue, capacity, registered: 0, remaining: capacity, status:'open', registrants:'' });
     sessions.sort((a,b) => new Date(a.date) - new Date(b.date));
     renderAll();
     closeModal('addModal');
@@ -1923,10 +1946,10 @@ async function syncFromSheet() {
 
 /* ---------- DOWNLOAD CSV ---------- */
 function downloadCSV() {
-  const yr115 = sessions.filter(s => s.year === 115);
+  const yrSessions = sessions.filter(s => s.year === currentYear);
   const header = ['場次日期','星期','時間','場地','容額','已報名人數','尚可報名數','狀態','報名單位備註'];
   const weekdays = ['日','一','二','三','四','五','六'];
-  const rows = yr115.map(s => {
+  const rows = yrSessions.map(s => {
     const d = new Date(s.date);
     const wday = weekdays[d.getDay()];
     const dateStr = `${d.getFullYear()-1911}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
@@ -1940,7 +1963,7 @@ function downloadCSV() {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `115年度安寧緩和醫療教育課程報名_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')}.csv`;
+  a.download = `${currentYear}年度安寧緩和醫療教育課程報名_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')}.csv`;
   a.click();
   showToast('CSV 下載中…', 'success');
 }
