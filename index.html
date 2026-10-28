@@ -1160,6 +1160,45 @@
   .next-btn:hover { background: white; }
   .next-btn.go { background: var(--starlight-gold); color: var(--night-deep); }
 
+  /* ===== 月份收合區塊 ===== */
+  .month-group { border-radius: var(--radius-md); }
+  .month-head {
+    width: 100%;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 12px 12px 10px;
+    min-height: 48px;
+    border: none; border-radius: var(--radius-md);
+    background: var(--surface);
+    font-family: 'Noto Sans TC', sans-serif;
+    text-align: left; cursor: pointer;
+    box-shadow: 0 1px 2px rgba(74,69,146,0.06);
+    transition: background .15s;
+  }
+  .month-head:hover { background: #FDFCFF; }
+  .month-group.is-open .month-head { background: transparent; box-shadow: none; padding-bottom: 6px; }
+  .month-name { font-family: 'Noto Serif TC', serif; font-size: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+  .month-sum { flex: 1; min-width: 0; font-size: 13px; color: var(--text-muted); }
+  .month-sum .ok { color: var(--sage-600); font-weight: 600; }
+  .month-sum .tba { color: var(--amber-700); }
+  .month-chev { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; transition: transform .25s ease; }
+  .month-group.is-open .month-chev { transform: rotate(180deg); }
+  .month-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .26s ease; }
+  .month-group.is-open .month-body { grid-template-rows: 1fr; }
+  .month-body-inner {
+    overflow: hidden; min-height: 0;
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 3px 4px 8px; margin: 0 -4px;          /* 留一點空間，陰影和金框不會被切掉 */
+  }
+  .month-group:not(.is-open) .month-body-inner { visibility: hidden; transition: visibility 0s .26s; }
+  @media (prefers-reduced-motion: reduce) { .month-body, .month-chev { transition: none; } }
+  @media (max-width: 640px) {
+    .month-head { flex-wrap: wrap; gap: 4px 10px; }
+    .month-sum { order: 3; flex-basis: 100%; padding-left: 19px; font-size: 12px; }
+    .month-chev { margin-left: auto; }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; }
+    .stat-card { justify-content: flex-end; }
+  }
+
   /* ===== 已結束場次收合列 ===== */
   .past-toggle {
     display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -1240,32 +1279,29 @@
   .card-actions .adm-help-btn:hover { background: #C8E8D6; }
 
   /* ===== STATS ROW ===== */
+  /* 統計：縮成課程標題下的一行小膠囊 */
   .stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 10px;
-    margin-bottom: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: -4px 0 14px;
   }
   .stat-card {
+    display: inline-flex;
+    flex-direction: row-reverse;      /* 標籤在前、數字在後 */
+    align-items: baseline;
+    gap: 5px;
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 14px 16px;
-    text-align: center;
+    border-radius: 20px;
+    padding: 4px 12px;
   }
   .stat-num {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 26px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     color: var(--lavender-700);
-    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
   }
-  .stat-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-top: 3px;
-    letter-spacing: 0.02em;
-  }
+  .stat-label { font-size: 12px; color: var(--text-secondary); }
 
   /* ===== LOGIN FORM ===== */
   .login-info-row {
@@ -1648,9 +1684,6 @@
     .month-filter-row { gap: 6px; }
 
     /* Stats */
-    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
-    .stat-num   { font-size: 22px; }
-    .stat-label { font-size: 12px; }
 
 
     /* Admin toolbar */
@@ -1703,9 +1736,6 @@
     .month-chip.all-months-chip { margin-right: 0; padding-right: 4px; }
 
     /* Stats — 2欄 */
-    .stats-row  { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .stat-num   { font-size: 20px; }
-    .stat-label { font-size: 11px; }
 
 
     /* Section header */
@@ -1743,7 +1773,6 @@
   @media (max-width: 360px) {
     .year-tab   { font-size: 11px; padding: 4px 8px; }
     .filter-chip { font-size: 11px; padding: 5px 10px; }
-    .stat-num   { font-size: 18px; }
   }
 
   /* ===== HELPERS ===== */
@@ -1884,11 +1913,27 @@
   <!-- 下一場課程 -->
   <div class="next-card hidden" id="nextCard"></div>
 
+  <!-- SECTION HEADER -->
+  <div class="section-header">
+    <h2 class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span id="sectionYearTitle">115 年度課程場次</span>
+    </h2>
+    <div class="section-tools">
+      <span style="font-size:12px;color:var(--text-muted)" id="cardCount"></span>
+      <button class="tool-chip" id="expandAllBtn" onclick="toggleExpandAll()">月份全部展開</button>
+      <button class="tool-chip" onclick="printSummary()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        列印總表
+      </button>
+    </div>
+  </div>
+
   <!-- STATS ROW -->
   <div class="stats-row" id="statsRow">
     <div class="stat-card">
       <div class="stat-num" id="statTotal">0</div>
-      <div class="stat-label" id="statTotalLabel">115 年度總場次</div>
+      <div class="stat-label" id="statTotalLabel">總場次</div>
     </div>
     <div class="stat-card">
       <div class="stat-num" id="statOpen">0</div>
@@ -1901,22 +1946,6 @@
     <div class="stat-card">
       <div class="stat-num" id="statFull">0</div>
       <div class="stat-label">額滿場次</div>
-    </div>
-  </div>
-
-  <!-- SECTION HEADER -->
-  <div class="section-header">
-    <h2 class="section-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span id="sectionYearTitle">115 年度課程場次</span>
-    </h2>
-    <div class="section-tools">
-      <span style="font-size:12px;color:var(--text-muted)" id="cardCount"></span>
-      <button class="tool-chip" id="expandAllBtn" onclick="toggleExpandAll()">全部展開</button>
-      <button class="tool-chip" onclick="printSummary()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        列印總表
-      </button>
     </div>
   </div>
 
@@ -2511,6 +2540,8 @@ function goToSession(id) {
     renderAll();
   }
   if (window.innerWidth <= 640) closeActivity();
+  const sd = new Date(s.date), mk = `${sd.getFullYear()}-${sd.getMonth() + 1}`;
+  if (!openMonths.has(mk)) { openMonths.add(mk); renderCards(); }
   const row = document.querySelector(`.course-row[data-id="${id}"]`);
   if (!row) return;
   if (!row.classList.contains('is-open')) toggleRow(id);
@@ -2574,7 +2605,7 @@ function renderStats() {
   document.getElementById('statOpen').textContent  = open.length;
   document.getElementById('statRegistered').textContent = totalReg;
   document.getElementById('statFull').textContent  = fullCount;
-  document.getElementById('statTotalLabel').textContent = `${currentYear} 年度總場次`;
+  document.getElementById('statTotalLabel').textContent = '總場次';
 }
 
 function buildMonthChips() {
@@ -2670,22 +2701,89 @@ function renderCards() {
     </button>`;
     if (!showPast) filtered = filtered.filter(s => new Date(s.date) >= TODAY);
   }
-  const distinctMonths2 = new Set(filtered.map(s => new Date(s.date).getMonth() + 1));
-  const showDividers2 = distinctMonths2.size > 1;
-
-  let lastMonth = null;
+  // 依月份分組，每個月是一個可以收合的區塊
+  const groups = [];
   filtered.forEach(s => {
-    const m = new Date(s.date).getMonth() + 1;
-    if (showDividers2 && m !== lastMonth) {
-      const color = MONTH_COLORS[m];
-      html += `<div class="month-divider"><span class="month-divider-dot" style="background:${color}"></span>${m} 月</div>`;
-      lastMonth = m;
+    const d = new Date(s.date);
+    const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+    let g = groups[groups.length - 1];
+    if (!g || g.key !== key) { g = { key, m: d.getMonth() + 1, list: [] }; groups.push(g); }
+    g.list.push(s);
+  });
+
+  // 換年度或換篩選時，重新決定預設打開哪些月份
+  const viewKey = `${currentYear}|${currentFilter}|${[...currentMonths].sort().join(',')}`;
+  if (viewKey !== lastViewKey) {
+    lastViewKey = viewKey;
+    openMonths = new Set();
+    if (currentFilter === 'all' && currentMonths.size === 0) {
+      const g = groups.find(g => g.list.some(s => new Date(s.date) >= TODAY && s.status !== 'cancel'));
+      if (g) openMonths.add(g.key);                     // 只打開最近有課的那個月
+      else if (groups.length) openMonths.add(groups[groups.length - 1].key);
+    } else {
+      groups.forEach(g => openMonths.add(g.key));       // 有篩選時，結果全部打開
     }
-    html += buildCard(s);
+  }
+
+  groups.forEach(g => {
+    const open = openMonths.has(g.key);
+    html += `
+      <div class="month-group ${open ? 'is-open' : ''}" data-month-key="${g.key}">
+        <button class="month-head" onclick="toggleMonthGroup('${g.key}')" aria-expanded="${open}">
+          <span class="month-divider-dot" style="background:${MONTH_COLORS[g.m]}"></span>
+          <span class="month-name">${g.m} 月</span>
+          <span class="month-sum">${monthSummary(g.list)}</span>
+          <svg class="month-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="month-body"><div class="month-body-inner">
+          ${g.list.map(buildCard).join('')}
+        </div></div>
+      </div>`;
   });
 
   grid.innerHTML = filtered.length ? html : `<div class="grid-empty">目前沒有符合條件的場次。</div>`;
   lastShown = filtered;
+  lastGroups = groups.map(g => g.key);
+  updateExpandAllBtn();
+}
+
+/* ---------- 月份收合 ---------- */
+let openMonths = new Set();
+let lastViewKey = '';
+let lastGroups = [];
+
+function monthSummary(list) {
+  const n = list.length;
+  const active = list.filter(s => s.status !== 'cancel');
+  const allPast = list.every(s => new Date(s.date) < TODAY);
+  const reg = active.reduce((a, s) => a + (s.registered || 0), 0);
+  const cap = active.reduce((a, s) => a + (s.capacity || 0), 0);
+  const parts = [`${n} 場`];
+  if (allPast) {
+    parts.push('已結束', `共 ${reg} 人參加`);
+  } else {
+    const openN = active.filter(s => {
+      const d = new Date(s.date);
+      const days = Math.ceil((d - TODAY) / 86400000);
+      return d >= TODAY && s.remaining > 0 && !(days <= 14 && !s.adminUnlocked);
+    }).length;
+    const fullN = active.filter(s => new Date(s.date) >= TODAY && s.remaining === 0).length;
+    if (openN) parts.push(`<b class="ok">可報名 ${openN}</b>`);
+    if (fullN) parts.push(`額滿 ${fullN}`);
+    if (active.length && active.every(s => !s.venue)) parts.push('<span class="tba">場地確認中</span>');
+    parts.push(`已報 ${reg} / ${cap} 人`);
+  }
+  if (list.length - active.length) parts.push(`取消 ${list.length - active.length}`);
+  return parts.join('・');
+}
+
+function toggleMonthGroup(key) {
+  const el = document.querySelector(`.month-group[data-month-key="${key}"]`);
+  if (!el) return;
+  const open = !el.classList.contains('is-open');
+  el.classList.toggle('is-open', open);
+  el.querySelector('.month-head').setAttribute('aria-expanded', open);
+  if (open) openMonths.add(key); else openMonths.delete(key);
   updateExpandAllBtn();
 }
 
@@ -2694,13 +2792,13 @@ let lastShown = [];
 function updateExpandAllBtn() {
   const btn = document.getElementById('expandAllBtn');
   if (!btn) return;
-  btn.style.display = lastShown.length ? '' : 'none';
-  const allOpen = lastShown.length && lastShown.every(s => expandedIds.has(s.id));
-  btn.textContent = allOpen ? '全部收合' : '全部展開';
+  btn.style.display = lastGroups.length > 1 ? '' : 'none';
+  const allOpen = lastGroups.length && lastGroups.every(k => openMonths.has(k));
+  btn.textContent = allOpen ? '月份全部收合' : '月份全部展開';
 }
 function toggleExpandAll() {
-  const allOpen = lastShown.every(s => expandedIds.has(s.id));
-  lastShown.forEach(s => allOpen ? expandedIds.delete(s.id) : expandedIds.add(s.id));
+  const allOpen = lastGroups.every(k => openMonths.has(k));
+  lastGroups.forEach(k => allOpen ? openMonths.delete(k) : openMonths.add(k));
   renderCards();
 }
 
@@ -2880,11 +2978,15 @@ function renderSkeleton() {
 /* ---------- 下一場課程 ---------- */
 function renderNextCard() {
   const box = document.getElementById('nextCard');
-  const upcoming = sessions
+  // 跟著目前選的年度：顯示這個年度接下來的第一場
+  const yrList = sessions.filter(s => s.year === currentYear);
+  const upcoming = yrList
     .filter(s => new Date(s.date) >= TODAY && s.status !== 'cancel')
     .sort((a, b) => new Date(a.date) - new Date(b.date));
   if (!upcoming.length) { box.classList.add('hidden'); return; }
   const s = upcoming[0];
+  const yearStarted = yrList.some(x => new Date(x.date) < TODAY);
+  const nextTitle = yearStarted ? '下一場課程' : `${currentYear} 年度第一場`;
   const d = new Date(s.date);
   const wd = ['日','一','二','三','四','五','六'][d.getDay()];
   const days = Math.round((d - TODAY) / 86400000);
@@ -2903,7 +3005,7 @@ function renderNextCard() {
       <span class="next-date-wday">週${wd}</span>
     </div>
     <div class="next-info">
-      <div class="next-label">下一場課程 <span class="next-countdown">${countdown}</span></div>
+      <div class="next-label">${nextTitle} <span class="next-countdown">${countdown}</span></div>
       <div class="next-meta"><span class="nowrap">13:00 – 14:00</span>・${venue}${stateText}</div>
       <div class="next-units">${s.registrants ? '已報名：' + s.registrants : '目前還沒有單位報名'}</div>
     </div>
