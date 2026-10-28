@@ -1988,7 +1988,9 @@
   .ts-brief { color: var(--text-muted); }
   .ts-scope { display: flex; gap: 6px; padding: 10px 0 8px; }
   .ts-row { display: grid; grid-template-columns: 64px minmax(0,1fr) 82px; align-items: center; gap: 8px; padding: 6px 0; }
-  .ts-name { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+  .ts-name { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ts-row-head { padding: 0 0 2px; font-size: 11px; color: var(--text-muted); }
+  .ts-row-head span:last-child { text-align: right; }
   .ts-bar { height: 10px; border-radius: 6px; background: var(--lavender-50); overflow: hidden; }
   .ts-bar span { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--lavender-300), var(--lavender-500)); transition: width .4s ease; }
   .ts-num { font-size: 13px; color: var(--text-muted); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -2592,7 +2594,7 @@ function setActTab(tab) {
 }
 // 依評鑑順序：檢、護、營、呼、聽、物、職、心、語，其他職類排在後面
 const TYPE_ORDER = ['醫檢','護理','營養','呼吸治療','聽力','物理治療','職能治療','心理','語言治療','醫事放射','藥事','醫學系見'];
-function typeShort(t) { return String(t).replace('實習生','').replace('見實習生','見') || '其他'; }
+function typeShort(t) { return String(t).replace('其他職類（未註明）','未註明').replace('其他職類','其他').replace('實習生','') || '其他'; }
 function typeRank(t) {
   const k = typeShort(t);
   const i = TYPE_ORDER.findIndex(o => k.startsWith(o));
@@ -2632,17 +2634,17 @@ function renderTypeStats() {
   if (!rows.length) {
     chart.innerHTML = `<div class="ts-empty">${tsScope === 'upcoming' ? '還沒上課的場次目前沒有人報名' : `${currentYear} 年度目前還沒有人報名`}</div>`;
   } else {
-    chart.innerHTML = rows.map(([t, n]) => {
+    chart.innerHTML = `<div class="ts-row ts-row-head"><span>職類</span><span></span><span>人數　占比</span></div>` + rows.map(([t, n]) => {
       const pct = Math.round(n / total * 100);
       return `<div class="ts-row">
-        <span class="ts-name">${typeShort(t)}</span>
+        <span class="ts-name" title="${t}">${typeShort(t)}</span>
         <span class="ts-bar"><span style="width:${Math.max(3, n / max * 100)}%"></span></span>
         <span class="ts-num"><b>${n}</b> 人<span class="ts-pct">${pct}%</span></span>
       </div>`;
     }).join('');
   }
   const t = new Date(typeStats.updatedAt);
-  note.textContent = isNaN(t) ? '' : `統計時間 ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}・已排除取消的報名與取消的場次`;
+  note.textContent = isNaN(t) ? '' : `占比＝該職類人數 ÷ 總人數・統計時間 ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}・已排除取消的報名與取消的場次`;
 }
 
 /* ---------- 最新動態（近兩個月的報名異動） ---------- */
