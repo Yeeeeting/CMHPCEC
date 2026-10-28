@@ -1055,6 +1055,218 @@
   .site-footer > * { position: relative; z-index: 1; }
   .site-footer strong { color: var(--starlight-gold-soft); }
 
+  /* ===== 最新動態（近兩個月的報名異動） ===== */
+  .activity-panel {
+    position: fixed;
+    z-index: 150;
+    background: var(--cream);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 40px rgba(10,10,26,0.35);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .activity-panel.show { display: flex; animation: actIn .22s ease; }
+  @keyframes actIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .act-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 14px 10px 16px;
+  }
+  .act-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--lavender-900);
+  }
+  .act-range { font-size: 12px; color: var(--text-muted); }
+  .act-head-actions { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  .act-btn-text {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: var(--lavender-700);
+    background: none;
+    border: none;
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .act-btn-text:hover { background: var(--lavender-50); }
+  .act-btn-text:disabled { color: var(--text-muted); cursor: default; background: none; }
+  .act-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: none; background: transparent; color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .act-close:hover { background: var(--lavender-50); color: var(--lavender-700); }
+  .act-close svg { width: 15px; height: 15px; }
+
+  .act-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 16px 12px;
+  }
+  .act-sum-chip {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--surface);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .act-sum-chip strong { font-weight: 600; color: var(--text-primary); }
+  .act-sum-chip.reg strong { color: var(--sage-600); }
+
+  .act-list {
+    overflow-y: auto;
+    padding: 0 10px 12px;
+    overscroll-behavior: contain;
+  }
+  .act-day {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 10px 6px 4px;
+  }
+  .act-item {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 26px minmax(0,1fr) auto;
+    gap: 2px 10px;
+    align-items: start;
+    text-align: left;
+    padding: 9px 8px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    margin-bottom: 4px;
+    cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif;
+    transition: background .15s;
+  }
+  .act-item:hover { background: var(--lavender-50); }
+  .act-icon {
+    grid-row: 1 / 3;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .act-icon svg { width: 13px; height: 13px; }
+  .act-icon.register { background: var(--sage-100); color: var(--sage-600); }
+  .act-icon.edit     { background: var(--lavender-100); color: var(--lavender-700); }
+  .act-icon.cancel   { background: #F0EDEA; color: #7A7470; }
+  .act-icon.venue    { background: var(--amber-50); color: var(--amber-700); }
+  .act-icon.sessionCancel { background: var(--red-50); color: var(--red-600); }
+  .act-session { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .act-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; padding-top: 2px; }
+  .act-text { grid-column: 2 / 4; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+  .act-new {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    color: #C2410C;
+    background: #FFF1E6;
+    border-radius: 20px;
+    padding: 0 6px;
+    margin-left: 6px;
+    vertical-align: 1px;
+    letter-spacing: 0.04em;
+  }
+  .act-empty { font-size: 13px; color: var(--text-muted); text-align: center; padding: 28px 12px; }
+
+  /* 收合時的開啟按鈕 */
+  .activity-fab {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 140;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px 10px 14px;
+    min-height: 44px;
+    border-radius: 24px;
+    border: none;
+    background: var(--cream);
+    color: var(--lavender-900);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(10,10,26,0.35);
+    cursor: pointer;
+  }
+  .activity-fab.show { display: inline-flex; }
+  .activity-fab svg { width: 17px; height: 17px; color: var(--lavender-500); }
+  .act-badge {
+    min-width: 20px; height: 20px; padding: 0 6px;
+    border-radius: 10px;
+    background: #EA580C; color: white;
+    font-size: 12px; font-weight: 600;
+    display: none; align-items: center; justify-content: center;
+  }
+  .act-badge.show { display: inline-flex; }
+  .act-backdrop {
+    position: fixed; inset: 0; z-index: 149;
+    background: rgba(20,18,40,0.45);
+    display: none;
+  }
+
+  /* 點最新動態跳到場次時的提示光暈 */
+  .course-row.flash { animation: rowFlash 1.6s ease; }
+  @keyframes rowFlash {
+    0%, 60% { box-shadow: 0 0 0 3px var(--starlight-gold), 0 4px 18px rgba(74,69,146,0.12); }
+    100%    { box-shadow: 0 1px 2px rgba(74,69,146,0.06); }
+  }
+
+  /* 大螢幕：固定在右側，整頁內容往左讓位，不會蓋到課程清單 */
+  @media (min-width: 1200px) {
+    body.act-docked { padding-right: 336px; }
+    .activity-panel {
+      top: 76px;
+      right: 16px;
+      width: 304px;
+      max-height: calc(100vh - 96px);
+    }
+  }
+  /* 平板：右下角浮動視窗 */
+  @media (min-width: 641px) and (max-width: 1199px) {
+    .activity-panel {
+      right: 20px;
+      bottom: 76px;
+      width: 340px;
+      max-height: min(560px, calc(100vh - 120px));
+    }
+  }
+  /* 手機：右下角小按鈕 → 從底部滑出的面板 */
+  @media (max-width: 640px) {
+    .activity-fab { right: 14px; bottom: 14px; padding: 10px 14px 10px 12px; font-size: 13px; }
+    .site-footer { padding-bottom: 72px !important; }   /* 留位置給右下角的最新動態按鈕 */
+    .activity-panel {
+      left: 0; right: 0; bottom: 0;
+      max-height: 78vh;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .activity-panel.show { animation: sheetUp .25s ease; }
+    .act-backdrop.show { display: block; }
+    .act-head::before {         /* 底部面板的小把手 */
+      content: '';
+      position: absolute;
+      top: 6px; left: 50%;
+      width: 36px; height: 4px;
+      margin-left: -18px;
+      border-radius: 2px;
+      background: var(--border-md);
+    }
+    .act-head { position: relative; padding-top: 18px; }
+    .act-item { padding: 11px 8px; }
+  }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .activity-panel.show, .course-row.flash { animation: none; }
+  }
+
   /* ===== RESPONSIVE ===== */
 
   /* 平板（768px 以下） */
@@ -1328,6 +1540,28 @@
 </footer>
 
 <!-- TOAST CONTAINER -->
+<!-- 最新動態（近兩個月的報名異動） -->
+<div class="act-backdrop" id="actBackdrop" onclick="closeActivity()"></div>
+<aside class="activity-panel" id="activityPanel" aria-label="最新報名動態">
+  <div class="act-head">
+    <span class="act-title">最新動態</span>
+    <span class="act-range">近兩個月</span>
+    <div class="act-head-actions">
+      <button class="act-btn-text" id="actMarkRead" onclick="markActivityRead()">全部已讀</button>
+      <button class="act-close" onclick="closeActivity()" aria-label="收合最新動態">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="act-summary" id="actSummary"></div>
+  <div class="act-list" id="actList"></div>
+</aside>
+<button class="activity-fab" id="activityFab" onclick="openActivity()" aria-label="開啟最新動態">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  最新動態
+  <span class="act-badge" id="actBadge"></span>
+</button>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- ===================== MODALS ===================== -->
@@ -1588,7 +1822,7 @@ const TODAY = getTodayTaipei();
 
 /* ---------- INIT ---------- */
 window.addEventListener('DOMContentLoaded', () => {
-  loadSessions();
+  loadSessions().then(loadActivity);
   setInterval(checkForUpdates, 30000);
 
   // 偵測 URL 是否有 ?edit=TOKEN（報名者點信件連結）
@@ -1628,7 +1862,188 @@ async function loadSessions(silent = false) {
 
 async function checkForUpdates() {
   await loadSessions(true);
+  loadActivity();
 }
+
+/* ---------- 最新動態（近兩個月的報名異動） ---------- */
+let activityItems = [];
+let activityLoaded = false;
+const ACT_DOCK_MIN = 1200;   // 這個寬度以上，面板固定在右側
+
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+function activityLastSeen() {
+  const v = Number(lsGet('actLastSeen'));
+  return v || (Date.now() - 7 * 24 * 60 * 60 * 1000);   // 第一次來：近 7 天的算「新」
+}
+
+async function loadActivity() {
+  if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') return;
+  try {
+    const res  = await fetch(`${APPS_SCRIPT_URL}?action=getActivity&t=${Date.now()}`);
+    const json = await res.json();
+    if (!json.success || !Array.isArray(json.items)) return;   // 後端尚未更新：不顯示
+    activityItems = json.items;
+    const first = !activityLoaded;
+    activityLoaded = true;
+    renderActivity();
+    if (first) initActivityState();
+  } catch (e) { /* 動態讀不到不影響報名 */ }
+}
+
+function initActivityState() {
+  const wide = window.innerWidth >= ACT_DOCK_MIN;
+  const collapsed = lsGet('actCollapsed') === '1';
+  if (wide && !collapsed) openActivity(true); else showFab();
+}
+
+function showFab() {
+  document.getElementById('activityFab').classList.add('show');
+}
+
+function openActivity(silent) {
+  if (!activityLoaded) return;
+  const panel = document.getElementById('activityPanel');
+  panel.classList.add('show');
+  document.getElementById('activityFab').classList.remove('show');
+  if (window.innerWidth >= ACT_DOCK_MIN) document.body.classList.add('act-docked');
+  if (window.innerWidth <= 640) document.getElementById('actBackdrop').classList.add('show');
+  if (!silent) lsSet('actCollapsed', '0');
+}
+
+function closeActivity() {
+  document.getElementById('activityPanel').classList.remove('show');
+  document.getElementById('actBackdrop').classList.remove('show');
+  document.body.classList.remove('act-docked');
+  showFab();
+  if (window.innerWidth >= ACT_DOCK_MIN) lsSet('actCollapsed', '1');
+}
+
+function markActivityRead() {
+  lsSet('actLastSeen', String(Date.now()));
+  renderActivity();
+}
+
+function actSessionLabel(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return '場次';
+  const wd = ['日','一','二','三','四','五','六'][d.getDay()];
+  return `${d.getMonth()+1}/${d.getDate()}（${wd}）場次`;
+}
+
+function actTimeLabel(ts) {
+  const diff = Date.now() - new Date(ts).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1)  return '剛剛';
+  if (min < 60) return `${min} 分鐘前`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24)  return `${hr} 小時前`;
+  const d = new Date(ts);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function actDayLabel(ts) {
+  const d = new Date(ts);
+  const key = d.toDateString();
+  const today = new Date();
+  const yest = new Date(); yest.setDate(today.getDate() - 1);
+  if (key === today.toDateString()) return '今天';
+  if (key === yest.toDateString())  return '昨天';
+  return `${d.getMonth()+1} 月 ${d.getDate()} 日`;
+}
+
+const ACT_ICONS = {
+  register:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  edit:          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  cancel:        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  venue:         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  sessionCancel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+};
+
+function actText(it) {
+  const who = `${(it.unitType || '').replace('實習生', '')} ${it.unit || ''}`.trim();
+  switch (it.type) {
+    case 'register':      return `${who} 報名 ${it.count} 人`;
+    case 'edit':          return it.oldCount && it.oldCount !== it.count
+                            ? `${who} 人數 ${it.oldCount} → ${it.count} 人`
+                            : `${who} 修改報名資料`;
+    case 'cancel':        return `${who} 取消報名（${it.count} 人）`;
+    case 'venue':         return `場地確定：${it.note}`;
+    case 'sessionCancel': return '此場次已取消';
+    default:              return '';
+  }
+}
+
+function renderActivity() {
+  const list = document.getElementById('actList');
+  const sum  = document.getElementById('actSummary');
+  const seen = activityLastSeen();
+  const items = activityItems;
+
+  const regs = items.filter(i => i.type === 'register');
+  const regPeople = regs.reduce((a, i) => a + (i.count || 0), 0);
+  const edits   = items.filter(i => i.type === 'edit').length;
+  const cancels = items.filter(i => i.type === 'cancel').length;
+  const venues  = items.filter(i => i.type === 'venue').length;
+  sum.innerHTML = items.length ? [
+    `<span class="act-sum-chip reg">新報名 <strong>${regs.length}</strong> 筆・<strong>${regPeople}</strong> 人</span>`,
+    edits   ? `<span class="act-sum-chip">修改 <strong>${edits}</strong></span>` : '',
+    cancels ? `<span class="act-sum-chip">取消 <strong>${cancels}</strong></span>` : '',
+    venues  ? `<span class="act-sum-chip">場地確定 <strong>${venues}</strong></span>` : '',
+  ].join('') : '';
+
+  let html = '', lastDay = '', unread = 0;
+  items.forEach(it => {
+    const day = actDayLabel(it.ts);
+    if (day !== lastDay) { html += `<div class="act-day">${day}</div>`; lastDay = day; }
+    const isNew = new Date(it.ts).getTime() > seen;
+    if (isNew) unread++;
+    html += `
+      <button class="act-item" onclick="goToSession('${it.sessionId}')">
+        <span class="act-icon ${it.type}">${ACT_ICONS[it.type] || ''}</span>
+        <span class="act-session">${actSessionLabel(it.sessionDate)}${isNew ? '<span class="act-new">NEW</span>' : ''}</span>
+        <span class="act-time">${actTimeLabel(it.ts)}</span>
+        <span class="act-text">${actText(it)}</span>
+      </button>`;
+  });
+  list.innerHTML = html || '<div class="act-empty">近兩個月還沒有新的報名異動</div>';
+
+  const badge = document.getElementById('actBadge');
+  badge.textContent = unread > 99 ? '99+' : unread;
+  badge.classList.toggle('show', unread > 0);
+  document.getElementById('actMarkRead').disabled = unread === 0;
+}
+
+// 點動態 → 跳到該場次並展開
+function goToSession(id) {
+  const s = sessions.find(x => x.id === id);
+  if (!s) { showToast('這個場次目前不在清單中', ''); return; }
+  if (s.year !== currentYear) switchYear(s.year);
+  if (currentFilter !== 'all' || currentMonths.size) {
+    currentFilter = 'all';
+    currentMonths.clear();
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
+    document.body.setAttribute('data-filter', 'all');
+    renderAll();
+  }
+  if (window.innerWidth <= 640) closeActivity();
+  const row = document.querySelector(`.course-row[data-id="${id}"]`);
+  if (!row) return;
+  if (!row.classList.contains('is-open')) toggleRow(id);
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
+}
+
+// 視窗大小改變時，調整面板是否固定在右側
+window.addEventListener('resize', () => {
+  const panel = document.getElementById('activityPanel');
+  if (!panel || !panel.classList.contains('show')) return;
+  document.body.classList.toggle('act-docked', window.innerWidth >= ACT_DOCK_MIN);
+  document.getElementById('actBackdrop').classList.toggle('show', window.innerWidth <= 640);
+});
+
+
 
 function markUpdatedCards(oldData, newData) {
   const oldMap = {};
