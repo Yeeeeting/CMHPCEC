@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>星光引路・奇恩的故事 — 安寧緩和醫療教育課程報名</title>
+<meta name="description" content="奇美醫院教學部 安寧緩和醫療教育課程線上報名：每月第 2、4 週週二 13:00–14:00，可即時查看各場次名額與報名情形。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yeeeeting.github.io/CMHPCEC/">
+<meta property="og:title" content="安寧緩和醫療教育課程｜線上報名">
+<meta property="og:description" content="奇美醫院教學部・每月第 2、4 週週二 13:00–14:00，即時查看名額、線上報名。">
+<meta property="og:image" content="https://yeeeeting.github.io/CMHPCEC/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1A1B3A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -109,7 +119,7 @@
     transition: all .15s;
     letter-spacing: 0.03em;
   }
-  .year-tab { color: #9B96C4; }
+  .year-tab { color: #C9C4EA; }
   .year-tab:hover { color: #F5F3FA; background: rgba(232,196,104,0.1); }
   .year-tab.active { background: var(--starlight-gold); color: var(--night-deep); font-weight: 600; }
 
@@ -191,7 +201,7 @@
   }
   .brand-sub {
     font-size: 11px;
-    color: #9B96C4;
+    color: #C9C4EA;
     letter-spacing: 0.06em;
   }
   .header-right { display: flex; align-items: center; gap: 8px; }
@@ -492,7 +502,7 @@
   .month-chip.all-full .month-dot { background: var(--lavender-300); }
   .month-chip.all-cancel .month-dot { display: none; }
   .month-chip.past {
-    opacity: 0.5;
+    opacity: 0.68;
     color: var(--text-muted);
     background: var(--cream);
   }
@@ -633,7 +643,8 @@
   }
   .badge-open   { background: var(--sage-100); color: var(--sage-800); }
   .badge-full   { background: var(--lavender-100); color: var(--lavender-700); }
-  .badge-cancel { background: #F0EDEA; color: #7A7470; }
+  .badge-cancel { background: #F6E4E1; color: #9A5548; }   /* 已取消：淡磚紅 */
+  .badge-ended  { background: #ECEAF1; color: #5E5873; }   /* 已結束：灰紫 */
   .badge-tba    { background: var(--amber-50); color: var(--amber-700); }
   .badge-locked { background: #F3EFE8; color: #6B6480; }
 
@@ -986,6 +997,61 @@
   body.admin-mode .card-edit-btn { display: block; }
   body.admin-mode .btn-register { display: none; }
 
+  /* ===== 清單工具列、重複報名提醒、動態篩選 ===== */
+  .section-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .tool-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px; font-weight: 500;
+    padding: 6px 12px; min-height: 32px;
+    border-radius: 20px;
+    border: 1px solid var(--lavender-100);
+    background: var(--surface); color: var(--lavender-700);
+    cursor: pointer;
+  }
+  .tool-chip:hover { background: var(--lavender-50); }
+  .tool-chip svg { width: 14px; height: 14px; }
+  .dup-warn {
+    font-size: 13px; line-height: 1.7;
+    color: var(--amber-700); background: var(--amber-50);
+    border-left: 3px solid var(--amber-500);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 10px 12px; margin-top: 4px;
+  }
+  .act-scope { display: flex; gap: 6px; padding: 12px 14px 0; }
+  .section-title { white-space: nowrap; }
+  @media (max-width: 640px) {
+    .section-header { flex-wrap: wrap; gap: 8px; }
+    .section-tools { width: 100%; justify-content: flex-start; }
+    .section-tools #cardCount { margin-right: auto; }
+  }
+  .act-scope-btn {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px; padding: 5px 12px;
+    border-radius: 20px; border: 1px solid var(--lavender-100);
+    background: var(--surface); color: var(--text-secondary); cursor: pointer;
+  }
+  .act-scope-btn.active { background: var(--lavender-500); border-color: var(--lavender-500); color: white; }
+  .act-scope + .act-summary { padding-top: 10px; }
+
+  /* ===== 列印總表 ===== */
+  #printArea { display: none; }
+  @media print {
+    body > *:not(#printArea) { display: none !important; }
+    #skyFx { display: none !important; }
+    html, body { background: white !important; }
+    body { padding: 0 !important; }
+    #printArea { display: block !important; color: #000; font-family: 'Noto Sans TC', sans-serif; }
+    #printArea h1 { font-size: 18px; margin-bottom: 4px; }
+    #printArea .print-meta { font-size: 12px; color: #444; margin-bottom: 12px; }
+    #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    #printArea th, #printArea td { border: 1px solid #999; padding: 6px 8px; text-align: left; vertical-align: top; }
+    #printArea th { background: #eee; }
+    #printArea td.num { white-space: nowrap; text-align: center; }
+    #printArea tr { page-break-inside: avoid; }
+    #printArea .print-foot { font-size: 11px; color: #444; margin-top: 10px; }
+  }
+
   /* ===== 報名須知 ===== */
   .howto {
     background: var(--lavender-50);
@@ -1242,7 +1308,7 @@
   /* ===== FOOTER ===== */
   .site-footer {
     background: transparent;  /* 與頂部一致，不另外分區 */
-    color: #9B96C4;
+    color: #C9C4EA;
     text-align: center;
     font-size: 12px;
     padding: 18px 20px;
@@ -1447,9 +1513,7 @@
     font-size: 10px;
     font-weight: 700;
     color: #8C6400;
-    background: linear-gradient(90deg, #FFE6A8, #FFF3D6, #FFE6A8);
-    background-size: 200% 100%;
-    animation: actShimmer 2.4s linear infinite;
+    background: #FFE6A8;
     border-radius: 20px;
     padding: 1px 7px;
     margin-left: 6px;
@@ -1486,7 +1550,7 @@
   .activity-fab:hover { transform: translateY(-2px); }
   .activity-fab.show { display: inline-flex; }
   .activity-fab svg { width: 18px; height: 18px; color: #FFF3C4; filter: drop-shadow(0 0 4px rgba(255,236,170,.8)); }
-  .activity-fab.has-new svg { animation: actWiggle 2.8s ease-in-out infinite; }
+  .activity-fab.wiggle svg { animation: actWiggle 1.6s ease-in-out 1; }   /* 有新動態時只晃一次 */
   @keyframes actWiggle {
     0%, 70%, 100% { transform: rotate(0); }
     76% { transform: rotate(-16deg); } 82% { transform: rotate(14deg); }
@@ -1547,7 +1611,7 @@
   }
   @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
   @media (prefers-reduced-motion: reduce) {
-    .activity-panel.show, .course-row.flash, .act-star, .act-new, .activity-fab.has-new svg { animation: none; }
+    .activity-panel.show, .course-row.flash, .act-star, .activity-fab.wiggle svg { animation: none; }
   }
 
   /* ===== RESPONSIVE ===== */
@@ -1840,7 +1904,14 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span id="sectionYearTitle">115 年度課程場次</span>
     </h2>
-    <span style="font-size:12px;color:var(--text-muted)" id="cardCount"></span>
+    <div class="section-tools">
+      <span style="font-size:12px;color:var(--text-muted)" id="cardCount"></span>
+      <button class="tool-chip" id="expandAllBtn" onclick="toggleExpandAll()">全部展開</button>
+      <button class="tool-chip" onclick="printSummary()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        列印總表
+      </button>
+    </div>
   </div>
 
   <!-- COURSE GRID -->
@@ -1872,6 +1943,10 @@
       </button>
     </div>
   </div>
+  <div class="act-scope">
+    <button class="act-scope-btn active" data-scope="all" onclick="setActScope('all')">全部</button>
+    <button class="act-scope-btn" data-scope="upcoming" onclick="setActScope('upcoming')">只看還沒上課的場次</button>
+  </div>
   <div class="act-summary" id="actSummary"></div>
   <div class="act-list" id="actList"></div>
 </aside>
@@ -1881,6 +1956,7 @@
   <span class="act-badge" id="actBadge"></span>
 </button>
 
+<div id="printArea" aria-hidden="true"></div>
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- ===================== MODALS ===================== -->
@@ -1978,6 +2054,7 @@
       <input type="number" class="form-input" id="regCount" min="1" max="200" placeholder="請輸入本次報名總人數">
       <div class="form-hint">請填寫本次一同參加的總人數（含帶班老師）</div>
     </div>
+    <div class="dup-warn hidden" id="regDupWarn"></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('registerModal')">取消</button>
       <button class="btn-primary" onclick="submitRegistration()">確認報名</button>
@@ -1999,8 +2076,8 @@
       <input type="text" class="form-input" id="editVenue" placeholder="例：554會議室">
     </div>
     <div class="form-group">
-      <label class="form-label">容額（人數上限）</label>
-      <input type="number" class="form-input" id="editCapacity" min="1" max="500" placeholder="輸入容額">
+      <label class="form-label">名額（人數上限）</label>
+      <input type="number" class="form-input" id="editCapacity" min="1" max="500" placeholder="輸入名額">
     </div>
     <div class="form-group">
       <label class="form-label">狀態</label>
@@ -2054,8 +2131,8 @@
       <input type="text" class="form-input" id="addVenue" placeholder="例：554會議室">
     </div>
     <div class="form-group">
-      <label class="form-label">容額</label>
-      <input type="number" class="form-input" id="addCapacity" min="1" placeholder="輸入容額">
+      <label class="form-label">名額</label>
+      <input type="number" class="form-input" id="addCapacity" min="1" placeholder="輸入名額">
     </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('addModal')">取消</button>
@@ -2205,7 +2282,13 @@ async function loadSessions(silent = false) {
     if (silent && dataLoaded && newHash === lastFetchHash) return;
     lastFetchHash = newHash;
     sessions = json.sessions.map(applyPendingVenue);
+    const firstLoad = !dataLoaded;
     dataLoaded = true;
+    // 第一次載入：自動切到「下一場課」所在的年度
+    if (firstLoad) {
+      const yr = pickDefaultYear();
+      if (yr && yr !== currentYear) { switchYear(yr); return; }
+    }
     renderAll();
   } catch(e) {
     if (!silent) showToast('目前連線不穩，請稍後重新整理，或洽教學部（分機 57429）', 'error');
@@ -2214,6 +2297,14 @@ async function loadSessions(silent = false) {
     dataLoaded = true;
     renderAll();
   }
+}
+
+function pickDefaultYear() {
+  const upcoming = sessions.filter(s => new Date(s.date) >= TODAY && s.status !== 'cancel')
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (upcoming.length) return upcoming[0].year;
+  const years = sessions.map(s => s.year).filter(Boolean);
+  return years.length ? Math.max(...years) : null;
 }
 
 async function checkForUpdates() {
@@ -2226,6 +2317,8 @@ async function checkForUpdates() {
 let activityItems = [];
 let activityLoaded = false;
 let lastActRender = 0;
+let lastUnread = 0;
+let actScope = 'all';   // 最新動態篩選：all / upcoming
 const ACT_AUTO_OPEN_MIN = 1680;   // 課程清單右邊空間夠放面板時，才預設打開（疊在上面、不推動版面）
 
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -2276,6 +2369,12 @@ function closeActivity() {
   document.getElementById('actBackdrop').classList.remove('show');
   showFab();
   lsSet('actCollapsed', '1');
+}
+
+function setActScope(scope) {
+  actScope = scope;
+  document.querySelectorAll('.act-scope-btn').forEach(b => b.classList.toggle('active', b.dataset.scope === scope));
+  renderActivity();
 }
 
 function markActivityRead() {
@@ -2338,7 +2437,10 @@ function renderActivity() {
   const sum  = document.getElementById('actSummary');
   const seen = activityLastSeen();
   // 資料不完整（找不到場次、人數為 0）的紀錄不顯示
-  const items = activityItems.filter(it => it.sessionId && (it.type === 'venue' || it.type === 'sessionCancel' || it.count > 0));
+  const todayStr = `${TODAY.getFullYear()}-${String(TODAY.getMonth()+1).padStart(2,'0')}-${String(TODAY.getDate()).padStart(2,'0')}`;
+  const items = activityItems
+    .filter(it => it.sessionId && (it.type === 'venue' || it.type === 'sessionCancel' || it.count > 0))
+    .filter(it => actScope === 'all' || (it.sessionDate || '') >= todayStr);
 
   const regs = items.filter(i => i.type === 'register');
   const regPeople = regs.reduce((a, i) => a + (i.count || 0), 0);
@@ -2378,7 +2480,9 @@ function renderActivity() {
   list.innerHTML = html || `<div class="act-empty">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
       近兩個月還很安靜，暫時沒有新的報名異動</div>`;
-  document.getElementById('activityFab').classList.toggle('has-new', unread > 0);
+  const fab = document.getElementById('activityFab');
+  if (unread > lastUnread) { fab.classList.remove('wiggle'); void fab.offsetWidth; fab.classList.add('wiggle'); }
+  lastUnread = unread;
 
   const badge = document.getElementById('actBadge');
   badge.textContent = unread > 99 ? '99+' : unread;
@@ -2574,6 +2678,55 @@ function renderCards() {
   });
 
   grid.innerHTML = filtered.length ? html : `<div class="grid-empty">目前沒有符合條件的場次。</div>`;
+  lastShown = filtered;
+  updateExpandAllBtn();
+}
+
+/* ---------- 全部展開／收合 ---------- */
+let lastShown = [];
+function updateExpandAllBtn() {
+  const btn = document.getElementById('expandAllBtn');
+  if (!btn) return;
+  btn.style.display = lastShown.length ? '' : 'none';
+  const allOpen = lastShown.length && lastShown.every(s => expandedIds.has(s.id));
+  btn.textContent = allOpen ? '全部收合' : '全部展開';
+}
+function toggleExpandAll() {
+  const allOpen = lastShown.every(s => expandedIds.has(s.id));
+  lastShown.forEach(s => allOpen ? expandedIds.delete(s.id) : expandedIds.add(s.id));
+  renderCards();
+}
+
+/* ---------- 列印總表（只列場次、場地、各單位人數，不含個資） ---------- */
+function printSummary() {
+  const list = lastShown.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+  if (!list.length) { showToast('目前沒有可以列印的場次', 'error'); return; }
+  const wd = ['日','一','二','三','四','五','六'];
+  const tp = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date()).forEach(x => tp[x.type] = x.value);
+  const rows = list.map(s => {
+    const d = new Date(s.date);
+    const isPast = d < TODAY;
+    const state = s.status === 'cancel' ? '已取消' : isPast ? '已結束' : s.remaining === 0 ? '額滿' : '可報名';
+    return `<tr>
+      <td>${d.getFullYear()-1911}/${d.getMonth()+1}/${d.getDate()}（${wd[d.getDay()]}）</td>
+      <td>${s.venue || '場地確認中'}</td>
+      <td class="num">${s.registered || 0} / ${s.capacity || '—'}</td>
+      <td>${state}</td>
+      <td>${s.registrants || '—'}</td>
+    </tr>`;
+  }).join('');
+  const months = [...currentMonths].length ? `（${[...currentMonths].join('、')} 月）` : '';
+  document.getElementById('printArea').innerHTML = `
+    <h1>${currentYear} 年度安寧緩和醫療教育課程 報名總表${months}</h1>
+    <div class="print-meta">每月第 2、4 週週二 13:00 – 14:00・列印時間 ${tp.year}-${tp.month}-${tp.day} ${tp.hour}:${tp.minute}</div>
+    <table>
+      <thead><tr><th>日期</th><th>場地</th><th>已報名／名額</th><th>狀態</th><th>報名單位</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="print-foot">奇美醫療財團法人奇美醫院 教學部・承辦人 楊宜婷（分機 57429）</div>`;
+  window.print();
 }
 
 const COURSE_TITLE = '安寧緩和醫療教育課程';
@@ -2615,7 +2768,7 @@ function buildCard(s) {
   const isLocked  = !isPast && daysUntil <= 14 && !s.adminUnlocked;
 
   const statusClass = isCancel ? 'status-cancel' : isPast ? 'status-ended' : isFull ? 'status-full' : isLocked ? 'status-locked' : 'status-open';
-  const badgeClass  = isCancel ? 'badge-cancel'  : isPast ? 'badge-cancel' : isFull ? 'badge-full'  : isLocked ? 'badge-locked' : 'badge-open';
+  const badgeClass  = isCancel ? 'badge-cancel'  : isPast ? 'badge-ended' : isFull ? 'badge-full'  : isLocked ? 'badge-locked' : 'badge-open';
   const badgeText   = isCancel ? '已取消' : isPast ? '已結束' : isFull ? '額滿' : isLocked ? '已截止報名' : '可報名';
 
   const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
@@ -2954,6 +3107,7 @@ function doLogout() {
 }
 
 /* ---------- REGISTER ---------- */
+let dupConfirmedFor = '';      // 已經按過「確定是另一批人」的單位
 let adminRegMode = false;       // 管理者代為報名：信箱選填、不受 14 天鎖定
 let reopenEditAfterReg = false; // 從「編輯場次」進來的，報名完回到編輯視窗
 
@@ -2972,6 +3126,8 @@ function openRegisterModal(id, asAdmin = false) {
     `${d.getMonth()+1}/${d.getDate()} · 13:00–14:00 · ${s.venue||'場地確認中（確定後寄信通知）'} · 尚餘 ${s.remaining} 名`;
   ['regName','regEmail','regPhone','regUnit','regCount'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('regType').value = '';
+  document.getElementById('regDupWarn').classList.add('hidden');
+  dupConfirmedFor = '';
   openModal('registerModal');
 }
 
@@ -2994,6 +3150,15 @@ async function submitRegistration() {
   if (!s || s.remaining <= 0) { showToast('此場次名額已滿或無法報名', 'error'); return; }
   if (count > s.remaining) { showToast(`目前尚餘 ${s.remaining} 名，請調整人數`, 'error'); return; }
 
+  // 同一場已經有同單位報名 → 先提醒一次，避免重複報名
+  const dupTag = (s.registrants || '').split('、').find(t => unit.length >= 2 && t.includes(unit));
+  if (dupTag && dupConfirmedFor !== unit) {
+    const w = document.getElementById('regDupWarn');
+    w.innerHTML = `這場已經有「<b>${dupTag}</b>」報名了。<br>如果是同一批人要改人數，請用確認信裡的「管理我的報名」修改（找不到信可按右上角「我的報名」）。<br>確定是<b>另一批人</b>，再按一次「確認報名」即可。`;
+    w.classList.remove('hidden');
+    dupConfirmedFor = unit;
+    return;
+  }
   let mailFailed = false;
   const payload = { action: 'register', sessionId: pendingSessionId, name, email, phone, type, unit, count, timestamp: new Date().toISOString() };
 
@@ -3077,7 +3242,7 @@ function renderAdminRegs() {
         <div class="adm-reg-sub">${r.name}${r.email ? '・' + r.email : ''}${r.phone ? '・' + r.phone : ''}</div>
       </div>
       <button class="adm-reg-btn" onclick="admEditCount(${i})">改人數</button>
-      <button class="adm-reg-btn danger" onclick="admConfirmCancel(${i})">取消</button>
+      <button class="adm-reg-btn danger" onclick="admConfirmCancel(${i})">取消報名</button>
     </div>`).join('');
 }
 
@@ -3172,7 +3337,7 @@ async function saveSessionEdit() {
       s.remaining  = capacity - s.registered;
       if (s.remaining < 0) s.remaining = 0;
       if (oldVenue !== venue || oldCap !== capacity) {
-        showUpdateBanner(`管理者已更新 ${new Date(s.date).getMonth()+1}/${new Date(s.date).getDate()} 場次資訊（場地或容額異動）。`);
+        showUpdateBanner(`管理者已更新 ${new Date(s.date).getMonth()+1}/${new Date(s.date).getDate()} 場次資訊（場地或名額異動）。`);
       }
     }
     renderAll();
@@ -3227,7 +3392,7 @@ async function syncFromSheet() {
 /* ---------- DOWNLOAD CSV ---------- */
 function downloadCSV() {
   const yrSessions = sessions.filter(s => s.year === currentYear);
-  const header = ['場次日期','星期','時間','場地','容額','已報名人數','尚可報名數','狀態','報名單位備註'];
+  const header = ['場次日期','星期','時間','場地','名額','已報名人數','尚可報名數','狀態','報名單位備註'];
   const weekdays = ['日','一','二','三','四','五','六'];
   const rows = yrSessions.map(s => {
     const d = new Date(s.date);
