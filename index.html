@@ -86,6 +86,11 @@
   /* ===== YEAR TABS ===== */
   .year-tabs {
     display: flex;
+    /* 桌機：以整個畫面置中（不受左邊品牌名稱、右邊登入按鈕寬度不同影響） */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     gap: 4px;
     background: rgba(255,255,255,0.08);
     border-radius: var(--radius-md);
@@ -1020,7 +1025,7 @@
 
   /* ===== FOOTER ===== */
   .site-footer {
-    background: linear-gradient(160deg, rgba(26,27,58,0.68) 0%, rgba(45,42,92,0.68) 60%, rgba(74,67,128,0.68) 100%);
+    background: transparent;  /* 與頂部一致，不另外分區 */
     color: #9B96C4;
     text-align: center;
     font-size: 12px;
@@ -1059,7 +1064,7 @@
     .brand-name { font-size: 13px; }
     .brand-sub  { font-size: 10px; }
     .brand-icon { width: 28px; height: 28px; }
-    .year-tabs  { order: 3; width: 100%; justify-content: center; }
+    .year-tabs  { order: 3; width: 100%; justify-content: center; position: static; transform: none; }
     .year-tab   { flex: 1; text-align: center; font-size: 12px; padding: 5px 10px; }
     .header-right { margin-left: auto; }
     .btn-admin-login { font-size: 12px; padding: 5px 12px; }
@@ -1110,9 +1115,17 @@
     .sticky-filters-bar { padding: 8px 12px 6px; overflow-x: auto; }
     .filter-bar { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
     .filter-chip { white-space: nowrap; flex-shrink: 0; font-size: 12px; padding: 5px 12px; }
-    .month-filter-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .month-filter-bar { flex-wrap: nowrap; }
-    .month-chip { flex-shrink: 0; font-size: 12px; padding: 5px 10px; }
+    /* 月份：整齊的格狀排列，不會剩一顆掉到下一行 */
+    .month-filter-row { align-items: flex-start; }
+    .month-filter-row .month-filter-label { padding-top: 6px; }
+    .month-filter-row .month-filter-bar {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+      gap: 5px;
+    }
+    .month-chip { font-size: 12px; padding: 5px 4px; min-width: 0; }
+    .month-chip.all-months-chip { margin-right: 0; padding-right: 4px; }
 
     /* Stats — 2欄 */
     .stats-row  { grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -1160,6 +1173,7 @@
 
   /* ===== HELPERS ===== */
   .hidden { display: none !important; }
+  .nowrap { white-space: nowrap; }
   .text-center { text-align: center; }
   .mt-4 { margin-top: 4px; }
   .mt-8 { margin-top: 8px; }
@@ -1197,7 +1211,7 @@
 <section class="hero">
   <div class="hero-eyebrow" id="heroEyebrow">Chi Mei Hospital · 115 年度</div>
   <h1>安寧緩和醫療教育課程 · 線上報名系統</h1>
-  <p class="hero-sub">每月第 2、4 週週二 · 13:00–14:00 · 全院各職類實見習生</p>
+  <p class="hero-sub"><span class="nowrap">每月第 2、4 週週二</span> · <span class="nowrap">13:00 – 14:00</span> · <span class="nowrap">全院各職類實見習生</span></p>
   <div class="hero-meta">
     <div class="hero-meta-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -1274,11 +1288,11 @@
   <div class="stats-row" id="statsRow">
     <div class="stat-card">
       <div class="stat-num" id="statTotal">0</div>
-      <div class="stat-label" id="statTotalLabel">115年 總場次</div>
+      <div class="stat-label" id="statTotalLabel">115 年度總場次</div>
     </div>
     <div class="stat-card">
       <div class="stat-num" id="statOpen">0</div>
-      <div class="stat-label">尚可報名</div>
+      <div class="stat-label">可報名場次</div>
     </div>
     <div class="stat-card">
       <div class="stat-num" id="statRegistered">0</div>
@@ -1310,7 +1324,7 @@
 <!-- FOOTER -->
 <footer class="site-footer">
   <strong>奇美醫療財團法人奇美醫院 教學部</strong><br>
-  本系統資料以 Google Sheets 後端為準 · 如有疑問請洽教學部承辦人
+  <span class="nowrap">報名名額以本頁即時顯示為準</span> · <span class="nowrap">如有疑問請洽教學部承辦人（分機 57429）</span>
 </footer>
 
 <!-- TOAST CONTAINER -->
@@ -1637,7 +1651,13 @@ function renderAll() {
 
 function renderStats() {
   const yrSessions = sessions.filter(s => s.year === currentYear);
-  const open  = yrSessions.filter(s => s.status !== 'cancel' && s.remaining > 0);
+  // 與「可報名」篩選同一規則：未過期、非取消、有名額、未進入開課前 14 天鎖定
+  const open  = yrSessions.filter(s => {
+    const d = new Date(s.date);
+    const daysUntil = Math.ceil((d - TODAY) / (1000 * 60 * 60 * 24));
+    const isLocked = daysUntil <= 14 && !s.adminUnlocked;
+    return d >= TODAY && s.status !== 'cancel' && s.remaining > 0 && !isLocked;
+  });
   const total = yrSessions.length;
   const totalReg  = yrSessions.reduce((a,s) => a + (s.registered||0), 0);
   const fullCount = yrSessions.filter(s => s.remaining === 0 && s.status !== 'cancel').length;
@@ -1645,12 +1665,14 @@ function renderStats() {
   document.getElementById('statOpen').textContent  = open.length;
   document.getElementById('statRegistered').textContent = totalReg;
   document.getElementById('statFull').textContent  = fullCount;
-  document.getElementById('statTotalLabel').textContent = `${currentYear}年 總場次`;
+  document.getElementById('statTotalLabel').textContent = `${currentYear} 年度總場次`;
 }
 
 function buildMonthChips() {
   const yrSessions = sessions.filter(s => s.year === currentYear);
-  const monthsPresent = [...new Set(yrSessions.map(s => new Date(s.date).getMonth() + 1))].sort((a,b)=>a-b);
+  // 依實際日期先後排列月份（跨年度時，例如 116 年度的 12 月會排在 1 月前面）
+  const monthsPresent = [...new Set(yrSessions.slice().sort((a,b) => new Date(a.date) - new Date(b.date))
+    .map(s => new Date(s.date).getMonth() + 1))];
   const bar = document.getElementById('monthFilterBar');
   const allActive = currentMonths.size === 0 ? 'active' : '';
   let html = `<button class="month-chip all-months-chip ${allActive}" data-month="0" onclick="clearMonthFilter()">全年</button>`;
@@ -1717,7 +1739,9 @@ function renderCards() {
     filtered = filtered.filter(s => new Date(s.date) < TODAY && s.status !== 'cancel');
   }
 
-  const sortedMonths = [...currentMonths].sort((a,b)=>a-b);
+  const monthOrder = [...new Set(sessions.filter(s => s.year === currentYear)
+    .sort((a,b) => new Date(a.date) - new Date(b.date)).map(s => new Date(s.date).getMonth() + 1))];
+  const sortedMonths = monthOrder.filter(m => currentMonths.has(m));
   const monthLabel = sortedMonths.length > 0 ? `${sortedMonths.join('、')} 月・` : '';
   document.getElementById('cardCount').textContent = `${monthLabel}共 ${filtered.length} 場`;
 
@@ -1793,7 +1817,7 @@ function buildCard(s) {
   const buildingText = s.building || (s.venue ? (VENUE_DB[s.venue]?.building || '') : '');
   const venueDisplay = s.venue
     ? `${venueText}${buildingText ? `・${buildingText}` : ''}`
-    : '場地確認中，確定後會寄信通知已報名的人，並更新在這裡';
+    : '場地確認中，確定後會寄信通知';
   const hasCap = !isCancel && s.capacity;
   const countHtml = hasCap ? `<strong>${s.registered||0}</strong> / ${s.capacity} 人` : '—';
   const capDisplay = s.capacity ? `${s.registered||0} / ${s.capacity} 人` : '—';
