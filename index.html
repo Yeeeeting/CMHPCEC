@@ -1817,6 +1817,149 @@
   .gap-8 { gap: 8px; }
   .flex { display: flex; }
   .items-center { align-items: center; }
+
+  /* =====================================================================
+     按鈕系統（統一）
+     形狀：膠囊＝篩選／切換；圓角 10px＝執行動作；圓形＝小圖示
+     顏色：主要（淺底紫、深底金）／次要（米白）／文字／危險（紅框）
+     高度：小 32px／中 40px／大 44px（手機上動作按鈕一律 44px）
+     ===================================================================== */
+
+  /* --- 膠囊：篩選、切換（小 32px） --- */
+  .filter-chip, .month-chip, .tool-chip, .act-scope-btn {
+    border-radius: 999px;
+    min-height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .month-chip { padding: 5px 14px; }
+  .month-chip .month-dot { top: 4px; right: 6px; }
+  .month-chip.all-months-chip { margin-right: 6px; padding-right: 14px; }
+
+  /* 選中狀態：一律紫色實心＋白字 */
+  .filter-chip.active,
+  .filter-chip[data-filter].active,
+  .month-chip.active,
+  body[data-filter] .month-chip.active,
+  .act-scope-btn.active {
+    background: var(--lavender-500);
+    border-color: var(--lavender-500);
+    color: #fff;
+    font-weight: 500;
+    opacity: 1;
+  }
+  .month-chip.active .month-dot { box-shadow: 0 0 0 1.5px #fff; }
+
+  /* --- 圓角方形：執行動作 --- */
+  .btn-primary, .btn-secondary, .btn-danger,
+  .btn-tool, .next-btn, .btn-register, .card-edit-btn, .adm-help-btn,
+  .btn-myreg, .btn-admin-login, .btn-logout, .adm-reg-btn, .adm-reg-add {
+    border-radius: var(--radius-md);
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-weight: 500;
+  }
+  /* 中 40px */
+  .btn-primary, .btn-secondary, .btn-danger, .btn-tool, .next-btn { min-height: 40px; }
+  /* 大 44px */
+  .btn-register, .card-edit-btn, .adm-help-btn { min-height: 44px; width: 100%; }
+  /* 小 32px */
+  .btn-myreg, .btn-admin-login, .btn-logout, .adm-reg-btn, .adm-reg-add { min-height: 32px; padding: 5px 12px; }
+
+  /* 主要：淺色底用紫色 */
+  .btn-primary, .btn-register.open, .card-edit-btn {
+    background: var(--lavender-500); color: #fff; border: none;
+  }
+  .btn-primary:hover, .btn-register.open:hover, .card-edit-btn:hover { background: var(--lavender-700); }
+  /* 主要：深藍底用金色 */
+  .btn-tool.primary, .next-btn.go { background: var(--starlight-gold); color: var(--night-deep); }
+  .btn-tool.primary:hover, .next-btn.go:hover { background: #F2D17E; }
+
+  /* 次要：米白底＋深紫字 */
+  .btn-secondary, .btn-myreg, .btn-tool, .next-btn,
+  .adm-help-btn, .card-actions .adm-help-btn, .adm-reg-btn, .adm-reg-add {
+    background: var(--cream); color: var(--lavender-900);
+    border: 1px solid var(--lavender-100);
+  }
+  .btn-myreg, .btn-tool, .next-btn { border-color: transparent; }   /* 深藍底上不需要框 */
+  .btn-secondary:hover, .adm-help-btn:hover, .card-actions .adm-help-btn:hover, .adm-reg-btn:hover, .adm-reg-add:hover {
+    background: var(--lavender-50); color: var(--lavender-700);
+  }
+  .btn-myreg:hover, .btn-tool:hover, .next-btn:hover { background: #fff; }
+  .btn-tool svg, .adm-reg-add svg { color: var(--lavender-500); }
+
+  /* 文字按鈕：只有文字 */
+  .btn-admin-login, .btn-logout {
+    background: transparent; border: none;
+    color: var(--starlight-gold-soft);
+    padding-left: 8px; padding-right: 8px;
+  }
+  .btn-admin-login:hover, .btn-logout:hover { background: rgba(255,255,255,.08); text-decoration: underline; text-underline-offset: 3px; }
+  .btn-logout { color: #F5C2B5; }
+
+  /* 危險：紅框＋紅字，滑過才變實心 */
+  .btn-danger, .adm-reg-btn.danger {
+    background: transparent; color: var(--red-600); border: 1px solid var(--red-300);
+  }
+  .btn-danger:hover, .adm-reg-btn.danger:hover { background: var(--red-600); color: #fff; border-color: var(--red-600); }
+
+  /* 停用狀態 */
+  .btn-register:disabled { background: var(--lavender-50); color: var(--text-muted); border: none; cursor: not-allowed; }
+
+  /* --- 一致的互動回饋 --- */
+  .filter-chip, .month-chip, .tool-chip, .act-scope-btn, .year-tab,
+  .btn-primary, .btn-secondary, .btn-danger, .btn-tool, .next-btn, .btn-register,
+  .card-edit-btn, .adm-help-btn, .btn-myreg, .btn-admin-login, .btn-logout,
+  .adm-reg-btn, .adm-reg-add, .activity-fab, .modal-close, .act-close {
+    transition: background .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .filter-chip:active, .month-chip:active, .tool-chip:active, .act-scope-btn:active, .year-tab:active,
+  .btn-primary:active, .btn-secondary:active, .btn-danger:active, .btn-tool:active, .next-btn:active,
+  .btn-register:not(:disabled):active, .card-edit-btn:active, .adm-help-btn:active, .btn-myreg:active,
+  .btn-admin-login:active, .btn-logout:active, .adm-reg-btn:active, .adm-reg-add:active, .activity-fab:active {
+    transform: scale(.97);
+  }
+  .btn-tool:hover, .activity-fab:hover { transform: none; }
+  button:focus-visible, .row-head:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--lavender-500); outline-offset: 2px;
+  }
+  .site-header button:focus-visible, .sticky-filters-bar button:focus-visible, .act-head button:focus-visible {
+    outline-color: var(--starlight-gold-soft);
+  }
+
+  /* --- 圓形：小圖示 --- */
+  .modal-close, .act-close { width: 32px; height: 32px; border-radius: 50%; }
+  .activity-fab { min-height: 44px; }
+
+  /* --- 統計：改成一行純文字，不像按鈕 --- */
+  .stats-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; margin: -2px 0 14px; }
+  .stat-card {
+    background: none; border: none; border-radius: 0; padding: 0;
+    flex-direction: row-reverse; align-items: baseline; gap: 4px;
+  }
+  .stat-card + .stat-card::before { content: '｜'; color: var(--border-md); margin: 0 8px; order: 3; }
+  .stat-label { font-size: 13px; color: var(--text-muted); }
+  .stat-num { font-size: 14px; }
+  @media (max-width: 640px) {
+    /* 手機：兩欄排列，不用分隔線，避免「｜」掉到行首 */
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+    .stat-card { justify-content: flex-end; }
+    .stat-card + .stat-card::before { content: none; }
+  }
+
+  /* --- 手機：動作按鈕一律 44px，好點 --- */
+  @media (max-width: 640px) {
+    .btn-primary, .btn-secondary, .btn-danger, .btn-tool, .next-btn,
+    .btn-myreg, .adm-reg-btn, .adm-reg-add { min-height: 44px; }
+    .btn-admin-login, .btn-logout { min-height: 36px; }
+    .btn-myreg { min-height: 34px; }   /* 頂部列空間有限，維持精簡 */
+    .month-chip { padding: 5px 4px; }
+    .month-chip.all-months-chip { margin-right: 0; padding-right: 4px; }
+  }
+  @media (max-width: 400px) {
+    .sticky-filters-bar .filter-chip { padding: 5px 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    button:active { transform: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -2124,7 +2267,7 @@
     </div>
     <div class="dup-warn hidden" id="regDupWarn"></div>
     <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeModal('registerModal')">取消</button>
+      <button class="btn-secondary" onclick="closeModal('registerModal')">先不報名</button>
       <button class="btn-primary" onclick="submitRegistration()">確認報名</button>
     </div>
   </div>
