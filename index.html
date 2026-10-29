@@ -1174,8 +1174,10 @@
     transition: background .15s;
   }
   .month-head:hover { background: #FDFCFF; }
-  .month-group.is-open .month-head { background: transparent; box-shadow: none; padding-bottom: 6px; }
-  .month-name { font-family: 'Noto Serif TC', serif; font-size: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+  .month-group.is-open { background: var(--lavender-50); box-shadow: 0 1px 2px rgba(74,69,146,0.06); }
+  .month-group.is-open .month-head { background: #ECE8FA; border-radius: var(--radius-md) var(--radius-md) 0 0; box-shadow: none; }
+  .month-group.is-open .month-body-inner { padding: 8px 8px 10px; margin: 0; }
+  .month-name { font-family: 'Noto Serif TC', serif; font-size: 18px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
   .quarter-tag { font-size: 12px; color: var(--text-muted); background: var(--lavender-50); padding: 1px 8px; border-radius: 20px; white-space: nowrap; }
   .month-sum { flex: 1; min-width: 0; font-size: 13px; color: var(--text-muted); }
   .month-sum .ok { color: var(--sage-600); font-weight: 600; }
@@ -1893,6 +1895,7 @@
   .btn-danger:hover, .adm-reg-btn.danger:hover { background: var(--red-600); color: #fff; border-color: var(--red-600); }
 
   /* 停用狀態 */
+  .is-busy { opacity: .7; cursor: progress !important; }
   .btn-register:disabled { background: var(--lavender-50); color: var(--text-muted); border: none; cursor: not-allowed; }
 
   /* --- 一致的互動回饋 --- */
@@ -2503,6 +2506,7 @@ const TODAY = getTodayTaipei();
 
 /* ---------- INIT ---------- */
 window.addEventListener('DOMContentLoaded', () => {
+  restoreAdminSession();
   renderSkeleton();
   loadSessions().then(loadActivity);
   setInterval(checkForUpdates, 15000);   // 每 15 秒自動更新一次
@@ -2563,7 +2567,9 @@ async function loadSessions(silent = false) {
     // 第一次載入：自動切到「下一場課」所在的年度
     if (firstLoad) {
       setTimeout(() => window.guideToNextCourse && guideToNextCourse(), 1800);
-      const yr = pickDefaultYear();
+      // 同一個分頁重新整理時，停在剛才看的年度；第一次打開才自動選下一場課的年度
+      const savedYr = Number(ssGet('viewYear'));
+      const yr = (savedYr && sessions.some(x => x.year === savedYr)) ? savedYr : pickDefaultYear();
       if (yr && yr !== currentYear) { switchYear(yr); return; }
     }
     renderAll();
@@ -3044,16 +3050,7 @@ function renderCards() {
   groups.forEach(g => {
     const open = openMonths.has(g.key);
     const m1 = (g.q - 1) * 3 + 1, m3 = m1 + 2;
-    const monthsIn = new Set(g.list.map(s => new Date(s.date).getMonth() + 1));
-    let body = '', lastM = null;
-    g.list.forEach(s => {
-      const m = new Date(s.date).getMonth() + 1;
-      if (monthsIn.size > 1 && m !== lastM) {
-        body += `<div class="month-divider"><span class="month-divider-dot" style="background:${MONTH_COLORS[m]}"></span>${m} 月</div>`;
-        lastM = m;
-      }
-      body += buildCard(s);
-    });
+    const body = g.list.map(buildCard).join('');   // 日期色塊已寫月份，不再加月份小標
     html += `
       <div class="month-group ${open ? 'is-open' : ''}" data-month-key="${g.key}">
         <button class="month-head" onclick="toggleMonthGroup('${g.key}')" aria-expanded="${open}">
@@ -3336,6 +3333,7 @@ function setFilter(f, btn) {
 
 /* ---------- YEAR SWITCH ---------- */
 function switchYear(yr) {
+  ssSet('viewYear', String(yr));
   setTimeout(() => { if (typeStats) renderTypeStats(); }, 0);
   currentYear = yr;
   currentMonths.clear();
@@ -3498,12 +3496,8 @@ async function doLogin() {
       // 本機 demo 模式：帳號 admin / 密碼 1234
       if (user !== 'admin' || pass !== '1234') { showToast('（Demo 模式）帳號 admin，密碼 1234', 'error'); return; }
     }
-    isAdmin = true;
-    document.body.classList.add('admin-mode');
-    document.getElementById('headerRight').innerHTML = `
-      <span class="admin-badge">管理者</span>
-      <button class="btn-logout" onclick="doLogout()">登出</button>`;
-    document.getElementById('adminToolbar').classList.add('show');
+    enterAdminUI();
+    ssSet('adminSession', JSON.stringify({ token: adminToken, at: Date.now() }));
     closeModal('loginModal');
     showToast('已進入管理者模式', 'success');
     renderCards();
@@ -3512,13 +3506,63 @@ async function doLogin() {
   }
 }
 
-function doLogout() {
+/* ---------- 重新整理不登出、不跳年度（只在同一個分頁內記住；關掉分頁就清掉） ---------- */
+const ADMIN_SESSION_HOURS = 8;
+function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+function ssDel(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
+
+function enterAdminUI() {
+  isAdmin = true;
+  document.body.classList.add('admin-mode');
+  document.getElementById('headerRight').innerHTML = `
+    <span class="admin-badge">管理者</span>
+    <button class="btn-logout" onclick="doLogout()">登出</button>`;
+  document.getElementById('adminToolbar').classList.add('show');
+}
+function restoreAdminSession() {
+  try {
+    const saved = JSON.parse(ssGet('adminSession') || 'null');
+    if (!saved || !saved.token || Date.now() - saved.at > ADMIN_SESSION_HOURS * 3600000) { ssDel('adminSession'); return; }
+    adminToken = saved.token;
+    enterAdminUI();
+  } catch (e) { ssDel('adminSession'); }
+}
+// 後端回「驗證失敗」（例如密碼或 ADMIN_TOKEN 改了）→ 自動登出，請重新登入
+function authExpired(json) {
+  if (json && !json.success && /驗證失敗/.test(json.message || '')) {
+    doLogout(true);
+    showToast('管理者登入已失效，請重新登入', 'error');
+    return true;
+  }
+  return false;
+}
+
+// 送出中的按鈕先鎖住，避免連按兩下送出兩次（例如重複報名）
+function guardOnce(fn) {
+  let running = false;
+  return async function (...args) {
+    if (running) return;
+    running = true;
+    const btn = document.activeElement && document.activeElement.tagName === 'BUTTON' ? document.activeElement : null;
+    const html = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.classList.add('is-busy'); btn.textContent = '處理中…'; }
+    try { return await fn.apply(this, args); }
+    finally {
+      running = false;
+      if (btn && btn.isConnected) { btn.disabled = false; btn.classList.remove('is-busy'); btn.innerHTML = html; }
+    }
+  };
+}
+
+function doLogout(silent) {
+  ssDel('adminSession');
   isAdmin = false;
   adminToken = null;
   document.body.classList.remove('admin-mode');
   document.getElementById('headerRight').innerHTML = `<button class="btn-myreg" onclick="openMyRegModal()">我的報名</button><button class="btn-admin-login" onclick="openLoginModal()"><span class="lbl-long">管理者登入</span><span class="lbl-short">管理者</span></button>`;
   document.getElementById('adminToolbar').classList.remove('show');
-  showToast('已登出管理者模式');
+  if (silent !== true) showToast('已登出管理者模式');
   renderCards();
 }
 
@@ -3647,6 +3691,7 @@ async function loadAdminRegs(id) {
   try {
     const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'listRegistrations', sessionId: id, token: adminToken }) });
     const json = await res.json();
+    if (authExpired(json)) return;
     if (!json.success) throw new Error(json.message || '');
     admRegs = json.registrations || [];
     renderAdminRegs();
@@ -3712,6 +3757,7 @@ async function admPost(payload, okMsg) {
   try {
     const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
     const json = await res.json();
+    if (authExpired(json)) return;
     if (!json.success) { showToast(json.message || '更新失敗', 'error'); }
     else if (json.emailFailed) showToast(okMsg + '（通知信沒有寄出，可能已達今日寄信上限）', 'error');
     else showToast(okMsg, 'success');
@@ -3749,6 +3795,7 @@ async function saveSessionEdit() {
     if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
       const json = await res.json();
+      if (authExpired(json)) return;
       if (!json.success) { showToast(json.message || '儲存失敗', 'error'); return; }
     }
     // 本機更新
@@ -3793,6 +3840,7 @@ async function addSession() {
     if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
       const json = await res.json();
+      if (authExpired(json)) return;
       if (!json.success) { showToast(json.message || '新增失敗', 'error'); return; }
     }
     sessions.push({ id: newId, date, year, venue, capacity, registered: 0, remaining: capacity, status:'open', registrants:'' });
@@ -4297,6 +4345,16 @@ POST body JSON { action: 'addSession', id, date, venue, capacity, status, token 
   → { success: true }  或  { success: false, message: '...' }
 ================================================================
 */
+
+/* 連按保護：送出類的動作同一時間只跑一次 */
+submitRegistration = guardOnce(submitRegistration);
+doRegEdit          = guardOnce(doRegEdit);
+doRegCancel        = guardOnce(doRegCancel);
+doLogin            = guardOnce(doLogin);
+saveSessionEdit    = guardOnce(saveSessionEdit);
+addSession         = guardOnce(addSession);
+admPost            = guardOnce(admPost);
+submitMyReg        = guardOnce(submitMyReg);
 </script>
 </body>
 </html>
