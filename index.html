@@ -3902,6 +3902,9 @@ function updateCapSummary() {
   const cap = parseInt(document.getElementById('editCapacity').value) || 0;
   const left = cap - editRegistered;
   el.classList.toggle('over', cap > 0 && left < 0);
+  // 狀態跟著名額走：名額滿了顯示「額滿」，加開名額後自動回到「開放報名」（取消、場地確認中不動）
+  const st = document.getElementById('editStatus');
+  if (cap > 0 && (st.value === 'open' || st.value === 'full')) st.value = left <= 0 ? 'full' : 'open';
   if (!cap) el.innerHTML = `目前已報名 <b>${editRegistered}</b> 人`;
   else if (left < 0) el.innerHTML = `目前已報名 <b>${editRegistered}</b> 人，名額比報名人數少 <b>${-left}</b> 人，請確認`;
   else if (left === 0) el.innerHTML = `目前已報名 <b>${editRegistered}</b> 人，名額已滿`;
@@ -3920,7 +3923,7 @@ function openEditModal(id) {
   document.getElementById('editAdminUnlocked').checked = !!s.adminUnlocked;
   editRegistered = Number(s.registered) || 0;
   updateCapSummary();
-  editOriginal = { venue: s.venue || '', capacity: Number(s.capacity) || 0, status: s.status || 'open',
+  editOriginal = { venue: s.venue || '', capacity: Number(s.capacity) || 0, status: document.getElementById('editStatus').value,
                    registrants: s.registrants || '', adminUnlocked: !!s.adminUnlocked };
 
   // 只在距課程 ≤ 14 天且未過期時顯示手動開放選項
@@ -4065,6 +4068,10 @@ async function saveSessionEdit() {
     status:        pick(status, 'status', fresh && (fresh.status || 'open')),
     registrants:   pick(registrants, 'registrants', fresh && (fresh.registrants || '')),
     adminUnlocked: pick(adminUnlocked, 'adminUnlocked', fresh && !!fresh.adminUnlocked) };
+  if (payload.status === 'open' || payload.status === 'full') {   // 以最新人數決定開放／額滿
+    const regNow = fresh ? (Number(fresh.registered) || 0) : editRegistered;
+    payload.status = payload.capacity - regNow <= 0 ? 'full' : 'open';
+  }
 
   try {
     if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
