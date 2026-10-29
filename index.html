@@ -3901,7 +3901,7 @@ function renderAdminRegs() {
     <div class="adm-reg" id="admReg${i}">
       <div class="adm-reg-info">
         <div class="adm-reg-main">${r.unit} <span class="nowrap adm-reg-n"><b>${r.count}</b> 人${r.teacherCount ? `（含教師 ${r.teacherCount}）` : ''}</span></div>
-        <div class="adm-reg-sub">${r.type.replace('實習生','')}・${r.name}${r.email ? '・' + r.email : ''}${r.phone ? '・' + r.phone : ''}</div>
+        <div class="adm-reg-sub">${r.type.replace('實習生','')}${r.name && !/紙本報名匯入/.test(r.name) ? '・' + r.name : ''}${r.email ? '・' + r.email : ''}${r.phone ? '・' + r.phone : ''}</div>
       </div>
       <button class="adm-reg-btn" onclick="admEditCount(${i})">改人數</button>
       <button class="adm-reg-btn danger" onclick="admConfirmCancel(${i})">取消報名</button>
