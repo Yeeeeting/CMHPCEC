@@ -3891,6 +3891,7 @@ async function submitRegistration() {
 
 /* ---------- ADMIN EDIT ---------- */
 let editRegistered = 0;
+let editOriginal = null;   // 打開編輯視窗當下的值，用來判斷管理者實際改了哪些欄位
 // 名額欄下方即時顯示：已報名幾人、還剩幾名（改名額時跟著變）
 function updateCapSummary() {
   const el = document.getElementById('capSummary');
@@ -3915,6 +3916,8 @@ function openEditModal(id) {
   document.getElementById('editAdminUnlocked').checked = !!s.adminUnlocked;
   editRegistered = Number(s.registered) || 0;
   updateCapSummary();
+  editOriginal = { venue: s.venue || '', capacity: Number(s.capacity) || 0, status: s.status || 'open',
+                   registrants: s.registrants || '', adminUnlocked: !!s.adminUnlocked };
 
   // 只在距課程 ≤ 14 天且未過期時顯示手動開放選項
   const msUntil = d - TODAY;
@@ -4041,7 +4044,23 @@ async function saveSessionEdit() {
   const registrants = document.getElementById('editRegistrants').value.trim();
   const adminUnlocked = document.getElementById('editAdminUnlocked').checked;
 
-  const payload = { action: 'updateSession', sessionId: id, venue, capacity, status, registrants, adminUnlocked, token: adminToken };
+  // 視窗開著的這段時間，可能有人報名、或有人直接改了 Google Sheet。
+  // 儲存前先讀一次最新資料：管理者沒動到的欄位用最新的值，只有真的改過的欄位才寫回去，避免舊資料蓋掉新資料。
+  let fresh = null;
+  if (editOriginal && APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    try {
+      const r = await fetch(`${APPS_SCRIPT_URL}?action=getSessions&t=${Date.now()}`);
+      const j = await r.json();
+      if (j && j.success) fresh = (j.sessions || []).find(x => x.id === id) || null;
+    } catch (e) { /* 讀不到就照原本的方式儲存 */ }
+  }
+  const pick = (cur, key, freshVal) => (fresh && cur === editOriginal[key]) ? freshVal : cur;
+  const payload = { action: 'updateSession', sessionId: id, token: adminToken,
+    venue:         pick(venue, 'venue', fresh && (fresh.venue || '')),
+    capacity:      pick(capacity, 'capacity', fresh && (Number(fresh.capacity) || 0)),
+    status:        pick(status, 'status', fresh && (fresh.status || 'open')),
+    registrants:   pick(registrants, 'registrants', fresh && (fresh.registrants || '')),
+    adminUnlocked: pick(adminUnlocked, 'adminUnlocked', fresh && !!fresh.adminUnlocked) };
 
   try {
     if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
@@ -4054,17 +4073,18 @@ async function saveSessionEdit() {
     const s = sessions.find(x => x.id === id);
     if (s) {
       const oldVenue = s.venue; const oldCap = s.capacity;
-      s.venue = venue; s.capacity = capacity; s.status = status; s.registrants = registrants; s.adminUnlocked = adminUnlocked;
-      s.registered = s.registered || 0;
-      s.remaining  = capacity - s.registered;
+      s.venue = payload.venue; s.capacity = payload.capacity; s.status = payload.status; s.registrants = payload.registrants; s.adminUnlocked = payload.adminUnlocked;
+      s.registered = fresh ? (Number(fresh.registered) || 0) : (s.registered || 0);
+      s.remaining  = s.capacity - s.registered;
       if (s.remaining < 0) s.remaining = 0;
-      if (oldVenue !== venue || oldCap !== capacity) {
+      if (oldVenue !== s.venue || oldCap !== s.capacity) {
         showUpdateBanner(`管理者已更新 ${new Date(s.date).getMonth()+1}/${new Date(s.date).getDate()} 場次資訊（場地或名額異動）。`);
       }
     }
     renderAll();
     closeModal('editModal');
     showToast('場次資訊已更新', 'success');
+    loadSessions(true);   // 再跟後端對一次，畫面顯示以 Sheet 為準
   } catch(e) {
     showToast('儲存失敗，請重試', 'error');
   }
