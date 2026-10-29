@@ -922,6 +922,11 @@
     background: white;
     box-shadow: 0 0 0 3px rgba(122,111,196,0.15);
   }
+  .cap-summary { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
+  .cap-summary b { color: var(--text-primary); font-weight: 700; }
+  .cap-summary .cap-left { color: var(--lavender-500); }
+  .cap-summary.over, .cap-summary.over b { color: var(--red-600); }
+  .adm-reg-total { font-weight: 400; color: var(--text-muted); margin-left: 6px; }
   .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
   .modal-actions {
     display: flex;
@@ -2439,7 +2444,8 @@
     </div>
     <div class="form-group">
       <label class="form-label">名額（人數上限）</label>
-      <input type="number" class="form-input" id="editCapacity" min="1" max="500" placeholder="輸入名額">
+      <input type="number" class="form-input" id="editCapacity" min="1" max="500" placeholder="輸入名額" oninput="updateCapSummary()">
+      <div class="cap-summary" id="capSummary"></div>
     </div>
     <div class="form-group">
       <label class="form-label">狀態</label>
@@ -2452,7 +2458,7 @@
     </div>
     <div class="form-group">
       <div class="adm-reg-head">
-        <label class="form-label" style="margin:0;">報名名單</label>
+        <label class="form-label" style="margin:0;">報名名單<span class="adm-reg-total" id="admRegTotal"></span></label>
         <button type="button" class="adm-reg-add" onclick="adminRegisterFromEdit()">＋ 幫忙報名</button>
       </div>
       <div class="adm-reg-list" id="admRegList"></div>
@@ -3831,6 +3837,18 @@ async function submitRegistration() {
 }
 
 /* ---------- ADMIN EDIT ---------- */
+let editRegistered = 0;
+// 名額欄下方即時顯示：已報名幾人、還剩幾名（改名額時跟著變）
+function updateCapSummary() {
+  const el = document.getElementById('capSummary');
+  const cap = parseInt(document.getElementById('editCapacity').value) || 0;
+  const left = cap - editRegistered;
+  el.classList.toggle('over', cap > 0 && left < 0);
+  if (!cap) el.innerHTML = `目前已報名 <b>${editRegistered}</b> 人`;
+  else if (left < 0) el.innerHTML = `目前已報名 <b>${editRegistered}</b> 人，名額比報名人數少 <b>${-left}</b> 人，請確認`;
+  else if (left === 0) el.innerHTML = `目前已報名 <b>${editRegistered}</b> 人，名額已滿`;
+  else el.innerHTML = `目前已報名 <b>${editRegistered}</b> 人，尚餘 <b class="cap-left">${left}</b> 名`;
+}
 function openEditModal(id) {
   const s = sessions.find(x => x.id === id);
   if (!s) return;
@@ -3842,6 +3860,8 @@ function openEditModal(id) {
   document.getElementById('editStatus').value       = s.status || 'open';
   document.getElementById('editRegistrants').value  = s.registrants || '';
   document.getElementById('editAdminUnlocked').checked = !!s.adminUnlocked;
+  editRegistered = Number(s.registered) || 0;
+  updateCapSummary();
 
   // 只在距課程 ≤ 14 天且未過期時顯示手動開放選項
   const msUntil = d - TODAY;
@@ -3859,6 +3879,7 @@ let admRegs = [];
 async function loadAdminRegs(id) {
   const box = document.getElementById('admRegList');
   box.innerHTML = '<div class="adm-reg-loading">讀取報名名單中…</div>';
+  document.getElementById('admRegTotal').textContent = '';
   try {
     const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'listRegistrations', sessionId: id, token: adminToken }) });
     const json = await res.json();
@@ -3873,6 +3894,8 @@ async function loadAdminRegs(id) {
 
 function renderAdminRegs() {
   const box = document.getElementById('admRegList');
+  const tot = admRegs.reduce((n, r) => n + (Number(r.count) || 0), 0);
+  document.getElementById('admRegTotal').textContent = admRegs.length ? `${admRegs.length} 筆，共 ${tot} 人` : '';
   if (!admRegs.length) { box.innerHTML = '<div class="adm-reg-empty">這場目前還沒有人報名</div>'; return; }
   box.innerHTML = admRegs.map((r, i) => `
     <div class="adm-reg" id="admReg${i}">
@@ -3944,6 +3967,8 @@ async function admPost(payload, okMsg) {
   if (s) {   // 同步編輯視窗裡的容額與備註，避免按「儲存」時用舊資料覆蓋
     document.getElementById('editRegistrants').value = s.registrants || '';
     document.getElementById('editCapacity').value = s.capacity || '';
+    editRegistered = Number(s.registered) || 0;
+    updateCapSummary();
   }
   loadAdminRegs(id);
 }
