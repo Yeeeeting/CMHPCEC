@@ -4089,17 +4089,24 @@ async function saveSessionEdit() {
     status:        pick(status, 'status', fresh && (fresh.status || 'open')),
     registrants:   pick(registrants, 'registrants', fresh && (fresh.registrants || '')),
     adminUnlocked: pick(adminUnlocked, 'adminUnlocked', fresh && !!fresh.adminUnlocked) };
+  // 告訴後端實際改了哪些欄位：沒改的欄位後端不寫入，避免蓋掉同一瞬間別人剛改的資料
+  if (editOriginal) payload.changed = {
+    venue: venue !== editOriginal.venue, capacity: capacity !== editOriginal.capacity,
+    status: status !== editOriginal.status, registrants: registrants !== editOriginal.registrants,
+    adminUnlocked: adminUnlocked !== editOriginal.adminUnlocked };
   if (payload.status === 'open' || payload.status === 'full') {   // 以最新人數決定開放／額滿
     const regNow = fresh ? (Number(fresh.registered) || 0) : editRegistered;
     payload.status = payload.capacity - regNow <= 0 ? 'full' : 'open';
   }
 
+  let venueMailed = false;
   try {
     if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
       const json = await res.json();
       if (authExpired(json)) return;
       if (!json.success) { showToast(json.message || '儲存失敗', 'error'); return; }
+      venueMailed = !!json.venueNotified;
     }
     // 本機更新
     const s = sessions.find(x => x.id === id);
@@ -4115,7 +4122,7 @@ async function saveSessionEdit() {
     }
     renderAll();
     closeModal('editModal');
-    showToast('場次資訊已更新', 'success');
+    showToast(venueMailed ? '場次資訊已更新，已寄信通知報名者新的上課地點' : '場次資訊已更新', 'success');
     loadSessions(true);   // 再跟後端對一次，畫面顯示以 Sheet 為準
   } catch(e) {
     showToast('儲存失敗，請重試', 'error');
