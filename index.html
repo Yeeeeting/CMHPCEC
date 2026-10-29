@@ -1044,23 +1044,6 @@
   .act-scope-btn.active { background: var(--lavender-500); border-color: var(--lavender-500); color: white; }
   .act-scope + .act-summary { padding-top: 10px; }
 
-  /* ===== 列印總表 ===== */
-  #printArea { display: none; }
-  @media print {
-    body > *:not(#printArea) { display: none !important; }
-    #skyFx { display: none !important; }
-    html, body { background: white !important; }
-    body { padding: 0 !important; }
-    #printArea { display: block !important; color: #000; font-family: 'Noto Sans TC', sans-serif; }
-    #printArea h1 { font-size: 18px; margin-bottom: 4px; }
-    #printArea .print-meta { font-size: 12px; color: #444; margin-bottom: 12px; }
-    #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    #printArea th, #printArea td { border: 1px solid #999; padding: 6px 8px; text-align: left; vertical-align: top; }
-    #printArea th { background: #eee; }
-    #printArea td.num { white-space: nowrap; text-align: center; }
-    #printArea tr { page-break-inside: avoid; }
-    #printArea .print-foot { font-size: 11px; color: #444; margin-top: 10px; }
-  }
 
   /* ===== 報名須知 ===== */
   .howto {
@@ -2148,10 +2131,6 @@
     <div class="section-tools">
       <span style="font-size:12px;color:var(--text-muted)" id="cardCount"></span>
       <button class="tool-chip" id="expandAllBtn" onclick="toggleExpandAll()">月份全部展開</button>
-      <button class="tool-chip" onclick="printSummary()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        列印總表
-      </button>
     </div>
   </div>
 
@@ -2232,7 +2211,6 @@
   <span class="act-badge" id="actBadge"></span>
 </button>
 
-<div id="printArea" aria-hidden="true"></div>
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- ===================== MODALS ===================== -->
@@ -3151,37 +3129,6 @@ function toggleExpandAll() {
   renderCards();
 }
 
-/* ---------- 列印總表（只列場次、場地、各單位人數，不含個資） ---------- */
-function printSummary() {
-  const list = lastShown.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
-  if (!list.length) { showToast('目前沒有可以列印的場次', 'error'); return; }
-  const wd = ['日','一','二','三','四','五','六'];
-  const tp = {};
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-    .formatToParts(new Date()).forEach(x => tp[x.type] = x.value);
-  const rows = list.map(s => {
-    const d = new Date(s.date);
-    const isPast = d < TODAY;
-    const state = s.status === 'cancel' ? '已取消' : isPast ? '已結束' : s.remaining === 0 ? '額滿' : '可報名';
-    return `<tr>
-      <td>${d.getFullYear()-1911}/${d.getMonth()+1}/${d.getDate()}（${wd[d.getDay()]}）</td>
-      <td>${s.venue || '場地確認中'}</td>
-      <td class="num">${s.registered || 0} / ${s.capacity || '—'}</td>
-      <td>${state}</td>
-      <td>${s.registrants || '—'}</td>
-    </tr>`;
-  }).join('');
-  const months = [...currentMonths].length ? `（${[...currentMonths].join('、')} 月）` : '';
-  document.getElementById('printArea').innerHTML = `
-    <h1>${currentYear} 年度安寧緩和醫療教育課程 報名總表${months}</h1>
-    <div class="print-meta">每月第 2、4 週週二 13:00 – 14:00・列印時間 ${tp.year}-${tp.month}-${tp.day} ${tp.hour}:${tp.minute}</div>
-    <table>
-      <thead><tr><th>日期</th><th>場地</th><th>已報名／名額</th><th>狀態</th><th>報名單位</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div class="print-foot">奇美醫療財團法人奇美醫院 教學部 × 8C 病房・承辦人 楊宜婷（分機 57429）</div>`;
-  window.print();
-}
 
 const COURSE_TITLE = '安寧緩和醫療教育課程';
 // 已報名單位：每個單位當成一整塊，換行時整塊換，不會斷在名稱中間
