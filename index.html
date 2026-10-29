@@ -2806,9 +2806,16 @@ function renderTypeStats() {
   const note = document.getElementById('tsNote');
   if (!typeStats) { chart.innerHTML = '<div class="ts-empty">統計中…</div>'; return; }
   const y = (typeStats.years || {})[currentYear] || { all: {}, upcoming: {} };
-  const map = y[tsScope] || {};
-  const rows = Object.entries(map).filter(([, n]) => n > 0)
-    .sort((a, b) => typeRank(a[0]) - typeRank(b[0]) || b[1] - a[1]);
+  // 實習生以外的身分（PGY 等）一律併成「其他」，排在最後
+  const map = {}, otherParts = [];
+  Object.entries(y[tsScope] || {}).forEach(([t, n]) => {
+    if (!(n > 0)) return;
+    if (String(t).indexOf('實習生') !== -1) map[t] = (map[t] || 0) + n;
+    else { map['其他'] = (map['其他'] || 0) + n; otherParts.push(`${t} ${n}`); }
+  });
+  const rankOf = t => t === '其他' ? 100 : typeRank(t);
+  const rows = Object.entries(map)
+    .sort((a, b) => rankOf(a[0]) - rankOf(b[0]) || b[1] - a[1]);
   const total = rows.reduce((a, [, n]) => a + n, 0);
   const max = Math.max(1, ...rows.map(([, n]) => n));
   document.getElementById('tsYear').textContent = `${currentYear} 年度`;
@@ -2819,7 +2826,7 @@ function renderTypeStats() {
   } else {
     chart.innerHTML = `<div class="ts-row ts-row-head"><span>職類</span><span></span><span>人數</span></div>` + rows.map(([t, n]) => {
       return `<div class="ts-row">
-        <span class="ts-name" title="${t}">${typeShort(t)}</span>
+        <span class="ts-name" title="${t === '其他' ? otherParts.join('、') : t}">${typeShort(t)}</span>
         <span class="ts-bar"><span style="width:${Math.max(3, n / max * 100)}%"></span></span>
         <span class="ts-num"><b>${n}</b> 人</span>
       </div>`;
