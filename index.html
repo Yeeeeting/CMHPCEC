@@ -1613,6 +1613,11 @@
   }
   .activity-fab:hover { transform: translateY(-2px); }
   .activity-fab.show { display: inline-flex; }
+  .activity-fab.loading { cursor: progress; }
+  .activity-fab.loading svg { animation: fabLoad 1.4s ease-in-out infinite; }
+  .activity-fab.loading .fab-label { opacity: .85; }
+  @keyframes fabLoad { 0%,100% { transform: scale(.85) rotate(0deg); opacity: .6; } 50% { transform: scale(1.1) rotate(36deg); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .activity-fab.loading svg { animation: none; } }
   .activity-fab svg { width: 18px; height: 18px; color: #FFF3C4; filter: drop-shadow(0 0 4px rgba(255,236,170,.8)); }
   .activity-fab.wiggle svg { animation: actWiggle 1.6s ease-in-out 1; }   /* 有新動態時只晃一次 */
   @keyframes actWiggle {
@@ -2646,7 +2651,9 @@ const TODAY = getTodayTaipei();
 window.addEventListener('DOMContentLoaded', () => {
   restoreAdminSession();
   renderSkeleton();
-  loadSessions().then(loadActivity);
+  bootActivityFromCache();          // 先用上次存下的動態，按鈕馬上出現
+  loadSessions();
+  loadActivity();                    // 和場次同時讀取，不必排隊等
   setInterval(checkForUpdates, 15000);   // 每 15 秒自動更新一次
   // 分頁切回來時立刻更新一次
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdates(); });
@@ -2833,12 +2840,38 @@ async function loadActivity() {
     if (!json.success || !Array.isArray(json.items)) return;   // 後端尚未更新：不顯示
     const sameAsBefore = activityLoaded && JSON.stringify(json.items) === JSON.stringify(activityItems);
     activityItems = json.items;
+    lsSet('actCache', JSON.stringify({ items: json.items, at: Date.now() }));
+    setFabLoading(false);
     const first = !activityLoaded;
     activityLoaded = true;
     // 內容有變才重畫；沒變時每分鐘重畫一次，讓「幾分鐘前」保持正確
     if (!sameAsBefore || Date.now() - lastActRender > 60000) { renderActivity(); lastActRender = Date.now(); }
     if (first) initActivityState();
-  } catch (e) { /* 動態讀不到不影響報名 */ }
+  } catch (e) {   /* 動態讀不到不影響報名 */
+    if (!activityLoaded) { setFabLoading(false); document.getElementById('activityFab').classList.remove('show'); }
+  }
+}
+
+// 打開網頁時：有上次的動態就先顯示（之後背景更新）；沒有就先出現「讀取中」的按鈕
+function bootActivityFromCache() {
+  if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') return;
+  let cache = null;
+  try { cache = JSON.parse(lsGet('actCache') || 'null'); } catch (e) {}
+  if (cache && Array.isArray(cache.items) && Date.now() - cache.at < 3 * 24 * 60 * 60 * 1000) {
+    activityItems = cache.items;
+    activityLoaded = true;
+    renderActivity(); lastActRender = Date.now();
+    initActivityState();
+  } else {
+    setFabLoading(true);
+    showFab();
+  }
+}
+
+function setFabLoading(on) {
+  const fab = document.getElementById('activityFab');
+  fab.classList.toggle('loading', on);
+  fab.querySelector('.fab-label').textContent = on ? '動態讀取中…' : '最新動態';
 }
 
 function initActivityState() {
@@ -2852,7 +2885,7 @@ function showFab() {
 }
 
 function openActivity(silent) {
-  if (!activityLoaded) return;
+  if (!activityLoaded) { if (!silent) showToast('最新動態讀取中，請稍候幾秒', ''); return; }
   const panel = document.getElementById('activityPanel');
   panel.classList.add('show');
   document.getElementById('activityFab').classList.remove('show');
