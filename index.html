@@ -3366,6 +3366,7 @@ function switchYear(yr) {
 
 /* ---------- REGISTRATION EDIT (報名者) ---------- */
 async function openEditRegModal(token) {
+  editRequestId = newRequestId(); cancelRequestId = newRequestId();
   openModal('editRegModal');
   document.getElementById('editRegLoading').style.display = 'block';
   document.getElementById('editRegContent').style.display = 'none';
@@ -3410,7 +3411,7 @@ async function doRegEdit() {
   try {
     const res  = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'editRegistration', token: editRegToken, type, unit, count })
+      body: JSON.stringify({ action: 'editRegistration', token: editRegToken, type, unit, count, requestId: editRequestId })
     });
     const json = await res.json();
     if (!json.success) { showToast(json.message || '更新失敗', 'error'); return; }
@@ -3429,7 +3430,7 @@ async function doRegCancel() {
   try {
     const res  = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'cancelRegistration', token: editRegToken })
+      body: JSON.stringify({ action: 'cancelRegistration', token: editRegToken, requestId: cancelRequestId })
     });
     const json = await res.json();
     if (!json.success) { showToast(json.message || '取消失敗', 'error'); return; }
@@ -3568,6 +3569,9 @@ function doLogout(silent) {
 
 /* ---------- REGISTER ---------- */
 let dupConfirmedFor = '';      // 已經按過「確定是另一批人」的單位
+// 報名序號（像訂單編號）：每次打開視窗產生一組，網路不穩按重試時沿用同一組，後端只會處理一次
+const newRequestId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+let regRequestId = '', editRequestId = '', cancelRequestId = '';
 let adminRegMode = false;       // 管理者代為報名：信箱選填、不受 14 天鎖定
 let reopenEditAfterReg = false; // 從「編輯場次」進來的，報名完回到編輯視窗
 
@@ -3588,6 +3592,7 @@ function openRegisterModal(id, asAdmin = false) {
   document.getElementById('regType').value = '';
   document.getElementById('regDupWarn').classList.add('hidden');
   dupConfirmedFor = '';
+  regRequestId = newRequestId();
   openModal('registerModal');
 }
 
@@ -3619,9 +3624,10 @@ async function submitRegistration() {
     dupConfirmedFor = unit;
     return;
   }
-  let mailFailed = false;
+  let mailFailed = false, alreadyDone = false;
   const payload = { action: 'register', sessionId: pendingSessionId, name, email, phone, type, unit, count, timestamp: new Date().toISOString() };
   if (adminRegMode && adminToken) payload.token = adminToken;   // 管理者代為報名：後端不套用 14 天截止
+  payload.requestId = regRequestId;
 
   try {
     if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
@@ -3629,14 +3635,19 @@ async function submitRegistration() {
       const json = await res.json();
       if (!json.success) { showToast(json.message || '報名失敗', 'error'); return; }
       if (json.emailFailed) mailFailed = true;
+      if (json.duplicate) alreadyDone = true;   // 同一張報名序號先前已成功（網路不穩重試），不重複加人數
     }
-    // 樂觀更新本機
+    // 樂觀更新本機（重試成功的情況不再加一次，交給下面重新讀取）
+    if (!alreadyDone) {
     s.registered = (s.registered || 0) + count;
     s.remaining  = s.capacity - s.registered;
     if (s.remaining <= 0) s.status = 'full';
     const tag = `${type.replace('實習生','')} ${unit} ${count}位`;
     s.registrants = s.registrants ? s.registrants + '、' + tag : tag;
+    }
     renderAll();
+    if (alreadyDone) loadSessions(true);
+    regRequestId = newRequestId();   // 這筆完成了，下一筆用新序號
     closeModal('registerModal');
     if (window.celebrateRegistration) {
       const row = document.querySelector(`.course-row[data-id="${pendingSessionId}"] .row-date`);
