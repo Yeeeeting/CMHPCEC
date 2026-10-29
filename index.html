@@ -730,6 +730,9 @@
     color: var(--text-secondary);
     margin-bottom: 6px;
   }
+  .card-info-row.low-turnout { color: #6B4200; }
+  .card-info-row.low-turnout svg { color: #B7791F; }
+  .reg-merge-note { margin: 4px 0 2px; }
   .card-info-row svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--lavender-500); margin-top: 3px; }
 
   .card-capacity-bar-wrap { margin-top: 10px; max-width: 420px; }
@@ -2211,7 +2214,7 @@
     <summary>
       <span class="howto-icon">i</span>
       <span class="howto-title">報名須知</span>
-      <span class="howto-brief">開課前 14 天截止・人數含帶班教師・確認信可修改或取消</span>
+      <span class="howto-brief">開課前 14 天截止・未滿 10 位可能併場・確認信可修改或取消</span>
       <span class="howto-toggle"><span class="howto-open-text">看完整說明</span><span class="howto-close-text">收起</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </span>
@@ -2220,6 +2223,7 @@
       <li><b>怎麼報名：</b>點選想參加的場次，展開後按「立即報名」，填寫姓名、信箱、職類、單位和人數。</li>
       <li><b>人數怎麼填：</b>同一個單位可以一起報名，人數請填<b>所有參加的人（含帶班教師）</b>。</li>
       <li><b>報名截止：</b>每場在<b>開課前 14 天</b>截止，之後顯示「已截止報名」。</li>
+      <li><b>人數不足可能併場：</b>報名截止時（開課前 2 週）仍未滿 <b>10 位</b>，這一場可能改到其他場次上課，承辦人會另外通知。</li>
       <li><b>場地確認中的場次：</b>也可以先報名，先開放 15 個名額，場地確定後會寄信通知。</li>
       <li><b>修改或取消：</b>報名後會收到確認信，點信裡的「管理我的報名」就能改人數或取消，名額會自動退回。找不到確認信？<button type="button" class="howto-link" onclick="openMyRegModal()">按這裡重新寄送</button>，或點右上角的「我的報名」。</li>
       <li><b>上課當天：</b>請在開始前 5 分鐘到場地報到。</li>
@@ -2437,6 +2441,7 @@
       <div class="form-hint count-sum" id="regSum">合計 0 人</div>
     </div>
     <div class="dup-warn hidden" id="regDupWarn"></div>
+    <div class="form-hint reg-merge-note">提醒：報名截止時（開課前 2 週）仍未滿 10 位的話，這一場可能改到其他場次上課，承辦人會另外通知</div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('registerModal')">先不報名</button>
       <button class="btn-primary" onclick="submitRegistration()">確認報名</button>
@@ -3349,6 +3354,7 @@ function rowKey(e, id) {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleRow(id); }
 }
 
+const MERGE_MIN = 10;   // 報名截止時（開課前 2 週）未滿這個人數，可能併到其他場次
 function buildCard(s) {
   const d = new Date(s.date);
   const isCancel = s.status === 'cancel';
@@ -3400,7 +3406,11 @@ function buildCard(s) {
   const clockSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
   const pinSvg   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
 
-  const detailHtml = `            ${isPendingVenue && !isPast ? `<div class="card-info-row">${pinSvg}場地確定後，會寄信通知已報名的人</div>` : ''}
+  // 管理者提醒：已到報名截止（開課前 2 週內）、人數還不到 10 位的場次，可能要併場
+  const lowTurnout = isAdmin && !isCancel && !isPast && daysUntil <= 14 && (s.registered || 0) < MERGE_MIN;
+  const alertSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><line x1="12" y1="10" x2="12" y2="14"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>`;
+  const detailHtml = `            ${lowTurnout ? `<div class="card-info-row low-turnout">${alertSvg}目前 ${s.registered || 0} 位，已截止報名仍未滿 ${MERGE_MIN} 位，可考慮併到其他場次並通知報名單位</div>` : ''}
+            ${isPendingVenue && !isPast ? `<div class="card-info-row">${pinSvg}場地確定後，會寄信通知已報名的人</div>` : ''}
             ${hasCap && !isPast && !isLocked ? `
             <div class="card-capacity-bar-wrap">
               <div class="capacity-label">
