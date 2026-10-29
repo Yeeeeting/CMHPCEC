@@ -632,6 +632,11 @@
   .row-meta span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
   .row-meta svg { width: 13px; height: 13px; color: var(--lavender-300); flex-shrink: 0; }
   .row-meta .venue-pending { color: var(--amber-700); }
+  .row-title.venue-pending { color: var(--amber-700); }
+  .row-building { font-weight: 500; color: var(--text-secondary); }
+  .row-body-content.note-layout { grid-template-columns: 1fr; }
+    .row-note { font-size: 13px; line-height: 1.6; color: var(--text-secondary); background: var(--cream); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .status-locked .row-note, .status-full .row-note { color: #6B4200; background: var(--amber-50); }
   .row-meta .venue-pending svg { color: var(--amber-500); }
 
   .row-status { grid-area: status; justify-self: end; }
@@ -1136,6 +1141,8 @@
   }
   .next-meta { font-size: 14px; margin-top: 4px; color: #EDEBFA; }
   .next-meta .pending { color: #FFD98A; }
+  .next-skip { font-size: 12px; color: #CFC9F0; margin-top: 4px; opacity: .85; }
+  .next-skip::before { content: '最近一場：'; }
   .next-meta .seg { white-space: nowrap; }
   .adm-reg-n { color: var(--text-secondary); }
   .activity-fab .fab-label { transition: opacity .15s; }
@@ -2009,7 +2016,7 @@
     </div>
     <div>
       <div class="brand-name">星光引路 · 奇恩的故事</div>
-      <div class="brand-sub">奇美醫院 安寧緩和醫療教育課程</div>
+      <div class="brand-sub">奇美醫院 教學部 × 8C 病房</div>
     </div>
   </a>
   <div class="year-tabs">
@@ -2024,7 +2031,7 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-eyebrow" id="heroEyebrow">Chi Mei Hospital · 115 年度</div>
+  <div class="hero-eyebrow" id="heroEyebrow">Chi Mei Hospital</div>
   <h1>安寧緩和醫療教育課程 · 線上報名系統</h1>
   <p class="hero-sub"><span class="nowrap">每月第 2、4 週週二</span> · <span class="nowrap">13:00 – 14:00</span> · <span class="nowrap">全院各職類實見習生</span></p>
   <div class="hero-meta">
@@ -3017,7 +3024,9 @@ function renderCards() {
     .sort((a,b) => new Date(a.date) - new Date(b.date)).map(s => new Date(s.date).getMonth() + 1))];
   const sortedMonths = monthOrder.filter(m => currentMonths.has(m));
   const monthLabel = sortedMonths.length > 0 ? `${sortedMonths.join('、')} 月・` : '';
-  document.getElementById('cardCount').textContent = `${monthLabel}共 ${filtered.length} 場`;
+  // 沒有篩選時，總場數已經寫在下面的統計，這裡不重複；有篩選時才顯示篩選結果有幾場
+  const filtering = currentFilter !== 'all' || currentMonths.size > 0;
+  document.getElementById('cardCount').textContent = filtering ? `${monthLabel}篩選結果 ${filtered.length} 場` : '';
 
   filtered = filtered.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
 
@@ -3195,21 +3204,16 @@ function buildCard(s) {
   const regText = s.registrants
     ? `<div class="card-registrants"><div class="card-registrants-label">已報名單位</div>👥 ${unitTags(s.registrants)}</div>` : '';
 
+  // 能報名才顯示按鈕；不能報名時改成一行說明（不放按不了的灰色按鈕）
   let btnHtml = '';
   if (!isAdmin) {
-    if (isCancel) {
-      btnHtml = `<button class="btn-register" disabled>此場次已取消</button>`;
-    } else if (offlineMode) {
-      btnHtml = `<button class="btn-register" disabled>暫停線上報名（系統連線中斷）</button>`;
-    } else if (isFull) {
-      btnHtml = `<button class="btn-register" disabled>名額已滿</button>`;
-    } else if (isPast) {
-      btnHtml = `<button class="btn-register" disabled>已結束</button>`;
-    } else if (isLocked) {
-      btnHtml = `<button class="btn-register btn-locked" disabled>已截止報名（開課前 14 天截止）</button>`;
-    } else {
-      btnHtml = `<button class="btn-register open" onclick="openRegisterModal('${s.id}')">立即報名</button>`;
-    }
+    const note = t => `<div class="row-note">${t}</div>`;
+    if (isCancel)        btnHtml = note('此場次已取消，請改選其他場次');
+    else if (isPast)     btnHtml = note('此場次已結束');
+    else if (offlineMode) btnHtml = note('系統連線中斷，暫停線上報名；急件請洽教學部（分機 57429）');
+    else if (isFull)     btnHtml = note('名額已滿，如需候補請洽教學部（分機 57429）');
+    else if (isLocked)   btnHtml = note('已過報名截止（開課前 14 天），如需報名請洽教學部（分機 57429）');
+    else                 btnHtml = `<button class="btn-register open" onclick="openRegisterModal('${s.id}')">立即報名</button>`;
   }
 
   const monthAccent = MONTH_COLORS[d.getMonth() + 1];
@@ -3217,6 +3221,17 @@ function buildCard(s) {
   const clockSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
   const pinSvg   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
 
+  const detailHtml = `            ${isPendingVenue && !isPast ? `<div class="card-info-row">${pinSvg}場地確定後，會寄信通知已報名的人</div>` : ''}
+            ${hasCap && !isPast && !isLocked ? `
+            <div class="card-capacity-bar-wrap">
+              <div class="capacity-label">
+                <span>報名情況${isPendingVenue ? '（暫定名額）' : ''}</span>
+                <span class="capacity-count">${s.remaining > 0 ? `尚餘 ${s.remaining} 名` : '已額滿'}</span>
+              </div>
+              <div class="capacity-track">
+                <div class="capacity-fill ${fillClass}" style="width:${fillPct}%"></div>
+              </div>
+            </div>` : ''}`;
   return `
   <div class="course-row ${statusClass} ${isOpenRow ? 'is-open' : ''}" data-id="${s.id}" style="--accent:${monthAccent}">
     <div class="card-update-dot"></div>
@@ -3227,11 +3242,9 @@ function buildCard(s) {
         <span class="row-date-wday">週${wday}</span>
       </div>
       <div class="row-main">
-        <div class="row-title">${COURSE_TITLE}</div>
-        <div class="row-meta">
-          <span>${clockSvg}13:00 – 14:00</span>
-          ${s.venue ? `<span>${pinSvg}${venueText}</span>` : `<span class="venue-pending">${pinSvg}場地確認中</span>`}
-        </div>
+        <div class="row-title ${s.venue ? '' : 'venue-pending'}">${s.venue
+          ? `${venueText}${buildingText ? `<span class="row-building">・${buildingText}</span>` : ''}`
+          : '場地確認中'}</div>
       </div>
       <div class="row-status">
         <span class="card-badge ${badgeClass}">${badgeText}</span>
@@ -3244,21 +3257,8 @@ function buildCard(s) {
     </div>
     <div class="row-body" aria-hidden="${!isOpenRow}">
       <div class="row-body-inner">
-        <div class="row-body-content">
-          <div class="row-detail">
-            <div class="card-info-row">${clockSvg}<span><span class="nowrap">${d.getFullYear()-1911} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日（週${wday}）</span><span class="nowrap">13:00 – 14:00</span></span></div>
-            <div class="card-info-row">${pinSvg}${venueDisplay}</div>
-            ${hasCap ? `
-            <div class="card-capacity-bar-wrap">
-              <div class="capacity-label">
-                <span>報名情況${isPendingVenue && !isPast ? '（場地確認前暫定名額）' : ''}</span>
-                <span class="capacity-count">${capDisplay}</span>
-              </div>
-              <div class="capacity-track">
-                <div class="capacity-fill ${fillClass}" style="width:${fillPct}%"></div>
-              </div>
-            </div>` : ''}
-          </div>
+        <div class="row-body-content ${(!isAdmin && !(hasCap && !isPast && !isLocked && !isCancel) ) || (!isAdmin && btnHtml.indexOf('row-note') !== -1) ? 'note-layout' : ''}">
+          ${detailHtml.trim() ? `<div class="row-detail">${detailHtml}</div>` : ''}
           <div class="card-actions">
             ${btnHtml}
             ${isAdmin && !isCancel && !isPast ? `<button class="adm-help-btn" onclick="reopenEditAfterReg=false; openRegisterModal('${s.id}', true)">＋ 幫忙報名</button>` : ''}
@@ -3287,9 +3287,17 @@ function renderNextCard() {
     .filter(s => new Date(s.date) >= TODAY && s.status !== 'cancel')
     .sort((a, b) => new Date(a.date) - new Date(b.date));
   if (!upcoming.length) { box.classList.add('hidden'); return; }
-  const s = upcoming[0];
-  const yearStarted = yrList.some(x => new Date(x.date) < TODAY);
-  const nextTitle = yearStarted ? '下一場課程' : `${currentYear} 年度第一場`;
+  // 優先顯示「下一場還能報名的」，避免最顯眼的卡片是一場報不了的課
+  const regOK = x => {
+    const days = Math.round((new Date(x.date) - TODAY) / 86400000);
+    return x.remaining > 0 && !(days <= 14 && !x.adminUnlocked);
+  };
+  const firstOpen = upcoming.find(regOK);
+  const s = firstOpen || upcoming[0];
+  const skipped = firstOpen && firstOpen !== upcoming[0] ? upcoming.slice(0, upcoming.indexOf(firstOpen)) : [];
+  const nextTitle = firstOpen ? '下一場可報名' : '下一場課程';
+  const skippedNote = skipped.length
+    ? `<div class="next-skip">${skipped.map(x => { const dd = new Date(x.date); return `${dd.getMonth()+1}/${dd.getDate()} ${x.remaining === 0 ? '已額滿' : '已截止報名'}`; }).join('、')}</div>` : '';
   const d = new Date(s.date);
   const wd = ['日','一','二','三','四','五','六'][d.getDay()];
   const days = Math.round((d - TODAY) / 86400000);
@@ -3311,6 +3319,7 @@ function renderNextCard() {
       <div class="next-label">${nextTitle} <span class="next-countdown">${countdown}</span></div>
       <div class="next-meta"><span class="seg">13:00 – 14:00</span><span class="sep">・</span>${venue}${stateText}</div>
       <div class="next-units">${s.registrants ? '已報名：' + unitTags(s.registrants) : '目前還沒有單位報名'}</div>
+      ${skippedNote}
     </div>
     <div class="next-side">
       <div class="next-count"><strong>${s.registered || 0}</strong> / ${s.capacity || '—'} 人</div>
@@ -3346,7 +3355,6 @@ function switchYear(yr) {
 
   document.getElementById('tab115').classList.toggle('active', yr === 115);
   document.getElementById('tab116').classList.toggle('active', yr === 116);
-  document.getElementById('heroEyebrow').textContent = `Chi Mei Hospital · ${yr} 年度`;
   document.getElementById('sectionYearTitle').textContent = `${yr} 年度課程場次`;
 
   const yrSessions = sessions.filter(s => s.year === yr).slice().sort((a,b) => new Date(a.date) - new Date(b.date));
