@@ -2054,6 +2054,30 @@
     .month-filter-row .month-filter-bar { gap: 4px; }
     .month-chip, .month-chip.all-months-chip { padding: 5px 2px; font-size: 12px; }
   }
+
+  /* ===== 參加人數：實習生＋帶班老師 ===== */
+  .count-split { display: flex; flex-direction: column; gap: 8px; }
+  .count-line { display: flex; align-items: center; gap: 10px; }
+  .count-name { flex: 1; font-size: 14px; color: var(--text-primary); }
+  .count-unit { font-size: 13px; color: var(--text-muted); width: 16px; }
+  .stepper { display: flex; align-items: center; gap: 6px; }
+  .step-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--lavender-700); font-size: 18px; line-height: 1; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .step-btn:hover { background: var(--lavender-50); }
+  .form-input.step-input { width: 64px; text-align: center; padding-left: 4px; padding-right: 4px; -moz-appearance: textfield; }
+  .step-input::-webkit-outer-spin-button, .step-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .count-sum { margin-top: 8px; }
+  .count-sum b { color: var(--lavender-700); }
+  .count-sum.over { color: var(--red-600); }
+  .adm-count-lbl { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); }
+  .adm-count-lbl .adm-reg-count { width: 52px; }
+  @media (max-width: 640px) {
+    .step-btn { width: 40px; height: 40px; }
+  }
 </style>
 </head>
 <body>
@@ -2369,9 +2393,28 @@
       <input type="text" class="form-input" id="regUnit" placeholder="例：4A病房、呼吸治療科">
     </div>
     <div class="form-group">
-      <label class="form-label">報名人數</label>
-      <input type="number" class="form-input" id="regCount" min="1" max="200" placeholder="請輸入本次報名總人數">
-      <div class="form-hint">請填寫本次一同參加的總人數（含帶班老師）</div>
+      <label class="form-label">參加人數</label>
+      <div class="count-split">
+        <div class="count-line">
+          <span class="count-name">實習生／學生</span>
+          <div class="stepper">
+            <button type="button" class="step-btn" onclick="stepCount('regStu',-1)" aria-label="減少實習生">−</button>
+            <input type="number" class="form-input step-input" id="regStu" min="0" max="200" inputmode="numeric" placeholder="0" oninput="updateCountSum('reg')">
+            <button type="button" class="step-btn" onclick="stepCount('regStu',1)" aria-label="增加實習生">＋</button>
+          </div>
+          <span class="count-unit">人</span>
+        </div>
+        <div class="count-line">
+          <span class="count-name">帶班老師</span>
+          <div class="stepper">
+            <button type="button" class="step-btn" onclick="stepCount('regTea',-1)" aria-label="減少帶班老師">−</button>
+            <input type="number" class="form-input step-input" id="regTea" min="0" max="50" inputmode="numeric" value="0" oninput="updateCountSum('reg')">
+            <button type="button" class="step-btn" onclick="stepCount('regTea',1)" aria-label="增加帶班老師">＋</button>
+          </div>
+          <span class="count-unit">人</span>
+        </div>
+      </div>
+      <div class="form-hint count-sum" id="regSum">合計 0 人</div>
     </div>
     <div class="dup-warn hidden" id="regDupWarn"></div>
     <div class="modal-actions">
@@ -2498,8 +2541,28 @@
         <input type="text" class="form-input" id="editRegUnit" placeholder="例：4A病房">
       </div>
       <div class="form-group">
-        <label class="form-label">報名人數</label>
-        <input type="number" class="form-input" id="editRegCount" min="1" max="200">
+      <label class="form-label">參加人數</label>
+        <div class="count-split">
+          <div class="count-line">
+            <span class="count-name">實習生／學生</span>
+            <div class="stepper">
+              <button type="button" class="step-btn" onclick="stepCount('editRegStu',-1)" aria-label="減少實習生">−</button>
+              <input type="number" class="form-input step-input" id="editRegStu" min="0" max="200" inputmode="numeric" placeholder="0" oninput="updateCountSum('editReg')">
+              <button type="button" class="step-btn" onclick="stepCount('editRegStu',1)" aria-label="增加實習生">＋</button>
+            </div>
+            <span class="count-unit">人</span>
+          </div>
+          <div class="count-line">
+            <span class="count-name">帶班老師</span>
+            <div class="stepper">
+              <button type="button" class="step-btn" onclick="stepCount('editRegTea',-1)" aria-label="減少帶班老師">−</button>
+              <input type="number" class="form-input step-input" id="editRegTea" min="0" max="50" inputmode="numeric" value="0" oninput="updateCountSum('editReg')">
+              <button type="button" class="step-btn" onclick="stepCount('editRegTea',1)" aria-label="增加帶班老師">＋</button>
+            </div>
+            <span class="count-unit">人</span>
+          </div>
+        </div>
+        <div class="form-hint count-sum" id="editRegSum">合計 0 人</div>
       </div>
       <div class="modal-actions">
         <button class="btn-danger" onclick="doRegCancel()">取消報名</button>
@@ -3452,7 +3515,8 @@ async function openEditRegModal(token) {
       `${d.getMonth()+1}/${d.getDate()}（${wdays[d.getDay()]}）· ${session.venue || '場地確認中'}`;
     document.getElementById('editRegType').value  = reg.type;
     document.getElementById('editRegUnit').value  = reg.unit;
-    document.getElementById('editRegCount').value = reg.count;
+    countLimit.editReg = (session.remaining || 0) + (reg.count || 0);
+    setCount('editReg', reg.count, reg.teacherCount || 0);
 
     document.getElementById('editRegLoading').style.display = 'none';
     document.getElementById('editRegContent').style.display = 'block';
@@ -3466,13 +3530,13 @@ async function openEditRegModal(token) {
 async function doRegEdit() {
   const type  = document.getElementById('editRegType').value;
   const unit  = document.getElementById('editRegUnit').value.trim();
-  const count = parseInt(document.getElementById('editRegCount').value) || 0;
+  const { tea: teacherCount, total: count } = readCount('editReg');
   if (!unit || count < 1) { showToast('請填寫單位及人數', 'error'); return; }
 
   try {
     const res  = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'editRegistration', token: editRegToken, type, unit, count, requestId: editRequestId })
+      body: JSON.stringify({ action: 'editRegistration', token: editRegToken, type, unit, count, teacherCount, requestId: editRequestId })
     });
     const json = await res.json();
     if (!json.success) { showToast(json.message || '更新失敗', 'error'); return; }
@@ -3628,6 +3692,39 @@ function doLogout(silent) {
   renderCards();
 }
 
+/* ---------- 參加人數：實習生＋帶班老師，自動加總 ---------- */
+let countLimit = { reg: null, editReg: null };   // 目前最多可以填幾人（剩餘名額）
+function readCount(pfx) {
+  const stu = Math.max(0, parseInt(document.getElementById(pfx + 'Stu').value) || 0);
+  const tea = Math.max(0, parseInt(document.getElementById(pfx + 'Tea').value) || 0);
+  return { stu, tea, total: stu + tea };
+}
+function setCount(pfx, total, teachers) {
+  const tea = Math.max(0, Math.min(total || 0, teachers || 0));
+  document.getElementById(pfx + 'Stu').value = total ? total - tea : '';
+  document.getElementById(pfx + 'Tea').value = tea;
+  updateCountSum(pfx);
+}
+function stepCount(id, d) {
+  const el = document.getElementById(id);
+  el.value = Math.max(0, (parseInt(el.value) || 0) + d);
+  updateCountSum(id.replace(/(Stu|Tea)$/, ''));
+}
+function updateCountSum(pfx) {
+  const { stu, tea, total } = readCount(pfx);
+  const el = document.getElementById(pfx + 'Sum');
+  const lim = countLimit[pfx];
+  const over = lim != null && total > lim;
+  el.classList.toggle('over', over);
+  el.innerHTML = total
+    ? `合計 <b>${total}</b> 人${tea ? `（實習生 ${stu}＋帶班老師 ${tea}）` : ''}，將占用 ${total} 個名額${over ? `・目前只剩 ${lim} 名` : ''}`
+    : '請填寫參加人數（帶班老師一起上課的話也算進來）';
+}
+function countTag(type, unit, total, tea) {
+  const t = String(type || '').replace('實習生', '');
+  return tea > 0 ? `${t} ${unit} 學生${total - tea}位+老師${tea}位` : `${t} ${unit} ${total}位`;
+}
+
 /* ---------- REGISTER ---------- */
 let dupConfirmedFor = '';      // 已經按過「確定是另一批人」的單位
 // 報名序號（像訂單編號）：每次打開視窗產生一組，網路不穩按重試時沿用同一組，後端只會處理一次
@@ -3649,7 +3746,9 @@ function openRegisterModal(id, asAdmin = false) {
   document.getElementById('registerModalTitle').textContent = adminRegMode ? '管理者代為報名' : '報名課程';
   document.getElementById('registerModalSub').textContent =
     `${d.getMonth()+1}/${d.getDate()} · 13:00–14:00 · ${s.venue||'場地確認中（確定後寄信通知）'} · 尚餘 ${s.remaining} 名`;
-  ['regName','regEmail','regPhone','regUnit','regCount'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['regName','regEmail','regPhone','regUnit'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  countLimit.reg = s.remaining;
+  setCount('reg', 0, 0);
   document.getElementById('regType').value = '';
   document.getElementById('regDupWarn').classList.add('hidden');
   dupConfirmedFor = '';
@@ -3663,7 +3762,7 @@ async function submitRegistration() {
   const phone = document.getElementById('regPhone').value.trim();
   const type  = document.getElementById('regType').value;
   const unit  = document.getElementById('regUnit').value.trim();
-  const count = parseInt(document.getElementById('regCount').value) || 0;
+  const { tea: teacherCount, total: count } = readCount('reg');
 
   if (!name || (!email && !adminRegMode) || !type || !unit || count < 1) {
     showToast(adminRegMode ? '請填寫姓名、職類、單位及人數' : '請填寫姓名、信箱、職類、單位及人數', 'error'); return;
@@ -3686,7 +3785,7 @@ async function submitRegistration() {
     return;
   }
   let mailFailed = false, alreadyDone = false;
-  const payload = { action: 'register', sessionId: pendingSessionId, name, email, phone, type, unit, count, timestamp: new Date().toISOString() };
+  const payload = { action: 'register', sessionId: pendingSessionId, name, email, phone, type, unit, count, teacherCount, timestamp: new Date().toISOString() };
   if (adminRegMode && adminToken) payload.token = adminToken;   // 管理者代為報名：後端不套用 14 天截止
   payload.requestId = regRequestId;
 
@@ -3703,7 +3802,7 @@ async function submitRegistration() {
     s.registered = (s.registered || 0) + count;
     s.remaining  = s.capacity - s.registered;
     if (s.remaining <= 0) s.status = 'full';
-    const tag = `${type.replace('實習生','')} ${unit} ${count}位`;
+    const tag = countTag(type, unit, count, teacherCount);
     s.registrants = s.registrants ? s.registrants + '、' + tag : tag;
     }
     renderAll();
@@ -3778,7 +3877,7 @@ function renderAdminRegs() {
   box.innerHTML = admRegs.map((r, i) => `
     <div class="adm-reg" id="admReg${i}">
       <div class="adm-reg-info">
-        <div class="adm-reg-main">${r.unit} <span class="nowrap adm-reg-n"><b>${r.count}</b> 人</span></div>
+        <div class="adm-reg-main">${r.unit} <span class="nowrap adm-reg-n"><b>${r.count}</b> 人${r.teacherCount ? `（含老師 ${r.teacherCount}）` : ''}</span></div>
         <div class="adm-reg-sub">${r.type.replace('實習生','')}・${r.name}${r.email ? '・' + r.email : ''}${r.phone ? '・' + r.phone : ''}</div>
       </div>
       <button class="adm-reg-btn" onclick="admEditCount(${i})">改人數</button>
@@ -3791,9 +3890,10 @@ function admEditCount(i) {
   document.getElementById('admReg' + i).innerHTML = `
     <div class="adm-reg-info">
       <div class="adm-reg-main">${r.type.replace('實習生','')} ${r.unit}</div>
-      <div class="adm-reg-sub">原本 ${r.count} 人</div>
+      <div class="adm-reg-sub">原本 ${r.count} 人${r.teacherCount ? `（含老師 ${r.teacherCount}）` : ''}</div>
     </div>
-    <input type="number" class="adm-reg-count" id="admCount${i}" min="1" value="${r.count}">
+    <label class="adm-count-lbl">學生<input type="number" class="adm-reg-count" id="admCount${i}" min="0" value="${r.count - (r.teacherCount || 0)}"></label>
+    <label class="adm-count-lbl">老師<input type="number" class="adm-reg-count" id="admTea${i}" min="0" value="${r.teacherCount || 0}"></label>
     <button class="adm-reg-btn primary" onclick="admSaveCount(${i})">儲存</button>
     <button class="adm-reg-btn" onclick="renderAdminRegs()">返回</button>`;
   document.getElementById('admCount' + i).focus();
@@ -3812,10 +3912,12 @@ function admConfirmCancel(i) {
 
 async function admSaveCount(i) {
   const r = admRegs[i];
-  const count = parseInt(document.getElementById('admCount' + i).value) || 0;
-  if (count < 1) { showToast('人數至少 1 人；要整筆取消請按「取消」', 'error'); return; }
-  if (count === r.count) { renderAdminRegs(); return; }
-  await admPost({ action: 'editRegistration', token: r.token, adminToken, type: r.type, unit: r.unit, count }, `已將 ${r.unit} 改為 ${count} 人`);
+  const stu = Math.max(0, parseInt(document.getElementById('admCount' + i).value) || 0);
+  const teacherCount = Math.max(0, parseInt(document.getElementById('admTea' + i).value) || 0);
+  const count = stu + teacherCount;
+  if (count < 1) { showToast('人數至少 1 人；要整筆取消請按「取消報名」', 'error'); return; }
+  if (count === r.count && teacherCount === (r.teacherCount || 0)) { renderAdminRegs(); return; }
+  await admPost({ action: 'editRegistration', token: r.token, adminToken, type: r.type, unit: r.unit, count, teacherCount }, `已將 ${r.unit} 改為 ${count} 人`);
 }
 
 async function admDoCancel(i) {
