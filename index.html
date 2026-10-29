@@ -1962,10 +1962,22 @@
   @media (min-width: 641px) {
     .site-header, .hero, .sticky-filters-bar, .content-inner, .site-footer,
     .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.08; }
+    .modal { max-height: calc(90vh / 1.08); }   /* 放大後視窗仍完整放在畫面內，內容可捲動 */
+    .activity-panel { max-height: calc((100vh - 150px) / 1.08); }
   }
+  /* 橫式平板、小筆電：再大一點 */
+  @media (min-width: 900px) and (orientation: landscape) {
+    .site-header, .hero, .sticky-filters-bar, .content-inner, .site-footer,
+    .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.15; }
+    .modal { max-height: calc(90vh / 1.15); }   /* 放大後視窗仍完整放在畫面內，內容可捲動 */
+    .activity-panel { max-height: calc((100vh - 150px) / 1.15); }
+  }
+  /* 電腦 */
   @media (min-width: 1200px) {
     .site-header, .hero, .sticky-filters-bar, .content-inner, .site-footer,
-    .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.12; }
+    .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.2; }
+    .modal { max-height: calc(90vh / 1.2); }   /* 放大後視窗仍完整放在畫面內，內容可捲動 */
+    .activity-panel { max-height: calc((100vh - 150px) / 1.2); }
   }
 
   /* ===== 最新動態：分頁（動態／職類分析） ===== */
