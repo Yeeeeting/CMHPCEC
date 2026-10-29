@@ -1972,16 +1972,24 @@
   /* 橫式平板、小筆電：再大一點 */
   @media (min-width: 900px) and (orientation: landscape) {
     .site-header, .hero, .sticky-filters-bar, .content-inner, .site-footer,
-    .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.15; }
-    .modal { max-height: calc(90vh / 1.15); }   /* 放大後視窗仍完整放在畫面內，內容可捲動 */
-    .activity-panel { max-height: calc((100vh - 150px) / 1.15); }
+    .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.2; }
+    .modal { max-height: calc(90vh / 1.2); }   /* 放大後視窗仍完整放在畫面內，內容可捲動 */
+    .activity-panel { max-height: calc((100vh - 150px) / 1.2); }
+    /* 頁首標題原本比下方按鈕還小，橫式時拉回比例 */
+    .brand-name { font-size: 16px; }
+    .brand-sub  { font-size: 11.5px; }
+    .year-tab   { font-size: 14px; padding: 6px 16px; }
+    .hero { padding: 16px 24px 20px; }
+    .hero-eyebrow { font-size: 11px; margin-bottom: 4px; }
+    .hero h1 { font-size: 22px; margin-bottom: 8px; }
+    .hero-sub { font-size: 13px; }
   }
   /* 電腦 */
   @media (min-width: 1200px) {
     .site-header, .hero, .sticky-filters-bar, .content-inner, .site-footer,
-    .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.2; }
-    .modal { max-height: calc(90vh / 1.2); }   /* 放大後視窗仍完整放在畫面內，內容可捲動 */
-    .activity-panel { max-height: calc((100vh - 150px) / 1.2); }
+    .modal, .activity-panel, .activity-fab, .toast-container { zoom: 1.25; }
+    .modal { max-height: calc(90vh / 1.25); }   /* 放大後視窗仍完整放在畫面內，內容可捲動 */
+    .activity-panel { max-height: calc((100vh - 150px) / 1.25); }
   }
 
   /* ===== 最新動態：分頁（動態／職類分析） ===== */
