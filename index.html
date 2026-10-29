@@ -2055,7 +2055,7 @@
     .month-chip, .month-chip.all-months-chip { padding: 5px 2px; font-size: 12px; }
   }
 
-  /* ===== 參加人數：實習生＋帶班老師 ===== */
+  /* ===== 參加人數：實習生＋帶班教師 ===== */
   .count-split { display: flex; flex-direction: column; gap: 8px; }
   .count-line { display: flex; align-items: center; gap: 10px; }
   .count-name { flex: 1; font-size: 14px; color: var(--text-primary); }
@@ -2191,14 +2191,14 @@
     <summary>
       <span class="howto-icon">i</span>
       <span class="howto-title">報名須知</span>
-      <span class="howto-brief">開課前 14 天截止・人數含帶班老師・確認信可修改或取消</span>
+      <span class="howto-brief">開課前 14 天截止・人數含帶班教師・確認信可修改或取消</span>
       <span class="howto-toggle"><span class="howto-open-text">看完整說明</span><span class="howto-close-text">收起</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </span>
     </summary>
     <ol class="howto-list">
       <li><b>怎麼報名：</b>點選想參加的場次，展開後按「立即報名」，填寫姓名、信箱、職類、單位和人數。</li>
-      <li><b>人數怎麼填：</b>同一個單位可以一起報名，人數請填<b>所有參加的人（含帶班老師）</b>。</li>
+      <li><b>人數怎麼填：</b>同一個單位可以一起報名，人數請填<b>所有參加的人（含帶班教師）</b>。</li>
       <li><b>報名截止：</b>每場在<b>開課前 14 天</b>截止，之後顯示「已截止報名」。</li>
       <li><b>場地確認中的場次：</b>也可以先報名，先開放 15 個名額，場地確定後會寄信通知。</li>
       <li><b>修改或取消：</b>報名後會收到確認信，點信裡的「管理我的報名」就能改人數或取消，名額會自動退回。找不到確認信？<button type="button" class="howto-link" onclick="openMyRegModal()">按這裡重新寄送</button>，或點右上角的「我的報名」。</li>
@@ -2360,7 +2360,7 @@
     <div class="modal-subtitle" id="registerModalSub"></div>
     <div class="form-group">
       <label class="form-label">報名者姓名</label>
-      <input type="text" class="form-input" id="regName" placeholder="請輸入真實姓名（帶班老師或負責人）" autocomplete="off">
+      <input type="text" class="form-input" id="regName" placeholder="請輸入真實姓名（帶班教師或負責人）" autocomplete="off">
     </div>
     <div class="form-group">
       <label class="form-label">電子信箱 <span id="regEmailHint" style="color:var(--red-600);font-size:12px;">必填・報名確認信將寄至此信箱</span></label>
@@ -2405,11 +2405,11 @@
           <span class="count-unit">人</span>
         </div>
         <div class="count-line">
-          <span class="count-name">帶班老師</span>
+          <span class="count-name">帶班教師</span>
           <div class="stepper">
-            <button type="button" class="step-btn" onclick="stepCount('regTea',-1)" aria-label="減少帶班老師">−</button>
+            <button type="button" class="step-btn" onclick="stepCount('regTea',-1)" aria-label="減少帶班教師">−</button>
             <input type="number" class="form-input step-input" id="regTea" min="0" max="50" inputmode="numeric" value="0" oninput="updateCountSum('reg')">
-            <button type="button" class="step-btn" onclick="stepCount('regTea',1)" aria-label="增加帶班老師">＋</button>
+            <button type="button" class="step-btn" onclick="stepCount('regTea',1)" aria-label="增加帶班教師">＋</button>
           </div>
           <span class="count-unit">人</span>
         </div>
@@ -2553,11 +2553,11 @@
             <span class="count-unit">人</span>
           </div>
           <div class="count-line">
-            <span class="count-name">帶班老師</span>
+            <span class="count-name">帶班教師</span>
             <div class="stepper">
-              <button type="button" class="step-btn" onclick="stepCount('editRegTea',-1)" aria-label="減少帶班老師">−</button>
+              <button type="button" class="step-btn" onclick="stepCount('editRegTea',-1)" aria-label="減少帶班教師">−</button>
               <input type="number" class="form-input step-input" id="editRegTea" min="0" max="50" inputmode="numeric" value="0" oninput="updateCountSum('editReg')">
-              <button type="button" class="step-btn" onclick="stepCount('editRegTea',1)" aria-label="增加帶班老師">＋</button>
+              <button type="button" class="step-btn" onclick="stepCount('editRegTea',1)" aria-label="增加帶班教師">＋</button>
             </div>
             <span class="count-unit">人</span>
           </div>
@@ -3692,7 +3692,7 @@ function doLogout(silent) {
   renderCards();
 }
 
-/* ---------- 參加人數：實習生＋帶班老師，自動加總 ---------- */
+/* ---------- 參加人數：實習生＋帶班教師，自動加總 ---------- */
 let countLimit = { reg: null, editReg: null };   // 目前最多可以填幾人（剩餘名額）
 function readCount(pfx) {
   const stu = Math.max(0, parseInt(document.getElementById(pfx + 'Stu').value) || 0);
@@ -3717,12 +3717,12 @@ function updateCountSum(pfx) {
   const over = lim != null && total > lim;
   el.classList.toggle('over', over);
   el.innerHTML = total
-    ? `合計 <b>${total}</b> 人${tea ? `（實習生 ${stu}＋帶班老師 ${tea}）` : ''}，將占用 ${total} 個名額${over ? `・目前只剩 ${lim} 名` : ''}`
-    : '請填寫參加人數（帶班老師一起上課的話也算進來）';
+    ? `合計 <b>${total}</b> 人${tea ? `（實習生 ${stu}＋帶班教師 ${tea}）` : ''}，將占用 ${total} 個名額${over ? `・目前只剩 ${lim} 名` : ''}`
+    : '請填寫參加人數（帶班教師一起上課的話也算進來）';
 }
 function countTag(type, unit, total, tea) {
   const t = String(type || '').replace('實習生', '');
-  return tea > 0 ? `${t} ${unit} 學生${total - tea}位+老師${tea}位` : `${t} ${unit} ${total}位`;
+  return tea > 0 ? `${t} ${unit} 學生${total - tea}位+教師${tea}位` : `${t} ${unit} ${total}位`;
 }
 
 /* ---------- REGISTER ---------- */
@@ -3877,7 +3877,7 @@ function renderAdminRegs() {
   box.innerHTML = admRegs.map((r, i) => `
     <div class="adm-reg" id="admReg${i}">
       <div class="adm-reg-info">
-        <div class="adm-reg-main">${r.unit} <span class="nowrap adm-reg-n"><b>${r.count}</b> 人${r.teacherCount ? `（含老師 ${r.teacherCount}）` : ''}</span></div>
+        <div class="adm-reg-main">${r.unit} <span class="nowrap adm-reg-n"><b>${r.count}</b> 人${r.teacherCount ? `（含教師 ${r.teacherCount}）` : ''}</span></div>
         <div class="adm-reg-sub">${r.type.replace('實習生','')}・${r.name}${r.email ? '・' + r.email : ''}${r.phone ? '・' + r.phone : ''}</div>
       </div>
       <button class="adm-reg-btn" onclick="admEditCount(${i})">改人數</button>
@@ -3890,10 +3890,10 @@ function admEditCount(i) {
   document.getElementById('admReg' + i).innerHTML = `
     <div class="adm-reg-info">
       <div class="adm-reg-main">${r.type.replace('實習生','')} ${r.unit}</div>
-      <div class="adm-reg-sub">原本 ${r.count} 人${r.teacherCount ? `（含老師 ${r.teacherCount}）` : ''}</div>
+      <div class="adm-reg-sub">原本 ${r.count} 人${r.teacherCount ? `（含教師 ${r.teacherCount}）` : ''}</div>
     </div>
     <label class="adm-count-lbl">學生<input type="number" class="adm-reg-count" id="admCount${i}" min="0" value="${r.count - (r.teacherCount || 0)}"></label>
-    <label class="adm-count-lbl">老師<input type="number" class="adm-reg-count" id="admTea${i}" min="0" value="${r.teacherCount || 0}"></label>
+    <label class="adm-count-lbl">教師<input type="number" class="adm-reg-count" id="admTea${i}" min="0" value="${r.teacherCount || 0}"></label>
     <button class="adm-reg-btn primary" onclick="admSaveCount(${i})">儲存</button>
     <button class="adm-reg-btn" onclick="renderAdminRegs()">返回</button>`;
   document.getElementById('admCount' + i).focus();
