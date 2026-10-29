@@ -4604,6 +4604,21 @@ function showToast(msg, type = '') {
   };
 })();
 
+/* ---- 擋右鍵與檢視原始碼快捷鍵（小門檻，不是真正的保護；輸入框仍可右鍵貼上） ---- */
+document.addEventListener('contextmenu', e => {
+  if (!e.target.closest('input, textarea')) e.preventDefault();
+});
+document.addEventListener('keydown', e => {
+  const k = (e.key || '').toLowerCase();
+  const mod = e.ctrlKey || e.metaKey;
+  if (k === 'f12' ||
+      (mod && (k === 'u' || k === 's')) ||
+      (mod && e.shiftKey && ['i', 'j', 'c'].includes(k)) ||
+      (e.metaKey && e.altKey && ['i', 'j', 'c', 'u'].includes(k))) {
+    e.preventDefault();
+  }
+});
+
 /* ================================================================
    VENUE DATABASE（會議室棟別對照）
 ================================================================ */
