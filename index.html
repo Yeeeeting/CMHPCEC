@@ -2001,6 +2001,40 @@
   .ts-num b { color: var(--text-primary); font-weight: 700; }
   .ts-empty { font-size: 13px; color: var(--text-muted); padding: 10px 0; }
   .ts-note { font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.6; }
+
+  /* ===== 季裡的場次：拿掉每場外框，改成連續清單＋分隔線 ===== */
+  .month-group.is-open .month-body-inner { gap: 0; padding: 0 10px 6px; margin: 0; }
+  .month-body-inner .course-row {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(122,111,196,0.14);
+  }
+  .month-body-inner .course-row:last-child { border-bottom: none; }
+  .month-body-inner .course-row:hover { box-shadow: none; background: rgba(255,255,255,0.55); }
+  .month-body-inner .course-row.is-open { background: #FFFFFF; box-shadow: none; border-radius: var(--radius-md); border-bottom-color: transparent; margin: 4px 0; }
+  .month-body-inner .course-row.status-ended,
+  .month-body-inner .course-row.status-cancel { background: transparent; }
+  .month-body-inner .row-head { padding-left: 4px; padding-right: 6px; min-height: 64px; }
+
+  /* 日期：拿掉底色，只留文字和左邊月份色線 */
+  .month-body-inner .row-date,
+  .month-body-inner .status-open .row-date,
+  .month-body-inner .status-full .row-date,
+  .month-body-inner .status-tba .row-date,
+  .month-body-inner .status-ended .row-date,
+  .month-body-inner .status-cancel .row-date { background: transparent; }
+  .month-body-inner .row-date { padding-left: 6px; }
+
+  /* 統計：只留文字，不用「｜」分隔 */
+  .stat-card + .stat-card::before { content: none; }
+  .stats-row { column-gap: 22px; }
+
+  @media (max-width: 640px) {
+    .month-group.is-open .month-body-inner { padding: 0 4px 4px; }
+    .month-body-inner .row-head { padding-left: 2px; padding-right: 2px; gap: 4px 10px; }
+    .month-body-inner .row-date { width: 52px; }
+  }
 </style>
 </head>
 <body>
