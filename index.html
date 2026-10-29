@@ -942,6 +942,13 @@
   .multi-item input { width: 16px; height: 16px; accent-color: var(--lavender-500); flex-shrink: 0; }
   .multi-item .mi-sub { color: var(--text-muted); font-size: 13px; }
   .multi-item.disabled { opacity: .5; cursor: not-allowed; }
+  .multi-row { background: var(--cream); border-radius: var(--radius-sm); }
+  .multi-row .multi-item { background: transparent; }
+  .multi-detail { display: none; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 0 12px 10px 38px; font-size: 13px; color: var(--text-secondary); }
+  .multi-row.on .multi-detail { display: flex; }
+  .multi-detail label { display: inline-flex; align-items: center; gap: 4px; }
+  .multi-detail .adm-reg-count { width: 56px; }
+  .multi-detail .mi-unit { flex: 1 1 140px; min-width: 0; padding: 7px 12px; font-size: 14px; }
   .mg-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
   .mg-item { background: var(--cream); border-radius: var(--radius-sm); padding: 10px 12px; }
   .mg-item.is-cancel { opacity: .55; }
@@ -2248,7 +2255,7 @@
     </summary>
     <ol class="howto-list">
       <li><b>怎麼報名：</b>點選想參加的場次，展開後按「立即報名」，填寫姓名、信箱、職類、單位和人數。</li>
-      <li><b>人數怎麼填：</b>同一個單位可以一起報名，人數請填<b>所有參加的人（含帶班教師）</b>。同一批學生要上好幾場，可以在報名視窗勾選其他場次一起報名。</li>
+      <li><b>人數怎麼填：</b>同一個單位可以一起報名，人數請填<b>所有參加的人（含帶班教師）</b>。其他梯次的實習生要報名別的場次，也可以在報名視窗一次勾選、各自填人數一起報名。</li>
       <li><b>報名截止：</b>每場在<b>開課前 14 天</b>截止，之後顯示「已截止報名」。</li>
       <li><b>人數不足可能併場：</b>報名截止時（開課前 2 週）仍未滿 <b>10 位</b>，這一場可能改到其他場次上課，承辦人會另外通知。</li>
       <li><b>場地確認中的場次：</b>也可以先報名，先開放 15 個名額，場地確定後會寄信通知。</li>
@@ -2468,7 +2475,7 @@
       <div class="form-hint count-sum" id="regSum">合計 0 人</div>
     </div>
     <div class="form-group" id="regMultiWrap">
-      <button type="button" class="multi-toggle" onclick="toggleRegMulti()">＋ 同一批學生還要上其他場次？<b>勾選一起報名</b><span id="regMultiCount"></span></button>
+      <button type="button" class="multi-toggle" onclick="toggleRegMulti()">＋ 還有其他梯次的實習生要報名別的場次？<b>一次一起報名</b><span id="regMultiCount" class="nowrap"></span></button>
       <div class="multi-list hidden" id="regMultiList"></div>
     </div>
     <div class="dup-warn hidden" id="regDupWarn"></div>
@@ -3671,13 +3678,20 @@ function otherOpenSessions(excludeId, asAdmin) {
 function buildRegMulti() {
   const list = otherOpenSessions(pendingSessionId, adminRegMode);
   const box = document.getElementById('regMultiList');
-  document.getElementById('regMultiWrap').style.display = list.length && hasBatch() ? '' : 'none';
+  document.getElementById('regMultiWrap').style.display = list.length && backendVersion >= '2026-10-29i' ? '' : 'none';   // 每場各自填單位需要 29i
   box.classList.add('hidden');
-  box.innerHTML = list.map(s => `
-    <label class="multi-item" data-id="${s.id}">
-      <input type="checkbox" value="${s.id}" onchange="updateRegMulti()">
-      <span>${sessLabel(s)} <span class="mi-sub">${s.venue || '場地確認中'}・尚餘 ${s.remaining} 名</span></span>
-    </label>`).join('') + (list.length ? '<div class="form-hint">勾選的場次會用上面相同的人數報名，之後可以在「管理我的全部報名」個別調整</div>' : '');
+  box.innerHTML = (list.length ? '<div class="form-hint" style="margin:0 0 2px;">勾選要報名的場次，每一場可以填不同梯次的人數和單位；送出後只會收到一封確認信</div>' : '') + list.map(s => `
+    <div class="multi-row" id="mr_${s.id}">
+      <label class="multi-item">
+        <input type="checkbox" value="${s.id}" onchange="this.closest('.multi-row').classList.toggle('on', this.checked); updateRegMulti(); if (this.checked) { const u = document.getElementById('mu_${s.id}'); if (!u.value) u.value = document.getElementById('regUnit').value.trim(); document.getElementById('ms_${s.id}').focus(); }">
+        <span>${sessLabel(s)} <span class="mi-sub">${s.venue || '場地確認中'}・尚餘 ${s.remaining} 名</span></span>
+      </label>
+      <div class="multi-detail">
+        <label>學生<input type="number" class="adm-reg-count" id="ms_${s.id}" min="0" inputmode="numeric" placeholder="0"></label>
+        <label>教師<input type="number" class="adm-reg-count" id="mt_${s.id}" min="0" inputmode="numeric" value="0"></label>
+        <input type="text" class="form-input mi-unit" id="mu_${s.id}" placeholder="單位（例：5A）">
+      </div>
+    </div>`).join('');
   updateRegMulti();
 }
 function toggleRegMulti() { document.getElementById('regMultiList').classList.toggle('hidden'); }
@@ -3687,11 +3701,18 @@ function updateRegMulti() {
   document.getElementById('regMultiCount').textContent = n ? `（已選 ${n} 場）` : '';
 }
 async function submitBatchRegistration(base, count, teacherCount, extras) {
-  const ids = [pendingSessionId, ...extras];
-  const short = ids.map(id => sessions.find(x => x.id === id)).filter(s => s && s.remaining < count);
-  if (short.length) { showToast(`${short.map(sessLabel).join('、')} 名額不足 ${count} 名，請取消勾選或調整人數`, 'error'); return; }
-  const payload = Object.assign({ action: 'registerBatch', requestId: regRequestId,
-    items: ids.map(id => ({ sessionId: id, count, teacherCount })) }, base);
+  const items = [{ sessionId: pendingSessionId, count, teacherCount, unit: base.unit }];
+  for (const id of extras) {
+    const s = sessions.find(x => x.id === id);
+    const stu = Math.max(0, parseInt(document.getElementById('ms_' + id).value) || 0);
+    const tea = Math.max(0, parseInt(document.getElementById('mt_' + id).value) || 0);
+    const u = document.getElementById('mu_' + id).value.trim() || base.unit;
+    if (stu + tea < 1) { showToast(`${sessLabel(s)}：請填寫這一場的人數`, 'error'); document.getElementById('ms_' + id).focus(); return; }
+    if (s && s.remaining < stu + tea) { showToast(`${sessLabel(s)}：目前只剩 ${s.remaining} 名，請調整人數`, 'error'); return; }
+    items.push({ sessionId: id, count: stu + tea, teacherCount: tea, unit: u });
+  }
+  const ids = items.map(i => i.sessionId);
+  const payload = Object.assign({ action: 'registerBatch', requestId: regRequestId, items }, base);
   if (adminRegMode && adminToken) payload.token = adminToken;
   try {
     const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
