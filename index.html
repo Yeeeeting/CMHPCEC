@@ -1758,7 +1758,7 @@
     .month-filter-row .month-filter-bar {
       flex: 1;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+      grid-template-columns: repeat(7, minmax(0, 1fr));   /* 全年＋12 個月剛好排成 7＋6，不會剩一顆在第三排 */
       gap: 5px;
     }
     .month-chip { font-size: 12px; padding: 5px 4px; min-width: 0; }
@@ -1946,8 +1946,7 @@
   @media (max-width: 640px) {
     .btn-primary, .btn-secondary, .btn-danger, .btn-tool, .next-btn,
     .btn-myreg, .adm-reg-btn, .adm-reg-add { min-height: 44px; }
-    .btn-admin-login, .btn-logout { min-height: 36px; }
-    .btn-myreg { min-height: 34px; }   /* 頂部列空間有限，維持精簡 */
+    .btn-admin-login, .btn-logout, .btn-myreg { min-height: 34px; }   /* 頂部列按鈕同高 */
     .month-chip { padding: 5px 4px; }
     .month-chip.all-months-chip { margin-right: 0; padding-right: 4px; }
   }
@@ -2042,6 +2041,18 @@
     .month-group.is-open .month-body-inner { padding: 0 4px 4px; }
     .month-body-inner .row-head { padding-left: 2px; padding-right: 2px; gap: 4px 10px; }
     .month-body-inner .row-date { width: 52px; }
+  }
+
+  /* ===== 對齊修正 ===== */
+  /* 狀態篩選與月份按鈕同高 */
+  .sticky-filters-bar .filter-chip { min-height: 32px; padding-top: 5px; padding-bottom: 5px; line-height: 1.4; }
+  .sticky-filters-bar .month-chip  { min-height: 32px; line-height: 1.4; }
+  /* 展開內容的左緣，對齊上面的場地文字 */
+  .month-body-inner .row-body-content { margin-left: 84px; margin-right: 8px; }
+  @media (max-width: 640px) {
+    .month-body-inner .row-body-content { margin-left: 4px; margin-right: 4px; }
+    .month-filter-row .month-filter-bar { gap: 4px; }
+    .month-chip, .month-chip.all-months-chip { padding: 5px 2px; font-size: 12px; }
   }
 </style>
 </head>
