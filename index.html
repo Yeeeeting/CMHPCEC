@@ -934,6 +934,29 @@
   .cap-summary b { color: var(--text-primary); font-weight: 700; }
   .cap-summary .cap-left { color: var(--lavender-500); }
   .cap-summary.over, .cap-summary.over b { color: var(--red-600); }
+  /* 一次報名多場／一次管理全部報名 */
+  .multi-toggle { background: none; border: none; padding: 0; font: inherit; font-size: 14px; color: var(--lavender-700); cursor: pointer; text-align: left; }
+  .multi-toggle b { font-weight: 600; }
+  .multi-list { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .multi-item { display: flex; align-items: center; gap: 10px; background: var(--cream); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 14px; color: var(--text-primary); cursor: pointer; }
+  .multi-item input { width: 16px; height: 16px; accent-color: var(--lavender-500); flex-shrink: 0; }
+  .multi-item .mi-sub { color: var(--text-muted); font-size: 13px; }
+  .multi-item.disabled { opacity: .5; cursor: not-allowed; }
+  .mg-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .mg-item { background: var(--cream); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .mg-item.is-cancel { opacity: .55; }
+  .mg-head { font-size: 14px; color: var(--text-primary); margin-bottom: 8px; }
+  .mg-head b { font-weight: 700; }
+  .mg-head .mg-sub { color: var(--text-muted); font-size: 13px; }
+  .mg-ctrl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 13px; color: var(--text-secondary); }
+  .mg-ctrl select { flex: 1 1 180px; min-width: 0; }
+  .mg-ctrl .adm-reg-count { width: 56px; }
+  .mg-ctrl label { display: inline-flex; align-items: center; gap: 4px; }
+  .mg-ctrl input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--red-600); }
+  .mg-note { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+  .mg-handover { margin-bottom: 4px; }
+  .mg-handover summary { cursor: pointer; font-size: 14px; color: var(--lavender-700); }
+  .mg-handover .form-group:first-of-type { margin-top: 10px; }
   .save-rule { font-size: 12px; line-height: 1.7; color: var(--text-muted); margin: 4px 0 2px; }
   .adm-reg-total { font-weight: 400; color: var(--text-muted); margin-left: 6px; }
   .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
@@ -2444,6 +2467,10 @@
       </div>
       <div class="form-hint count-sum" id="regSum">合計 0 人</div>
     </div>
+    <div class="form-group" id="regMultiWrap">
+      <button type="button" class="multi-toggle" onclick="toggleRegMulti()">＋ 同一批學生還要上其他場次？<b>勾選一起報名</b><span id="regMultiCount"></span></button>
+      <div class="multi-list hidden" id="regMultiList"></div>
+    </div>
     <div class="dup-warn hidden" id="regDupWarn"></div>
     <div class="form-hint reg-merge-note">提醒：報名截止時（開課前 2 週）仍未滿 10 位的話，這一場可能改到其他場次上課，承辦人會另外通知</div>
     <div class="modal-actions">
@@ -2597,6 +2624,12 @@
         </div>
         <div class="form-hint count-sum" id="editRegSum">合計 0 人</div>
       </div>
+      <div class="form-group">
+        <label class="form-label">改到其他場次 <span style="color:var(--text-muted);font-size:12px;">選填</span></label>
+        <select class="form-select" id="editRegMove"><option value="">不改期，維持原場次</option></select>
+        <div class="form-hint">改期後，名額會自動從原場次移到新場次</div>
+      </div>
+      <div class="form-hint" style="margin:-4px 0 14px;"><button type="button" class="howto-link" id="editRegAllBtn" onclick="openManageAll(editRegToken)">一次管理我全部的報名（改人數、改期、取消、交接給其他教師）</button></div>
       <div class="modal-actions">
         <button class="btn-danger" onclick="doRegCancel()">取消報名</button>
         <button class="btn-primary" onclick="doRegEdit()" style="flex:2;">儲存變更</button>
@@ -2608,6 +2641,47 @@
       <div style="font-size:32px;margin-bottom:12px;">✓</div>
       <div style="font-size:15px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">報名已取消</div>
       <div style="font-size:13px;color:var(--text-muted);">名額已自動歸還，感謝您的告知。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 一次管理全部報名 -->
+<div class="modal-overlay" id="manageModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('manageModal')" aria-label="關閉" title="關閉">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="modal-title">管理我的全部報名</div>
+    <div class="modal-subtitle" id="manageSub"></div>
+    <div id="manageLoading" style="text-align:center;padding:32px 0;color:var(--text-muted);font-size:14px;">載入報名資料中…</div>
+    <div id="manageContent" style="display:none;">
+      <div class="mg-list" id="mgList"></div>
+      <details class="mg-handover" id="mgHandover">
+        <summary>交接給其他教師</summary>
+        <div class="form-hint" style="margin-top:6px;">換其他教師接手帶這批實習生時使用。交接後，上面所有場次的確認信和提醒信都會改寄給接手教師，你目前的修改連結會停用。</div>
+        <div class="form-group">
+          <label class="form-label">接手教師姓名</label>
+          <input type="text" class="form-input" id="mgHoName" placeholder="請輸入接手教師的姓名" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">接手教師電子信箱</label>
+          <input type="email" class="form-input" id="mgHoEmail" placeholder="通知信會寄到這個信箱" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">接手教師電話 <span style="color:var(--text-muted);font-size:12px;">選填</span></label>
+          <input type="tel" class="form-input" id="mgHoPhone" placeholder="請輸入聯絡電話" autocomplete="off">
+        </div>
+      </details>
+      <div class="save-rule">全部檢查沒問題才會一起儲存；只要有一場不行（例如名額不足），這次就整批都不會變更，並告訴你是哪一場。</div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('manageModal')">關閉</button>
+        <button class="btn-primary" onclick="submitManage()" style="flex:2;">儲存全部變更</button>
+      </div>
+    </div>
+    <div id="manageDone" style="display:none;text-align:center;padding:24px 0;">
+      <div style="font-size:32px;margin-bottom:12px;">✓</div>
+      <div style="font-size:15px;font-weight:500;color:var(--text-primary);margin-bottom:6px;" id="manageDoneTitle">已完成交接</div>
+      <div style="font-size:13px;color:var(--text-muted);" id="manageDoneText"></div>
     </div>
   </div>
 </div>
@@ -2678,6 +2752,8 @@ window.addEventListener('DOMContentLoaded', () => {
     editRegToken = token;
     openEditRegModal(token);
   }
+  const manage = params.get('manage');   // 信裡「管理我的全部報名」
+  if (manage && !token) openManageAll(manage);
 });
 
 /* ---------- 後端連不上時的備援顯示 ---------- */
@@ -2710,6 +2786,7 @@ async function loadSessions(silent = false) {
     lsSet('lastSessions', JSON.stringify({ at: Date.now(), sessions: json.sessions }));
     const ver = document.getElementById('backendVer');
     if (ver) ver.textContent = json.version ? `後端版本 ${json.version}` : '後端版本：舊版（請更新 Code.gs）';
+    backendVersion = json.version || '';
     if (offlineMode) { offlineMode = false; lastFetchHash = ''; setOfflineBanner(false); }
     const newHash = JSON.stringify(json.sessions);
     if (lastFetchHash && newHash !== lastFetchHash && !silent) {
@@ -3572,6 +3649,148 @@ function switchYear(yr) {
   renderAll();
 }
 
+/* ---------- 一次報名多場、改期、一次管理全部 ---------- */
+const WDAY = ['日','一','二','三','四','五','六'];
+let backendVersion = '';
+const hasBatch = () => backendVersion >= '2026-10-29h';   // 後端更新到 29h 之後才開放批次功能
+function canRegisterFront(s, asAdmin) {
+  if (!s || s.status === 'cancel') return false;
+  const d = new Date(s.date);
+  if (d < TODAY) return false;
+  const days = Math.ceil((d - TODAY) / 86400000);
+  return !!(asAdmin || days > 14 || s.adminUnlocked);
+}
+function sessLabel(s) {
+  const d = new Date(s.date);
+  return `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}（${WDAY[d.getDay()]}）`;
+}
+function otherOpenSessions(excludeId, asAdmin) {
+  return sessions.filter(s => s.id !== excludeId && canRegisterFront(s, asAdmin) && (s.remaining || 0) > 0)
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+function buildRegMulti() {
+  const list = otherOpenSessions(pendingSessionId, adminRegMode);
+  const box = document.getElementById('regMultiList');
+  document.getElementById('regMultiWrap').style.display = list.length && hasBatch() ? '' : 'none';
+  box.classList.add('hidden');
+  box.innerHTML = list.map(s => `
+    <label class="multi-item" data-id="${s.id}">
+      <input type="checkbox" value="${s.id}" onchange="updateRegMulti()">
+      <span>${sessLabel(s)} <span class="mi-sub">${s.venue || '場地確認中'}・尚餘 ${s.remaining} 名</span></span>
+    </label>`).join('') + (list.length ? '<div class="form-hint">勾選的場次會用上面相同的人數報名，之後可以在「管理我的全部報名」個別調整</div>' : '');
+  updateRegMulti();
+}
+function toggleRegMulti() { document.getElementById('regMultiList').classList.toggle('hidden'); }
+function regExtras() { return [...document.querySelectorAll('#regMultiList input:checked')].map(i => i.value); }
+function updateRegMulti() {
+  const n = regExtras().length;
+  document.getElementById('regMultiCount').textContent = n ? `（已選 ${n} 場）` : '';
+}
+async function submitBatchRegistration(base, count, teacherCount, extras) {
+  const ids = [pendingSessionId, ...extras];
+  const short = ids.map(id => sessions.find(x => x.id === id)).filter(s => s && s.remaining < count);
+  if (short.length) { showToast(`${short.map(sessLabel).join('、')} 名額不足 ${count} 名，請取消勾選或調整人數`, 'error'); return; }
+  const payload = Object.assign({ action: 'registerBatch', requestId: regRequestId,
+    items: ids.map(id => ({ sessionId: id, count, teacherCount })) }, base);
+  if (adminRegMode && adminToken) payload.token = adminToken;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const json = await res.json();
+    if (!json.success) { showToast(json.message || '報名失敗', 'error'); return; }
+    regRequestId = newRequestId();
+    closeModal('registerModal');
+    if (window.celebrateRegistration) celebrateRegistration();
+    const n = json.count || ids.length;
+    if (json.emailFailed && base.email) showToast(`已報名 ${n} 個場次，但確認信沒有寄出（可能已達今日寄信上限），報名已完成，請勿重複報名`, 'error');
+    else showToast(base.email ? `已報名 ${n} 個場次，確認信已寄至 ${base.email}` : `已代為報名 ${n} 個場次`, 'success');
+    await loadSessions(true);
+    loadActivity();
+  } catch (e) { showToast('網路錯誤，請重試', 'error'); }
+}
+
+/* 一次管理全部報名 */
+let manageToken = '', manageRegs = [];
+async function openManageAll(token) {
+  if (!token) return;
+  manageToken = token;
+  closeModal('editRegModal');
+  openModal('manageModal');
+  ['manageContent', 'manageDone'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('manageLoading').style.display = 'block';
+  document.getElementById('mgHandover').open = false;
+  ['mgHoName', 'mgHoEmail', 'mgHoPhone'].forEach(id => document.getElementById(id).value = '');
+  manageRequestId = newRequestId();
+  try {
+    if (!sessions.length) await loadSessions(true);
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getMyRegistrations&token=${encodeURIComponent(token)}&t=${Date.now()}`);
+    const json = await res.json();
+    if (!json.success) { showToast(json.message || '無法載入報名資料', 'error'); closeModal('manageModal'); return; }
+    manageRegs = json.registrations || [];
+    document.getElementById('manageSub').textContent = `${json.name || ''}${json.email ? '・' + json.email : ''}・還沒上課的報名共 ${manageRegs.length} 筆`;
+    renderManage();
+    document.getElementById('manageLoading').style.display = 'none';
+    document.getElementById('manageContent').style.display = 'block';
+  } catch (e) { showToast('連線失敗，請重試', 'error'); closeModal('manageModal'); }
+}
+function renderManage() {
+  const box = document.getElementById('mgList');
+  if (!manageRegs.length) { box.innerHTML = '<div class="adm-reg-empty">目前沒有還沒上課的報名</div>'; return; }
+  box.innerHTML = manageRegs.map((r, i) => {
+    const s = sessions.find(x => x.id === r.sessionId) || { date: r.date, venue: r.venue };
+    const opts = otherOpenSessions(r.sessionId, false).filter(o => o.remaining >= r.count)
+      .map(o => `<option value="${o.id}">${sessLabel(o)} ${o.venue || '場地確認中'}・尚餘 ${o.remaining}</option>`).join('');
+    return `
+      <div class="mg-item" id="mg${i}">
+        <div class="mg-head"><b>${sessLabel(s)}</b> ${r.venue || '場地確認中'} <span class="mg-sub">・${r.type.replace('實習生', '')} ${r.unit}</span></div>
+        <div class="mg-ctrl">
+          <label>學生<input type="number" class="adm-reg-count" id="mgStu${i}" min="0" value="${r.count - (r.teacherCount || 0)}"></label>
+          <label>教師<input type="number" class="adm-reg-count" id="mgTea${i}" min="0" value="${r.teacherCount || 0}"></label>
+          <select class="form-select" id="mgMove${i}"><option value="">不改期</option>${opts}</select>
+          <label><input type="checkbox" id="mgCancel${i}" onchange="document.getElementById('mg${i}').classList.toggle('is-cancel', this.checked)">取消這場</label>
+        </div>
+        ${r.locked ? '<div class="mg-note">這場已過報名截止，只能減少人數、改期或取消；要增加人數請洽教學部</div>' : ''}
+      </div>`;
+  }).join('');
+}
+let manageRequestId = '';
+async function submitManage() {
+  const ops = [];
+  manageRegs.forEach((r, i) => {
+    if (document.getElementById('mgCancel' + i).checked) { ops.push({ token: r.token, action: 'cancel' }); return; }
+    const stu = Math.max(0, parseInt(document.getElementById('mgStu' + i).value) || 0);
+    const tea = Math.max(0, parseInt(document.getElementById('mgTea' + i).value) || 0);
+    const count = stu + tea, move = document.getElementById('mgMove' + i).value;
+    if (count < 1) { ops.push({ bad: `${sessLabel(r)}：人數至少 1 人，要整場取消請勾「取消這場」` }); return; }
+    if (count !== r.count || tea !== (r.teacherCount || 0) || move) ops.push({ token: r.token, action: 'edit', count, teacherCount: tea, newSessionId: move || undefined });
+  });
+  const bad = ops.find(o => o.bad);
+  if (bad) { showToast(bad.bad, 'error'); return; }
+  const hoName = document.getElementById('mgHoName').value.trim(), hoEmail = document.getElementById('mgHoEmail').value.trim();
+  let handover = null;
+  if (hoName || hoEmail) {
+    if (!hoName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(hoEmail)) { showToast('交接：請填寫接手教師的姓名和正確的電子信箱', 'error'); return; }
+    if (!confirm(`確定要把這些報名交接給 ${hoName}（${hoEmail}）嗎？\n交接後通知信會改寄給對方，你目前的修改連結會停用。`)) return;
+    handover = { name: hoName, email: hoEmail, phone: document.getElementById('mgHoPhone').value.trim() };
+  }
+  if (!ops.length && !handover) { showToast('沒有需要儲存的變更', ''); return; }
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'batchManage', token: manageToken, ops, handover, requestId: manageRequestId }) });
+    const json = await res.json();
+    if (!json.success) { showToast(json.message || '儲存失敗', 'error'); return; }
+    manageRequestId = newRequestId();
+    loadSessions(true); loadActivity();
+    if (json.handedOver) {
+      document.getElementById('manageContent').style.display = 'none';
+      document.getElementById('manageDoneTitle').textContent = '已完成交接';
+      document.getElementById('manageDoneText').textContent = `已交接給 ${handover.name}，通知信已寄到 ${handover.email}${ops.length ? '，人數與場次的變更也一併儲存了' : ''}。`;
+      document.getElementById('manageDone').style.display = 'block';
+      return;
+    }
+    showToast(json.emailFailed ? '已儲存，但通知信沒有寄出（可能已達今日寄信上限），資料已正確更新' : '已儲存全部變更，確認信已寄出', json.emailFailed ? 'error' : 'success');
+    openManageAll(manageToken);
+  } catch (e) { showToast('連線失敗，請重試', 'error'); }
+}
+
 /* ---------- REGISTRATION EDIT (報名者) ---------- */
 async function openEditRegModal(token) {
   editRequestId = newRequestId(); cancelRequestId = newRequestId();
@@ -3601,6 +3820,12 @@ async function openEditRegModal(token) {
     document.getElementById('editRegUnit').value  = reg.unit;
     countLimit.editReg = (session.remaining || 0) + (reg.count || 0);
     setCount('editReg', reg.count, reg.teacherCount || 0);
+    if (!sessions.length) await loadSessions(true);
+    document.getElementById('editRegMove').closest('.form-group').style.display = hasBatch() ? '' : 'none';
+    document.getElementById('editRegAllBtn').parentElement.style.display = hasBatch() ? '' : 'none';
+    document.getElementById('editRegMove').innerHTML = '<option value="">不改期，維持原場次</option>' +
+      otherOpenSessions(session.id, false).filter(o => o.remaining >= reg.count)
+        .map(o => `<option value="${o.id}">${sessLabel(o)} ${o.venue || '場地確認中'}・尚餘 ${o.remaining} 名</option>`).join('');
 
     document.getElementById('editRegLoading').style.display = 'none';
     document.getElementById('editRegContent').style.display = 'block';
@@ -3616,17 +3841,18 @@ async function doRegEdit() {
   const unit  = document.getElementById('editRegUnit').value.trim();
   const { tea: teacherCount, total: count } = readCount('editReg');
   if (!unit || count < 1) { showToast('請填寫單位及人數', 'error'); return; }
+  const moveTo = document.getElementById('editRegMove').value;
 
   try {
     const res  = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'editRegistration', token: editRegToken, type, unit, count, teacherCount, requestId: editRequestId })
+      body: JSON.stringify({ action: 'editRegistration', token: editRegToken, type, unit, count, teacherCount, newSessionId: moveTo || undefined, requestId: editRequestId })
     });
     const json = await res.json();
     if (!json.success) { showToast(json.message || '更新失敗', 'error'); return; }
     closeModal('editRegModal');
     if (json.emailFailed) showToast('已完成，但通知信沒有寄出（可能已達今日寄信上限），資料已正確更新，不需要重新操作', 'error');
-    else showToast('報名資訊已更新，確認信已重新寄出', 'success');
+    else showToast(moveTo ? '已改到新場次，確認信已重新寄出' : '報名資訊已更新，確認信已重新寄出', 'success');
     loadSessions(true);
   } catch(e) {
     showToast('連線失敗，請重試', 'error');
@@ -3837,6 +4063,7 @@ function openRegisterModal(id, asAdmin = false) {
   document.getElementById('regDupWarn').classList.add('hidden');
   dupConfirmedFor = '';
   regRequestId = newRequestId();
+  buildRegMulti();
   openModal('registerModal');
 }
 
@@ -3868,6 +4095,8 @@ async function submitRegistration() {
     dupConfirmedFor = unit;
     return;
   }
+  const extras = regExtras();
+  if (extras.length) return submitBatchRegistration({ name, email, phone, type, unit }, count, teacherCount, extras);
   let mailFailed = false, alreadyDone = false;
   const payload = { action: 'register', sessionId: pendingSessionId, name, email, phone, type, unit, count, teacherCount, timestamp: new Date().toISOString() };
   if (adminRegMode && adminToken) payload.token = adminToken;   // 管理者代為報名：後端不套用 14 天截止
@@ -4771,6 +5000,7 @@ saveSessionEdit    = guardOnce(saveSessionEdit);
 addSession         = guardOnce(addSession);
 admPost            = guardOnce(admPost);
 submitMyReg        = guardOnce(submitMyReg);
+submitManage       = guardOnce(submitManage);
 </script>
 </body>
 </html>
