@@ -952,6 +952,13 @@
     gap: 12px;
   }
   .admin-toolbar.show { display: flex; }
+  .offline-banner {
+    background: var(--amber-50); color: var(--amber-700);
+    border-left: 3px solid var(--amber-500); border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: 12px 14px; margin-bottom: 14px; font-size: 14px; line-height: 1.7;
+  }
+  .offline-banner b { color: #6B4200; }
+  .backend-ver { font-size: 11px; font-weight: 400; color: #B3A9E2; margin-left: 6px; }
   .admin-toolbar-title {
     font-size: 13px;
     font-weight: 500;
@@ -2078,7 +2085,7 @@
 
   <!-- ADMIN TOOLBAR -->
   <div class="admin-toolbar" id="adminToolbar">
-    <div class="admin-toolbar-title">🔐 管理者模式</div>
+    <div class="admin-toolbar-title">🔐 管理者模式 <span class="backend-ver" id="backendVer"></span></div>
     <div class="admin-toolbar-actions">
       <button class="btn-tool primary" onclick="downloadCSV()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -2094,6 +2101,9 @@
       </button>
     </div>
   </div>
+
+  <!-- 後端連不上時的提示 -->
+  <div class="offline-banner hidden" id="offlineBanner" role="status"></div>
 
   <!-- UPDATE BANNER -->
   <div class="update-banner hidden" id="updateBanner">
@@ -2529,6 +2539,19 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+/* ---------- 後端連不上時的備援顯示 ---------- */
+let offlineMode = false;
+function setOfflineBanner(on, at) {
+  const el = document.getElementById('offlineBanner');
+  if (!el) return;
+  if (on) {
+    const d = new Date(at || Date.now());
+    const t = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    el.innerHTML = `<b>報名系統暫時連不上，目前暫停線上報名</b><br>以下是 ${t} 的場次資料，僅供查看；系統恢復後會自動更新。急件請洽教學部（分機 57429）`;
+  }
+  el.classList.toggle('hidden', !on);
+}
+
 /* ---------- DATA LOADING ---------- */
 async function loadSessions(silent = false) {
   try {
@@ -2541,6 +2564,12 @@ async function loadSessions(silent = false) {
     }
     const res = await fetch(`${APPS_SCRIPT_URL}?action=getSessions&t=${Date.now()}`);
     const json = await res.json();
+    if (!json || !json.success || !Array.isArray(json.sessions)) throw new Error('bad response');
+    // 成功讀到資料：存一份在瀏覽器，後端暫時連不上時可以先顯示（保護 6）
+    lsSet('lastSessions', JSON.stringify({ at: Date.now(), sessions: json.sessions }));
+    const ver = document.getElementById('backendVer');
+    if (ver) ver.textContent = json.version ? `後端版本 ${json.version}` : '後端版本：舊版（請更新 Code.gs）';
+    if (offlineMode) { offlineMode = false; lastFetchHash = ''; setOfflineBanner(false); }
     const newHash = JSON.stringify(json.sessions);
     if (lastFetchHash && newHash !== lastFetchHash && !silent) {
       showUpdateBanner('有場次資訊已更新，請查看最新狀態。');
@@ -2560,9 +2589,18 @@ async function loadSessions(silent = false) {
     }
     renderAll();
   } catch(e) {
-    if (!silent) showToast('目前連線不穩，請稍後重新整理，或洽教學部（分機 57429）', 'error');
     if (dataLoaded) return;   // 已有資料時，暫時連不上就保留畫面上的資料
-    sessions = [];
+    // 第一次就連不上：改顯示上次存下的資料，並暫停線上報名
+    let cached = null;
+    try { cached = JSON.parse(lsGet('lastSessions') || 'null'); } catch (err) {}
+    if (cached && Array.isArray(cached.sessions) && cached.sessions.length) {
+      sessions = cached.sessions.map(applyPendingVenue);
+      offlineMode = true;
+      setOfflineBanner(true, cached.at);
+    } else {
+      sessions = [];
+      if (!silent) showToast('目前連線不穩，請稍後重新整理，或洽教學部（分機 57429）', 'error');
+    }
     dataLoaded = true;
     renderAll();
   }
@@ -3214,6 +3252,8 @@ function buildCard(s) {
   if (!isAdmin) {
     if (isCancel) {
       btnHtml = `<button class="btn-register" disabled>此場次已取消</button>`;
+    } else if (offlineMode) {
+      btnHtml = `<button class="btn-register" disabled>暫停線上報名（系統連線中斷）</button>`;
     } else if (isFull) {
       btnHtml = `<button class="btn-register" disabled>名額已滿</button>`;
     } else if (isPast) {
@@ -3309,12 +3349,12 @@ function renderNextCard() {
   const countdown = days <= 0 ? '今天' : days === 1 ? '明天' : `還有 ${days} 天`;
   const isLocked = days <= 14 && !s.adminUnlocked;
   const isFull = s.remaining === 0;
-  const canReg = !isLocked && !isFull && !isAdmin;
+  const canReg = !isLocked && !isFull && !isAdmin && !offlineMode;
   const pct = s.capacity ? Math.min(100, Math.round((s.registered || 0) / s.capacity * 100)) : 0;
   const venue = s.venue
     ? `<span class="seg">${s.venue}</span>${(VENUE_DB[s.venue]?.building) ? '<span class="sep">・</span><span class="seg">' + VENUE_DB[s.venue].building + '</span>' : ''}`
     : '<span class="seg pending">場地確認中</span>';
-  const stateText = `<span class="sep">・</span><span class="seg next-state ${isFull ? 'full' : isLocked ? 'locked' : 'open'}">${isFull ? '已額滿' : isLocked ? '已截止報名' : '可報名'}</span>`;
+  const stateText = `<span class="sep">・</span><span class="seg next-state ${isFull ? 'full' : isLocked ? 'locked' : 'open'}">${offlineMode ? '暫停線上報名' : isFull ? '已額滿' : isLocked ? '已截止報名' : '可報名'}</span>`;
   box.innerHTML = `
     <div class="next-date">
       <span class="next-date-day">${d.getMonth()+1}/${d.getDate()}</span>
@@ -3587,6 +3627,7 @@ async function submitRegistration() {
   }
   let mailFailed = false;
   const payload = { action: 'register', sessionId: pendingSessionId, name, email, phone, type, unit, count, timestamp: new Date().toISOString() };
+  if (adminRegMode && adminToken) payload.token = adminToken;   // 管理者代為報名：後端不套用 14 天截止
 
   try {
     if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
@@ -3707,7 +3748,7 @@ async function admSaveCount(i) {
   const count = parseInt(document.getElementById('admCount' + i).value) || 0;
   if (count < 1) { showToast('人數至少 1 人；要整筆取消請按「取消」', 'error'); return; }
   if (count === r.count) { renderAdminRegs(); return; }
-  await admPost({ action: 'editRegistration', token: r.token, type: r.type, unit: r.unit, count }, `已將 ${r.unit} 改為 ${count} 人`);
+  await admPost({ action: 'editRegistration', token: r.token, adminToken, type: r.type, unit: r.unit, count }, `已將 ${r.unit} 改為 ${count} 人`);
 }
 
 async function admDoCancel(i) {
