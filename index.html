@@ -2746,7 +2746,7 @@ window.addEventListener('DOMContentLoaded', () => {
   restoreAdminSession();
   renderSkeleton();
   bootActivityFromCache();          // 先用上次存下的動態，按鈕馬上出現
-  loadSessions();
+  window.__sessionsReady = loadSessions();   // 其他地方需要場次清單時，等這一次就好，不重複讀
   loadActivity();                    // 和場次同時讀取，不必排隊等
   setInterval(checkForUpdates, 15000);   // 每 15 秒自動更新一次
   // 分頁切回來時立刻更新一次
@@ -3741,17 +3741,23 @@ async function openManageAll(token) {
   document.getElementById('mgHandover').open = false;
   ['mgHoName', 'mgHoEmail', 'mgHoPhone'].forEach(id => document.getElementById(id).value = '');
   manageRequestId = newRequestId();
+  const loadingEl = document.getElementById('manageLoading');
+  loadingEl.textContent = '載入報名資料中…';
+  const slowT = setTimeout(() => { loadingEl.textContent = '系統正在整理你的報名資料，第一次開啟會比較久，請再稍等幾秒…'; }, 4000);
   try {
-    if (!sessions.length) await loadSessions(true);
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getMyRegistrations&token=${encodeURIComponent(token)}&t=${Date.now()}`);
-    const json = await res.json();
+    // 報名資料和場次清單同時讀，不用排隊
+    const [json] = await Promise.all([
+      fetch(`${APPS_SCRIPT_URL}?action=getMyRegistrations&token=${encodeURIComponent(token)}&t=${Date.now()}`).then(r => r.json()),
+      sessions.length ? Promise.resolve() : (window.__sessionsReady || loadSessions(true)),
+    ]);
+    clearTimeout(slowT);
     if (!json.success) { showToast(json.message || '無法載入報名資料', 'error'); closeModal('manageModal'); return; }
     manageRegs = json.registrations || [];
     document.getElementById('manageSub').textContent = `${json.name || ''}${json.email ? '・' + json.email : ''}・還沒上課的報名共 ${manageRegs.length} 筆`;
     renderManage();
     document.getElementById('manageLoading').style.display = 'none';
     document.getElementById('manageContent').style.display = 'block';
-  } catch (e) { showToast('連線失敗，請重試', 'error'); closeModal('manageModal'); }
+  } catch (e) { clearTimeout(slowT); showToast('連線失敗，請重試', 'error'); closeModal('manageModal'); }
 }
 function renderManage() {
   const box = document.getElementById('mgList');
@@ -3841,7 +3847,7 @@ async function openEditRegModal(token) {
     document.getElementById('editRegUnit').value  = reg.unit;
     countLimit.editReg = (session.remaining || 0) + (reg.count || 0);
     setCount('editReg', reg.count, reg.teacherCount || 0);
-    if (!sessions.length) await loadSessions(true);
+    if (!sessions.length) await (window.__sessionsReady || loadSessions(true));
     document.getElementById('editRegMove').closest('.form-group').style.display = hasBatch() ? '' : 'none';
     document.getElementById('editRegAllBtn').parentElement.style.display = hasBatch() ? '' : 'none';
     document.getElementById('editRegMove').innerHTML = '<option value="">不改期，維持原場次</option>' +
