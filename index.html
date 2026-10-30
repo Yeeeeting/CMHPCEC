@@ -2658,14 +2658,14 @@
     <button class="modal-close" onclick="closeModal('manageModal')" aria-label="關閉" title="關閉">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
-    <div class="modal-title">管理我的全部報名</div>
+    <div class="modal-title" id="manageTitle">管理我的全部報名</div>
     <div class="modal-subtitle" id="manageSub"></div>
     <div id="manageLoading" style="text-align:center;padding:32px 0;color:var(--text-muted);font-size:14px;">載入報名資料中…</div>
     <div id="manageContent" style="display:none;">
       <div class="mg-list" id="mgList"></div>
       <details class="mg-handover" id="mgHandover">
         <summary>交接給其他教師</summary>
-        <div class="form-hint" style="margin-top:6px;">換其他教師接手帶這批實習生時使用。交接後，上面所有場次的確認信和提醒信都會改寄給接手教師，你目前的修改連結會停用。</div>
+        <div class="form-hint" style="margin-top:6px;">換其他教師接手帶這批實習生時使用。送出後會先寄確認信到你原本的報名信箱，按下確認才會完成交接；之後所有場次的確認信和提醒信都會改寄給接手教師，你目前的修改連結會停用。</div>
         <div class="form-group">
           <label class="form-label">接手教師姓名</label>
           <input type="text" class="form-input" id="mgHoName" placeholder="請輸入接手教師的姓名" autocomplete="off">
@@ -2761,6 +2761,8 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   const manage = params.get('manage');   // 信裡「管理我的全部報名」
   if (manage && !token) openManageAll(manage);
+  const ho = params.get('handover');     // 信裡「確認交接」
+  if (ho && !token && !manage) confirmHandoverLink(ho);
 });
 
 /* ---------- 後端連不上時的備援顯示 ---------- */
@@ -2803,7 +2805,7 @@ async function loadSessions(silent = false) {
     // 自動更新時，資料沒變就不重畫（避免畫面閃動）
     if (silent && dataLoaded && newHash === lastFetchHash) return;
     lastFetchHash = newHash;
-    sessions = json.sessions.map(applyPendingVenue);
+    sessions = json.sessions.map(x => applyPendingVenue(safeObj(x)));
     const firstLoad = !dataLoaded;
     dataLoaded = true;
     // 第一次載入：自動切到「下一場課」所在的年度
@@ -2821,7 +2823,7 @@ async function loadSessions(silent = false) {
     let cached = null;
     try { cached = JSON.parse(lsGet('lastSessions') || 'null'); } catch (err) {}
     if (cached && Array.isArray(cached.sessions) && cached.sessions.length) {
-      sessions = cached.sessions.map(applyPendingVenue);
+      sessions = cached.sessions.map(x => applyPendingVenue(safeObj(x)));
       offlineMode = true;
       setOfflineBanner(true, cached.at);
     } else {
@@ -2874,6 +2876,9 @@ async function loadTypeStats() {
     const res = await fetch(`${APPS_SCRIPT_URL}?action=getTypeStats&t=${Date.now()}`);
     const json = await res.json();
     if (!json.success) throw new Error();
+    Object.values(json.years || {}).forEach(y => ['all', 'upcoming'].forEach(k => {
+      const m = y[k] || {}; y[k] = {}; Object.keys(m).forEach(t => { y[k][safe(t)] = m[t]; });
+    }));
     typeStats = json;
     renderTypeStats();
   } catch (e) {
@@ -2928,6 +2933,9 @@ let lastUnread = 0;
 let actScope = 'all';   // 最新動態篩選：all / upcoming
 const ACT_AUTO_OPEN_MIN = 1680;   // 課程清單右邊空間夠放面板時，才預設打開（疊在上面、不推動版面）
 
+// 從後端讀進來、要顯示在畫面上的文字，先把 < > " ' 換成全形，避免有人在欄位塞程式碼（資安 1）
+function safe(v) { return typeof v === 'string' ? v.replace(/</g, '＜').replace(/>/g, '＞').replace(/"/g, '＂').replace(/'/g, '＇') : v; }
+function safeObj(o) { if (o && typeof o === 'object') Object.keys(o).forEach(k => { if (typeof o[k] === 'string') o[k] = safe(o[k]); }); return o; }
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
@@ -2943,7 +2951,7 @@ async function loadActivity() {
     const json = await res.json();
     if (!json.success || !Array.isArray(json.items)) return;   // 後端尚未更新：不顯示
     const sameAsBefore = activityLoaded && JSON.stringify(json.items) === JSON.stringify(activityItems);
-    activityItems = json.items;
+    activityItems = json.items.map(safeObj);
     lsSet('actCache', JSON.stringify({ items: json.items, at: Date.now() }));
     setFabLoading(false);
     const first = !activityLoaded;
@@ -2962,7 +2970,7 @@ function bootActivityFromCache() {
   let cache = null;
   try { cache = JSON.parse(lsGet('actCache') || 'null'); } catch (e) {}
   if (cache && Array.isArray(cache.items) && Date.now() - cache.at < 3 * 24 * 60 * 60 * 1000) {
-    activityItems = cache.items;
+    activityItems = cache.items.map(safeObj);
     activityLoaded = true;
     renderActivity(); lastActRender = Date.now();
     initActivityState();
@@ -3729,11 +3737,37 @@ async function submitBatchRegistration(base, count, teacherCount, extras) {
   } catch (e) { showToast('網路錯誤，請重試', 'error'); }
 }
 
+/* 原報名者按下確認信的「確認交接」 */
+async function confirmHandoverLink(id) {
+  document.getElementById('manageTitle').textContent = '報名交接';
+  openModal('manageModal');
+  document.getElementById('manageSub').textContent = '';
+  ['manageContent', 'manageDone'].forEach(x => document.getElementById(x).style.display = 'none');
+  const loadingEl = document.getElementById('manageLoading');
+  loadingEl.style.display = 'block';
+  loadingEl.textContent = '正在完成交接…';
+  const done = (title, text) => {
+    loadingEl.style.display = 'none';
+    document.getElementById('manageDoneTitle').textContent = title;
+    document.getElementById('manageDoneText').textContent = text;
+    document.getElementById('manageDone').style.display = 'block';
+  };
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'confirmHandover', id }) });
+    const json = await res.json();
+    if (!json.success) { done('無法完成交接', json.message || '請稍後再試，或洽教學部（分機 57429）'); return; }
+    done('已完成交接', `${json.count} 筆報名已交接給 ${safe(json.name)}，通知信已寄到 ${safe(json.email)}，之後的確認信和提醒信都會寄給對方。`);
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+    loadSessions(true);
+  } catch (e) { done('無法完成交接', '目前連線不穩，請稍後再按一次信裡的連結'); }
+}
+
 /* 一次管理全部報名 */
 let manageToken = '', manageRegs = [];
 async function openManageAll(token) {
   if (!token) return;
   manageToken = token;
+  document.getElementById('manageTitle').textContent = '管理我的全部報名';
   closeModal('editRegModal');
   openModal('manageModal');
   ['manageContent', 'manageDone'].forEach(id => document.getElementById(id).style.display = 'none');
@@ -3752,7 +3786,8 @@ async function openManageAll(token) {
     ]);
     clearTimeout(slowT);
     if (!json.success) { showToast(json.message || '無法載入報名資料', 'error'); closeModal('manageModal'); return; }
-    manageRegs = json.registrations || [];
+    manageRegs = (json.registrations || []).map(safeObj);
+    safeObj(json);
     document.getElementById('manageSub').textContent = `${json.name || ''}${json.email ? '・' + json.email : ''}・還沒上課的報名共 ${manageRegs.length} 筆`;
     renderManage();
     document.getElementById('manageLoading').style.display = 'none';
@@ -3796,7 +3831,7 @@ async function submitManage() {
   let handover = null;
   if (hoName || hoEmail) {
     if (!hoName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(hoEmail)) { showToast('交接：請填寫接手教師的姓名和正確的電子信箱', 'error'); return; }
-    if (!confirm(`確定要把這些報名交接給 ${hoName}（${hoEmail}）嗎？\n交接後通知信會改寄給對方，你目前的修改連結會停用。`)) return;
+    if (!confirm(`確定要把這些報名交接給 ${hoName}（${hoEmail}）嗎？\n系統會先寄確認信到你原本的報名信箱，按下確認才會完成交接。`)) return;
     handover = { name: hoName, email: hoEmail, phone: document.getElementById('mgHoPhone').value.trim() };
   }
   if (!ops.length && !handover) { showToast('沒有需要儲存的變更', ''); return; }
@@ -3806,10 +3841,12 @@ async function submitManage() {
     if (!json.success) { showToast(json.message || '儲存失敗', 'error'); return; }
     manageRequestId = newRequestId();
     loadSessions(true); loadActivity();
-    if (json.handedOver) {
+    if (json.handedOver || json.handoverPending) {
       document.getElementById('manageContent').style.display = 'none';
-      document.getElementById('manageDoneTitle').textContent = '已完成交接';
-      document.getElementById('manageDoneText').textContent = `已交接給 ${handover.name}，通知信已寄到 ${handover.email}${ops.length ? '，人數與場次的變更也一併儲存了' : ''}。`;
+      document.getElementById('manageDoneTitle').textContent = json.handedOver ? '已完成交接' : '請到信箱確認交接';
+      document.getElementById('manageDoneText').textContent = json.handedOver
+        ? `已交接給 ${handover.name}，通知信已寄到 ${handover.email}${ops.length ? '，人數與場次的變更也一併儲存了' : ''}。`
+        : `為了安全，確認信已寄到原本的報名信箱（${json.ownerEmail}），按下信裡的「確認交接」後才會交接給 ${handover.name}。${ops.length ? '人數與場次的變更已經先儲存了。' : ''}`;
       document.getElementById('manageDone').style.display = 'block';
       return;
     }
@@ -3836,8 +3873,8 @@ async function openEditRegModal(token) {
       return;
     }
 
-    const reg     = json.registration;
-    const session = json.session;
+    const reg     = safeObj(json.registration);
+    const session = safeObj(json.session);
     const d       = new Date(session.date);
     const wdays   = ['日','一','二','三','四','五','六'];
 
@@ -3970,7 +4007,7 @@ async function doLogin() {
 }
 
 /* ---------- 重新整理不登出、不跳年度（只在同一個分頁內記住；關掉分頁就清掉） ---------- */
-const ADMIN_SESSION_HOURS = 8;
+const ADMIN_SESSION_HOURS = 6;   // 跟後端通行碼的有效時間一致
 function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
 function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
 function ssDel(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
@@ -3991,7 +4028,7 @@ function restoreAdminSession() {
     enterAdminUI();
   } catch (e) { ssDel('adminSession'); }
 }
-// 後端回「驗證失敗」（例如密碼或 ADMIN_TOKEN 改了）→ 自動登出，請重新登入
+// 後端回「驗證失敗」（通行碼超過 6 小時、已登出或後端更新）→ 自動登出，請重新登入
 function authExpired(json) {
   if (json && !json.success && /驗證失敗/.test(json.message || '')) {
     doLogout(true);
@@ -4019,6 +4056,9 @@ function guardOnce(fn) {
 }
 
 function doLogout(silent) {
+  if (adminToken && silent !== true && APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', token: adminToken }) }).catch(() => {});   // 讓這組通行碼立刻失效
+  }
   ssDel('adminSession');
   isAdmin = false;
   adminToken = null;
@@ -4142,7 +4182,7 @@ async function submitRegistration() {
     s.registered = (s.registered || 0) + count;
     s.remaining  = s.capacity - s.registered;
     if (s.remaining <= 0) s.status = 'full';
-    const tag = countTag(type, unit, count, teacherCount);
+    const tag = countTag(safe(type), safe(unit), count, teacherCount);
     s.registrants = s.registrants ? s.registrants + '、' + tag : tag;
     }
     renderAll();
@@ -4225,7 +4265,7 @@ async function loadAdminRegs(id) {
     const json = await res.json();
     if (authExpired(json)) return;
     if (!json.success) throw new Error(json.message || '');
-    admRegs = json.registrations || [];
+    admRegs = (json.registrations || []).map(safeObj);
     renderAdminRegs();
   } catch (e) {
     box.innerHTML = '<div class="adm-reg-empty">讀不到報名名單（請確認 Code.gs 已更新並重新部署）</div>';
@@ -4335,7 +4375,7 @@ async function saveSessionEdit() {
     try {
       const r = await fetch(`${APPS_SCRIPT_URL}?action=getSessions&t=${Date.now()}`);
       const j = await r.json();
-      if (j && j.success) fresh = (j.sessions || []).find(x => x.id === id) || null;
+      if (j && j.success) fresh = safeObj((j.sessions || []).find(x => x.id === id) || null);
     } catch (e) { /* 讀不到就照原本的方式儲存 */ }
   }
   const pick = (cur, key, freshVal) => (fresh && cur === editOriginal[key]) ? freshVal : cur;
