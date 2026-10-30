@@ -961,6 +961,7 @@
   .mg-ctrl label { display: inline-flex; align-items: center; gap: 4px; }
   .mg-ctrl input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--red-600); }
   .mg-note { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+  .late-impact { font-size: 13px; color: #6B4200; background: var(--amber-50); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; line-height: 1.7; }
   .mg-handover { margin-bottom: 4px; }
   .mg-handover summary { cursor: pointer; font-size: 14px; color: var(--lavender-700); }
   .mg-handover .form-group:first-of-type { margin-top: 10px; }
@@ -2259,7 +2260,7 @@
       <li><b>報名截止：</b>每場在<b>開課前 14 天</b>截止，之後顯示「已截止報名」。</li>
       <li><b>人數不足可能併場：</b>報名截止時（開課前 2 週）仍未滿 <b>10 位</b>，這一場可能改到其他場次上課，承辦人會另外通知。</li>
       <li><b>場地確認中的場次：</b>也可以先報名，先開放 15 個名額，場地確定後會寄信通知。</li>
-      <li><b>修改、改期或取消：</b>報名後會收到確認信，點信裡的連結就能改人數、改到其他場次或取消，名額會自動調整；報名多場的話可以在「管理我的全部報名」一次處理，換其他教師接手時也可以在那裡交接。找不到確認信？<button type="button" class="howto-link" onclick="openMyRegModal()">按這裡重新寄送</button>，或點右上角的「我的報名」。</li>
+      <li><b>修改、改期或取消：</b>報名後會收到確認信，點信裡的連結就能改人數、改到其他場次或取消，名額會自動調整（過了報名截止後要減少人數、改期或取消，請填寫原因）；報名多場的話可以在「管理我的全部報名」一次處理，換其他教師接手時也可以在那裡交接。找不到確認信？<button type="button" class="howto-link" onclick="openMyRegModal()">按這裡重新寄送</button>，或點右上角的「我的報名」。</li>
       <li><b>上課提醒：</b>開課前一週（前一週的週二）和上課當天早上，系統會寄提醒信到報名時填的信箱，請轉知學生與帶班教師。敬請準時出席，謝謝！</li>
     </ol>
     <div class="howto-contact">有問題請洽 教學部 楊宜婷・分機 57429</div>
@@ -2633,8 +2634,14 @@
       </div>
       <div class="form-group">
         <label class="form-label">改到其他場次 <span style="color:var(--text-muted);font-size:12px;">選填</span></label>
-        <select class="form-select" id="editRegMove"><option value="">不改期，維持原場次</option></select>
+        <select class="form-select" id="editRegMove" onchange="updateEditImpact()"><option value="">不改期，維持原場次</option></select>
         <div class="form-hint">改期後，名額會自動從原場次移到新場次</div>
+      </div>
+      <div class="form-group" id="editRegLateWrap" style="display:none;">
+        <div class="late-impact" id="editRegImpact"></div>
+        <label class="form-label">異動原因</label>
+        <input type="text" class="form-input" id="editRegReason" maxlength="100" placeholder="例：2 位學生請假" autocomplete="off">
+        <div class="form-hint">已過報名截止（開課前 14 天），減少人數、改期或取消需要填寫原因，教學部會收到通知</div>
       </div>
       <div class="form-hint" style="margin:-4px 0 14px;"><button type="button" class="howto-link" id="editRegAllBtn" onclick="openManageAll(editRegToken)">一次管理我全部的報名（改人數、改期、取消、交接給其他教師）</button></div>
       <div class="modal-actions">
@@ -2663,6 +2670,12 @@
     <div id="manageLoading" style="text-align:center;padding:32px 0;color:var(--text-muted);font-size:14px;">載入報名資料中…</div>
     <div id="manageContent" style="display:none;">
       <div class="mg-list" id="mgList"></div>
+      <div class="form-group" id="mgLateWrap" style="display:none;margin-top:12px;">
+        <div class="late-impact" id="mgImpact"></div>
+        <label class="form-label">異動原因</label>
+        <input type="text" class="form-input" id="mgReason" maxlength="100" placeholder="例：2 位學生請假" autocomplete="off">
+        <div class="form-hint">已過報名截止（開課前 14 天），減少人數、改期或取消需要填寫原因，教學部會收到通知</div>
+      </div>
       <details class="mg-handover" id="mgHandover">
         <summary>交接給其他教師</summary>
         <div class="form-hint" style="margin-top:6px;">換其他教師接手帶這批實習生時使用。送出後會先寄確認信到你原本的報名信箱，按下確認才會完成交接；之後所有場次的確認信和提醒信都會改寄給接手教師，你目前的修改連結會停用。</div>
@@ -2716,6 +2729,12 @@ const SHEET_ID        = '1M79ZcHIZ1SWStVh1t7JhtcYaLDdlDqcPK1dKu1V2VMg';
 let sessions   = [];          // 全部場次陣列
 let isAdmin    = false;       // 管理者模式
 let adminToken = null;        // 登入後的 token（由 Apps Script 回傳）
+let adminReadOnly = false;    // 唯讀管理者帳號：只能查看，不能修改
+function roBlocked() {
+  if (!adminReadOnly) return false;
+  showToast('這個管理者帳號只能查看，不能修改資料', 'error');
+  return true;
+}
 let currentFilter = 'all';
 let currentMonths = new Set();  // 複選月份；空集合＝全年
 let currentYear   = 115;        // 目前檢視的年度
@@ -3776,7 +3795,8 @@ async function openManageAll(token) {
   ['manageContent', 'manageDone'].forEach(id => document.getElementById(id).style.display = 'none');
   document.getElementById('manageLoading').style.display = 'block';
   document.getElementById('mgHandover').open = false;
-  ['mgHoName', 'mgHoEmail', 'mgHoPhone'].forEach(id => document.getElementById(id).value = '');
+  ['mgHoName', 'mgHoEmail', 'mgHoPhone', 'mgReason'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mgLateWrap').style.display = 'none';
   manageRequestId = newRequestId();
   const loadingEl = document.getElementById('manageLoading');
   loadingEl.textContent = '載入報名資料中…';
@@ -3808,14 +3828,39 @@ function renderManage() {
       <div class="mg-item" id="mg${i}">
         <div class="mg-head"><b>${sessLabel(s)}</b> ${r.venue || '場地確認中'} <span class="mg-sub">・${r.type.replace('實習生', '')} ${r.unit}</span></div>
         <div class="mg-ctrl">
-          <label>學生<input type="number" class="adm-reg-count" id="mgStu${i}" min="0" value="${r.count - (r.teacherCount || 0)}"></label>
-          <label>教師<input type="number" class="adm-reg-count" id="mgTea${i}" min="0" value="${r.teacherCount || 0}"></label>
-          <select class="form-select" id="mgMove${i}"><option value="">不改期</option>${opts}</select>
-          <label><input type="checkbox" id="mgCancel${i}" onchange="document.getElementById('mg${i}').classList.toggle('is-cancel', this.checked)">取消這場</label>
+          <label>學生<input type="number" class="adm-reg-count" id="mgStu${i}" min="0" value="${r.count - (r.teacherCount || 0)}" oninput="updateMgImpact()"></label>
+          <label>教師<input type="number" class="adm-reg-count" id="mgTea${i}" min="0" value="${r.teacherCount || 0}" oninput="updateMgImpact()"></label>
+          <select class="form-select" id="mgMove${i}" onchange="updateMgImpact()"><option value="">不改期</option>${opts}</select>
+          <label><input type="checkbox" id="mgCancel${i}" onchange="document.getElementById('mg${i}').classList.toggle('is-cancel', this.checked);updateMgImpact()">取消這場</label>
         </div>
         ${r.locked ? '<div class="mg-note">這場已過報名截止，只能減少人數、改期或取消；要增加人數請洽教學部</div>' : ''}
       </div>`;
   }).join('');
+  updateMgImpact();
+}
+// 截止後減人／改期／取消：算出每場變更後剩幾位，顯示提醒並要求填原因
+function updateMgImpact() {
+  const wrap = document.getElementById('mgLateWrap');
+  const cut = {};
+  manageRegs.forEach((r, i) => {
+    if (!r.locked) return;
+    let c;
+    if (document.getElementById('mgCancel' + i).checked || document.getElementById('mgMove' + i).value) c = r.count;
+    else {
+      const total = Math.max(0, parseInt(document.getElementById('mgStu' + i).value) || 0) + Math.max(0, parseInt(document.getElementById('mgTea' + i).value) || 0);
+      c = Math.max(0, r.count - total);
+    }
+    if (c > 0) cut[r.sessionId] = (cut[r.sessionId] || 0) + c;
+  });
+  const ids = Object.keys(cut);
+  if (!ids.length) { wrap.style.display = 'none'; return false; }
+  document.getElementById('mgImpact').innerHTML = ids.map(id => {
+    const s = sessions.find(x => x.id === id) || manageRegs.find(x => x.sessionId === id);
+    const now = s.registered || 0, after = Math.max(0, now - cut[id]);
+    return `${sessLabel(s)}：目前 <b>${now}</b> 位，變更後剩 <b>${after}</b> 位${after < MERGE_MIN ? `，未滿 ${MERGE_MIN} 位，這一場可能改到其他場次上課` : ''}`;
+  }).join('<br>');
+  wrap.style.display = '';
+  return true;
 }
 let manageRequestId = '';
 async function submitManage() {
@@ -3838,8 +3883,10 @@ async function submitManage() {
     handover = { name: hoName, email: hoEmail, phone: document.getElementById('mgHoPhone').value.trim() };
   }
   if (!ops.length && !handover) { showToast('沒有需要儲存的變更', ''); return; }
+  const mgReason = document.getElementById('mgReason').value.trim();
+  if (updateMgImpact() && !mgReason) { showToast('已過報名截止，請填寫異動原因', 'error'); document.getElementById('mgReason').focus(); return; }
   try {
-    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'batchManage', token: manageToken, ops, handover, requestId: manageRequestId }) });
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'batchManage', token: manageToken, ops, handover, reason: mgReason || undefined, requestId: manageRequestId }) });
     const json = await res.json();
     if (!json.success) { showToast(json.message || '儲存失敗', 'error'); return; }
     manageRequestId = newRequestId();
@@ -3859,8 +3906,27 @@ async function submitManage() {
 }
 
 /* ---------- REGISTRATION EDIT (報名者) ---------- */
+// 截止後（開課前 14 天內）減人／改期／取消：顯示這場會剩幾位，並要求填原因
+let editRegCtx = null;   // { locked, registered, count, cancelMode }
+function editImpact(mode) {
+  const wrap = document.getElementById('editRegLateWrap');
+  if (!editRegCtx || !editRegCtx.locked) { wrap.style.display = 'none'; return null; }
+  const move = document.getElementById('editRegMove').value;
+  const cut = (mode === 'cancel' || move) ? editRegCtx.count : Math.max(0, editRegCtx.count - readCount('editReg').total);
+  if (cut <= 0) { wrap.style.display = 'none'; return null; }
+  const after = Math.max(0, editRegCtx.registered - cut);
+  const verb = mode === 'cancel' ? '取消' : move ? '改期' : '減少';
+  document.getElementById('editRegImpact').innerHTML = `這場目前 <b>${editRegCtx.registered}</b> 位，${verb}後剩 <b>${after}</b> 位${after < MERGE_MIN ? `，未滿 ${MERGE_MIN} 位，這一場可能改到其他場次上課` : ''}。`;
+  wrap.style.display = '';
+  return { after };
+}
+function updateEditImpact() { if (editRegCtx) editRegCtx.cancelMode = false; editImpact(); }
+
 async function openEditRegModal(token) {
   editRequestId = newRequestId(); cancelRequestId = newRequestId();
+  editRegCtx = null;
+  document.getElementById('editRegLateWrap').style.display = 'none';
+  document.getElementById('editRegReason').value = '';
   openModal('editRegModal');
   document.getElementById('editRegLoading').style.display = 'block';
   document.getElementById('editRegContent').style.display = 'none';
@@ -3886,6 +3952,9 @@ async function openEditRegModal(token) {
     document.getElementById('editRegType').value  = reg.type;
     document.getElementById('editRegUnit').value  = reg.unit;
     countLimit.editReg = (session.remaining || 0) + (reg.count || 0);
+    const dLeft = Math.ceil((new Date(session.date) - TODAY) / (1000 * 60 * 60 * 24));
+    editRegCtx = { locked: dLeft >= 0 && dLeft <= 14 && !session.adminUnlocked && session.status !== 'cancel',
+                   registered: session.registered || 0, count: reg.count || 0, cancelMode: false };
     setCount('editReg', reg.count, reg.teacherCount || 0);
     if (!sessions.length) await (window.__sessionsReady || loadSessions(true));
     document.getElementById('editRegMove').closest('.form-group').style.display = hasBatch() ? '' : 'none';
@@ -3909,11 +3978,14 @@ async function doRegEdit() {
   const { tea: teacherCount, total: count } = readCount('editReg');
   if (!unit || count < 1) { showToast('請填寫單位及人數', 'error'); return; }
   const moveTo = document.getElementById('editRegMove').value;
+  if (editRegCtx) editRegCtx.cancelMode = false;
+  const reason = document.getElementById('editRegReason').value.trim();
+  if (editImpact() && !reason) { showToast('已過報名截止，請填寫異動原因', 'error'); document.getElementById('editRegReason').focus(); return; }
 
   try {
     const res  = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'editRegistration', token: editRegToken, type, unit, count, teacherCount, newSessionId: moveTo || undefined, requestId: editRequestId })
+      body: JSON.stringify({ action: 'editRegistration', token: editRegToken, type, unit, count, teacherCount, newSessionId: moveTo || undefined, reason: reason || undefined, requestId: editRequestId })
     });
     const json = await res.json();
     if (!json.success) { showToast(json.message || '更新失敗', 'error'); return; }
@@ -3927,12 +3999,18 @@ async function doRegEdit() {
 }
 
 async function doRegCancel() {
-  if (!confirm('確定要取消這筆報名嗎？名額將自動歸還。')) return;
+  const reason = document.getElementById('editRegReason').value.trim();
+  if (editRegCtx && editRegCtx.locked) {
+    editRegCtx.cancelMode = true;
+    const imp = editImpact('cancel');
+    if (!reason) { showToast('已過報名截止，取消前請先填寫異動原因', 'error'); document.getElementById('editRegReason').focus(); return; }
+    if (!confirm(`確定要取消這筆報名嗎？\n這場目前 ${editRegCtx.registered} 位，取消後剩 ${imp ? imp.after : 0} 位。`)) return;
+  } else if (!confirm('確定要取消這筆報名嗎？名額將自動歸還。')) return;
 
   try {
     const res  = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'cancelRegistration', token: editRegToken, requestId: cancelRequestId })
+      body: JSON.stringify({ action: 'cancelRegistration', token: editRegToken, reason: reason || undefined, requestId: cancelRequestId })
     });
     const json = await res.json();
     if (!json.success) { showToast(json.message || '取消失敗', 'error'); return; }
@@ -3995,12 +4073,13 @@ async function doLogin() {
       const json = await res.json();
       if (!json.success) { showToast(json.message || '帳號或密碼錯誤', 'error'); return; }
       adminToken = json.token;
+      adminReadOnly = !!json.readOnly;
     } else {
       // 本機 demo 模式：帳號 admin / 密碼 1234
       if (user !== 'admin' || pass !== '1234') { showToast('（Demo 模式）帳號 admin，密碼 1234', 'error'); return; }
     }
     enterAdminUI();
-    ssSet('adminSession', JSON.stringify({ token: adminToken, at: Date.now() }));
+    ssSet('adminSession', JSON.stringify({ token: adminToken, at: Date.now(), ro: adminReadOnly }));
     closeModal('loginModal');
     showToast('已進入管理者模式', 'success');
     renderCards();
@@ -4019,7 +4098,7 @@ function enterAdminUI() {
   isAdmin = true;
   document.body.classList.add('admin-mode');
   document.getElementById('headerRight').innerHTML = `
-    <span class="admin-badge">管理者</span>
+    <span class="admin-badge">管理者${adminReadOnly ? '（唯讀）' : ''}</span>
     <button class="btn-logout" onclick="doLogout()">登出</button>`;
   document.getElementById('adminToolbar').classList.add('show');
 }
@@ -4028,6 +4107,7 @@ function restoreAdminSession() {
     const saved = JSON.parse(ssGet('adminSession') || 'null');
     if (!saved || !saved.token || Date.now() - saved.at > ADMIN_SESSION_HOURS * 3600000) { ssDel('adminSession'); return; }
     adminToken = saved.token;
+    adminReadOnly = !!saved.ro;
     enterAdminUI();
   } catch (e) { ssDel('adminSession'); }
 }
@@ -4064,7 +4144,7 @@ function doLogout(silent) {
   }
   ssDel('adminSession');
   isAdmin = false;
-  adminToken = null;
+  adminToken = null; adminReadOnly = false;
   document.body.classList.remove('admin-mode');
   document.getElementById('headerRight').innerHTML = `<button class="btn-myreg" onclick="openMyRegModal()">我的報名</button><button class="btn-admin-login" onclick="openLoginModal()"><span class="lbl-long">管理者登入</span><span class="lbl-short">管理者</span></button>`;
   document.getElementById('adminToolbar').classList.remove('show');
@@ -4099,6 +4179,7 @@ function updateCountSum(pfx) {
   el.innerHTML = total
     ? `合計 <b>${total}</b> 人${tea ? `（實習生 ${stu}＋帶班教師 ${tea}）` : ''}，將占用 ${total} 個名額${over ? `・目前只剩 ${lim} 名` : ''}`
     : '請填寫參加人數（帶班教師一起上課的話也算進來）';
+  if (pfx === 'editReg' && editRegCtx && !editRegCtx.cancelMode) editImpact();
 }
 function countTag(type, unit, total, tea) {
   const t = String(type || '').replace('實習生', '');
@@ -4138,6 +4219,7 @@ function openRegisterModal(id, asAdmin = false) {
 }
 
 async function submitRegistration() {
+  if (adminRegMode && roBlocked()) return;
   const name  = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const phone = document.getElementById('regPhone').value.trim();
@@ -4328,10 +4410,11 @@ async function admSaveCount(i) {
 
 async function admDoCancel(i) {
   const r = admRegs[i];
-  await admPost({ action: 'cancelRegistration', token: r.token }, `已取消 ${r.unit} 的報名`);
+  await admPost({ action: 'cancelRegistration', token: r.token, adminToken }, `已取消 ${r.unit} 的報名`);
 }
 
 async function admPost(payload, okMsg) {
+  if (roBlocked()) return;
   const id = document.getElementById('editSessionId').value;
   document.getElementById('admRegList').innerHTML = '<div class="adm-reg-loading">更新中…</div>';
   try {
@@ -4364,6 +4447,7 @@ function adminRegisterFromEdit() {
 }
 
 async function saveSessionEdit() {
+  if (roBlocked()) return;
   const id       = document.getElementById('editSessionId').value;
   const venue    = document.getElementById('editVenue').value.trim();
   const capacity = parseInt(document.getElementById('editCapacity').value) || 0;
@@ -4437,6 +4521,7 @@ function cancelSession() {
 function openAddSessionModal() { openModal('addModal'); }
 
 async function addSession() {
+  if (roBlocked()) return;
   const date     = document.getElementById('addDate').value;
   const venue    = document.getElementById('addVenue').value.trim();
   const capacity = parseInt(document.getElementById('addCapacity').value) || 0;
