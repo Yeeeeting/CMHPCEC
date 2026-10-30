@@ -2763,6 +2763,9 @@ window.addEventListener('DOMContentLoaded', () => {
   if (manage && !token) openManageAll(manage);
   const ho = params.get('handover');     // 信裡「確認交接」
   if (ho && !token && !manage) confirmHandoverLink(ho);
+  // 讀到連結代碼後，網址恢復成乾淨的報名網址：
+  // 重新整理會回到一般報名頁，複製網址轉傳也不會帶到別人的管理代碼
+  if (token || manage) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
 });
 
 /* ---------- 後端連不上時的備援顯示 ---------- */
