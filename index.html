@@ -2136,6 +2136,118 @@
   @media (max-width: 640px) {
     .step-btn { width: 40px; height: 40px; }
   }
+
+  /* ===== 引路星＋故事書（主標題右側的小型 3D 視覺，純 CSS 3D＋SVG，不用 WebGL、平時不持續重繪） ===== */
+  .guide-star {
+    position: absolute; left: 0; top: 50%; z-index: 1;
+    width: 120px; height: 112px; margin: 0; padding: 0;
+    border: 0; background: none; cursor: pointer;
+    transform: translate(-50%, -50%) scale(var(--gs-scale, 1));
+    -webkit-tap-highlight-color: transparent;
+    visibility: hidden;   /* 位置算好才顯示，避免一閃 */
+  }
+  .guide-star.gs-ready { visibility: visible; }
+  .guide-star.gs-off { display: none; }
+  .guide-star:focus { outline: none; }
+  .gs-scene {
+    position: absolute; inset: 0;
+    perspective: 520px;
+  }
+  .gs-rig {
+    position: absolute; inset: 0;
+    perspective: 520px;   /* 書本自己的立體感；星星與弧線畫在書本上層，不會互相穿插 */
+    transform: rotateX(var(--gs-rx, 0deg)) rotateY(var(--gs-ry, 0deg)) translateY(var(--gs-fy, 0px));
+    transition: transform 420ms cubic-bezier(.22,.8,.3,1);
+  }
+  /* 書本：霧面、柔和，微微打開 */
+  .gs-book {
+    position: absolute; left: 20px; top: 60px; width: 72px; height: 42px;
+    transform-style: preserve-3d;
+    transform: rotateX(54deg) rotateZ(-9deg);
+  }
+  .gs-cover {
+    position: absolute; inset: -3px -5px -4px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #A99DDF 0%, #8B7FCF 55%, #7568BE 100%);
+    transform: translateZ(-2.5px);
+    box-shadow: 0 10px 18px rgba(8, 6, 28, 0.45);
+  }
+  .gs-cover::after {   /* 書背香檳金細線 */
+    content: ''; position: absolute; left: 50%; top: 2px; bottom: 2px; width: 1.5px;
+    transform: translateX(-50%); background: rgba(232, 205, 150, 0.75); border-radius: 1px;
+  }
+  .gs-page {
+    position: absolute; top: 0; width: 50%; height: 100%;
+    padding: 7px 6px;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 5px, rgba(150, 136, 210, 0.26) 5px 6px) content-box,
+      linear-gradient(180deg, #FCF9F2 0%, #F1EBF7 100%) border-box;
+    backface-visibility: visible;
+  }
+  .gs-page.l {
+    left: 0; transform-origin: 100% 50%; transform: rotateY(22deg);
+    border-radius: 3px 1px 1px 3px;
+    border-left: 1.5px solid #E2C98F;
+    box-shadow: inset -7px 0 8px -7px rgba(110, 96, 180, 0.45);
+  }
+  .gs-page.r, .gs-flip {
+    right: 0; transform-origin: 0 50%; transform: rotateY(-22deg);
+    border-radius: 1px 3px 3px 1px;
+    border-right: 1.5px solid #E2C98F;
+    box-shadow: inset 7px 0 8px -7px rgba(110, 96, 180, 0.45);
+  }
+  .gs-flip { background: linear-gradient(180deg, #FDFBF6 0%, #F3EEF8 100%); opacity: 0; }
+  /* 星光弧線與小星點 */
+  .gs-arc {
+    position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+    pointer-events: none;
+  }
+  .gs-arc path { fill: none; stroke: url(#gsArcGrad); stroke-width: 1.3; stroke-linecap: round;
+    stroke-dasharray: 1; stroke-dashoffset: 0; opacity: 0.32;
+    transition: opacity 450ms ease, stroke-dashoffset 450ms ease; }
+  .gs-arc circle { fill: #F4E3B5; opacity: 0.35; transition: opacity 450ms ease; }
+  /* 引路星：暖金色，柔和呼吸光 */
+  .gs-star {
+    position: absolute; left: 0; top: 0; width: 26px; height: 26px;
+    offset-path: path('M 52 70 C 38 50, 58 26, 82 22');
+    offset-distance: 100%; offset-rotate: 0deg; offset-anchor: 50% 50%;
+  }
+  .gs-glow {
+    position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(247, 215, 140, 0.55) 0%, rgba(232, 196, 104, 0.18) 38%, transparent 68%);
+    opacity: 0.7;
+    animation: gsBreath 4.8s ease-in-out infinite;
+    transition: transform 450ms ease;
+  }
+  .gs-star svg { position: relative; width: 100%; height: 100%; display: block;
+    filter: drop-shadow(0 0 3px rgba(247, 215, 140, 0.55)); }
+  @keyframes gsBreath { 0%, 100% { opacity: 0.55; } 50% { opacity: 0.85; } }
+  /* 滑鼠移入：輕微漂浮、光暈變亮、弧線更清楚 */
+  .guide-star.gs-hover .gs-glow { transform: scale(1.15); }
+  .guide-star.gs-hover .gs-arc path { opacity: 0.85; }
+  .guide-star.gs-hover .gs-arc circle { opacity: 0.9; }
+  /* 點擊：書頁輕輕翻動一下（星星移動由 JS 的 Web Animations 處理，只跑一次） */
+  .guide-star.gs-play .gs-flip { animation: gsFlip 1.8s ease-in-out; }
+  .guide-star.gs-play .gs-arc path { opacity: 0.9; animation: gsDraw 1.8s ease-in-out; }
+  @keyframes gsFlip {
+    0%, 30% { opacity: 0; transform: rotateY(-22deg); }
+    40% { opacity: 1; }
+    58% { opacity: 1; transform: rotateY(-100deg); }
+    82% { opacity: 1; transform: rotateY(-26deg); }
+    100% { opacity: 0; transform: rotateY(-22deg); }
+  }
+  @keyframes gsDraw { 0% { stroke-dashoffset: 0; } 20% { stroke-dashoffset: 1; } 70%, 100% { stroke-dashoffset: 0; } }
+  /* 看不到時（離開畫面、切到別的分頁）停止呼吸動畫 */
+  .guide-star.gs-paused .gs-glow { animation-play-state: paused; }
+  /* 效能較低的裝置：不呼吸、不翻頁 */
+  .guide-star.gs-lite .gs-glow { animation: none; }
+  .guide-star.gs-lite.gs-play .gs-flip { animation: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .gs-rig, .gs-glow, .gs-arc path, .gs-arc circle { transition: none; }
+    .gs-glow { animation: none; }
+    .guide-star.gs-play .gs-flip, .guide-star.gs-play .gs-arc path { animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -2183,6 +2295,42 @@
       1300–1400（1 小時）
     </div>
   </div>
+  <!-- 引路星＋故事書（裝飾用，點一下會有一次簡短動畫） -->
+  <button type="button" class="guide-star" id="guideStar" aria-hidden="true" tabindex="-1">
+    <span class="gs-scene"><span class="gs-rig">
+      <span class="gs-book">
+        <span class="gs-cover"></span>
+        <span class="gs-page l"></span>
+        <span class="gs-page r"></span>
+        <span class="gs-flip"></span>
+      </span>
+      <svg class="gs-arc" viewBox="0 0 120 112" aria-hidden="true">
+        <defs>
+          <linearGradient id="gsArcGrad" x1="52" y1="70" x2="82" y2="22" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#C9C0F0" stop-opacity="0"/>
+            <stop offset="0.45" stop-color="#E8D9F5" stop-opacity="0.7"/>
+            <stop offset="1" stop-color="#F7D774" stop-opacity="0.95"/>
+          </linearGradient>
+        </defs>
+        <path d="M 52 70 C 38 50, 58 26, 82 22" pathLength="1"/>
+        <circle cx="45" cy="52" r="0.9"/><circle cx="51" cy="37" r="0.7"/><circle cx="64" cy="27" r="0.9"/><circle cx="93" cy="31" r="0.6"/>
+      </svg>
+      <span class="gs-star">
+        <span class="gs-glow"></span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <radialGradient id="gsStarGrad" cx="45%" cy="40%" r="65%">
+              <stop offset="0" stop-color="#FFF6D8"/>
+              <stop offset="0.55" stop-color="#F3D27E"/>
+              <stop offset="1" stop-color="#D9AE52"/>
+            </radialGradient>
+          </defs>
+          <path d="M12 3.2l2.45 5.4 5.85.62-4.38 3.94 1.24 5.76L12 15.98l-5.16 2.94 1.24-5.76L3.7 9.22l5.85-.62z"
+                fill="url(#gsStarGrad)" stroke="#F3D27E" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </span></span>
+  </button>
 </section>
 
 <!-- STICKY FILTERS -->
@@ -5156,6 +5304,113 @@ addSession         = guardOnce(addSession);
 admPost            = guardOnce(admPost);
 submitMyReg        = guardOnce(submitMyReg);
 submitManage       = guardOnce(submitManage);
+</script>
+<script>
+/* ===== 引路星＋故事書：位置安排與互動（事件觸發，平時不跑動畫迴圈） ===== */
+(function () {
+  const el = document.getElementById('guideStar');
+  if (!el) return;
+  const hero = el.closest('.hero'), h1 = hero && hero.querySelector('h1');
+  const star = el.querySelector('.gs-star'), rig = el.querySelector('.gs-rig');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const lowEnd = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) ||
+                 (navigator.connection && navigator.connection.saveData);
+  if (lowEnd) el.classList.add('gs-lite');
+  const W = 120;   // 設計尺寸（CSS px）
+
+  // 放在主標題文字右側的留白；空間不夠（例如很窄的手機）就不顯示，絕不壓到標題
+  function place() {
+    if (!hero || !h1) return;
+    el.classList.remove('gs-off');
+    el.style.setProperty('--gs-scale', 1);
+    const hr = hero.getBoundingClientRect();
+    if (!hr.width) return;
+    const k = el.getBoundingClientRect().width / W || 1;   // 頁面縮放倍率（含 zoom）
+    // 主標題、英文小標、副標都要避開：取三者文字最右邊的位置
+    let textRight = -Infinity;
+    hero.querySelectorAll('.hero-eyebrow, h1, .hero-sub').forEach(t => {
+      const range = document.createRange(); range.selectNodeContents(t);
+      Array.from(range.getClientRects()).forEach(r => { if (r.width) textRight = Math.max(textRight, r.right); });
+    });
+    if (!isFinite(textRight)) return;
+    const padR = 16 * k, gap = 18 * k;
+    const avail = hr.right - padR - textRight - gap;
+    // 高度也不能超出主標題區，避免蓋到上方的年度切換、下方的篩選按鈕
+    const scale = Math.min(1, avail / (W * k), hr.height / (112 * k));
+    if (!isFinite(scale) || scale < 0.5) { el.classList.add('gs-off'); return; }
+    const w = W * k * scale;
+    const center = textRight + gap + Math.min(avail / 2, 54 * k + w / 2);
+    el.style.left = ((center - hr.left) / k) + 'px';
+    el.style.setProperty('--gs-scale', scale.toFixed(3));
+    el.classList.add('gs-ready');
+  }
+  let placeT = 0;
+  const schedulePlace = () => { clearTimeout(placeT); placeT = setTimeout(place, 120); };
+  window.addEventListener('resize', schedulePlace, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+  window.addEventListener('load', place);
+  place();
+
+  // 滑鼠移入：依方向輕微傾斜（只在有滑鼠的裝置；用 rAF 合併，移出就停）
+  let raf = 0, px = 0, py = 0;
+  function applyTilt() {
+    raf = 0;
+    rig.style.setProperty('--gs-ry', (px * 14).toFixed(2) + 'deg');
+    rig.style.setProperty('--gs-rx', (-py * 10).toFixed(2) + 'deg');
+  }
+  el.addEventListener('pointerenter', () => {
+    el.classList.add('gs-hover');
+    if (!reduce.matches) rig.style.setProperty('--gs-fy', '-3px');
+  });
+  el.addEventListener('pointermove', (e) => {
+    if (!finePointer.matches || reduce.matches || e.pointerType !== 'mouse') return;
+    const r = el.getBoundingClientRect();
+    px = Math.max(-1, Math.min(1, (e.clientX - r.left) / r.width * 2 - 1));
+    py = Math.max(-1, Math.min(1, (e.clientY - r.top) / r.height * 2 - 1));
+    if (!raf) raf = requestAnimationFrame(applyTilt);
+  });
+  el.addEventListener('pointerleave', () => {
+    el.classList.remove('gs-hover');
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    ['--gs-rx', '--gs-ry', '--gs-fy'].forEach(v => rig.style.removeProperty(v));
+  });
+
+  // 點擊：星星沿著星光弧線落到書頁、書頁輕翻一下、再回到原位（約 1.8 秒，播放中不重複觸發）
+  const canPath = window.CSS && CSS.supports && CSS.supports('offset-path', "path('M0 0')");
+  let busy = false;
+  // 這裡有自己的動畫，就不疊加全頁的點擊光圈
+  el.addEventListener('pointerdown', (e) => e.stopPropagation(), { passive: true });
+  el.addEventListener('click', () => {
+    if (busy) return;
+    busy = true;
+    el.classList.add('gs-play');
+    let anim = null;
+    if (reduce.matches || el.classList.contains('gs-lite')) {
+      anim = star.animate([{ opacity: 1 }, { opacity: 0.55 }, { opacity: 1 }], { duration: 900, easing: 'ease-in-out' });
+    } else if (canPath && star.animate) {
+      anim = star.animate([
+        { offsetDistance: '100%', scale: 1,    easing: 'cubic-bezier(.45,0,.35,1)' },
+        { offsetDistance: '6%',   scale: 0.78, offset: 0.45 },
+        { offsetDistance: '6%',   scale: 0.78, offset: 0.55, easing: 'cubic-bezier(.4,0,.3,1)' },
+        { offsetDistance: '100%', scale: 1 }
+      ], { duration: 1800 });
+    } else if (star.animate) {
+      anim = star.animate([{ translate: '0 0' }, { translate: '-28px 46px', offset: 0.5 }, { translate: '0 0' }],
+                          { duration: 1800, easing: 'ease-in-out' });
+    }
+    const done = () => { el.classList.remove('gs-play'); setTimeout(() => { busy = false; }, 250); };
+    if (anim) anim.onfinish = anim.oncancel = done; else setTimeout(done, 1800);
+  });
+
+  // 看不到時暫停呼吸光（不在畫面內、或切到別的分頁）
+  let inView = true;
+  const syncPause = () => el.classList.toggle('gs-paused', !inView || document.hidden);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((ents) => { inView = ents[0].isIntersecting; syncPause(); }).observe(el);
+  }
+  document.addEventListener('visibilitychange', syncPause);
+})();
 </script>
 </body>
 </html>
