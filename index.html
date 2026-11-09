@@ -241,6 +241,10 @@
   .myreg-result.ok   { background: var(--sage-50); color: var(--sage-800); }
   .myreg-result.none { background: var(--amber-50); color: var(--amber-700); }
   .howto-link { background: none; border: none; padding: 0; font: inherit; color: var(--lavender-700); text-decoration: underline; cursor: pointer; }
+  /* 修改報名視窗：取消報名改成按鈕下方的紅字連結，避免和「關閉」混淆 */
+  .reg-cancel-row { text-align: center; margin-top: 14px; }
+  .reg-cancel-link { background: none; border: none; padding: 6px 10px; font: inherit; font-size: 13px; color: var(--red-600); text-decoration: underline; cursor: pointer; }
+  .reg-cancel-link:hover { color: var(--red-700, #A93226); }
 
   /* 讀取中的骨架畫面 */
   .skel-row {
@@ -2786,9 +2790,10 @@
       </div>
       <div class="form-hint" style="margin:-4px 0 14px;"><button type="button" class="howto-link" id="editRegAllBtn" onclick="openManageAll(editRegToken)">一次管理我全部的報名（改人數、改期、取消、交接給其他教師）</button></div>
       <div class="modal-actions">
-        <button class="btn-danger" onclick="doRegCancel()">取消報名</button>
+        <button class="btn-secondary" onclick="closeModal('editRegModal')">關閉</button>
         <button class="btn-primary" onclick="doRegEdit()" style="flex:2;">儲存變更</button>
       </div>
+      <div class="reg-cancel-row"><button type="button" class="reg-cancel-link" onclick="doRegCancel()">取消這筆報名</button></div>
     </div>
 
     <!-- 已取消 -->
