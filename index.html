@@ -619,6 +619,19 @@
   .row-date-wday { font-size: 12px; color: var(--lavender-700); margin-top: 3px; }
 
   .row-main { grid-area: main; min-width: 0; }
+  /* 有人報名的場次：左側紫色細線、場地下方一行報名單位、人數放大 */
+  .course-row.has-reg .row-head { box-shadow: inset 3px 0 0 var(--lavender-500, #7A6FC4); }
+  .row-reg-hint {
+    display: flex; align-items: center; gap: 6px; margin-top: 3px;
+    font-size: 12.5px; font-weight: 500; color: var(--lavender-700, #4E4592);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .row-reg-hint::before {
+    content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%;
+    background: #F3D27E; box-shadow: 0 0 0 2px rgba(243, 210, 126, 0.28);
+  }
+  .course-row.has-reg .row-count strong, .course-row.has-reg .row-count-inline strong { font-size: 1.15em; }
+
   .row-title {
     font-size: 15px;
     font-weight: 700;
@@ -1234,6 +1247,7 @@
   .quarter-tag { font-size: 12px; color: var(--text-muted); background: var(--lavender-50); padding: 1px 8px; border-radius: 20px; white-space: nowrap; }
   .month-sum { flex: 1; min-width: 0; font-size: 13px; color: var(--text-muted); }
   .month-sum .ok { color: var(--sage-600); font-weight: 600; }
+  .month-sum .reg { color: var(--lavender-700, #4E4592); font-weight: 600; }
   .month-sum .tba { color: var(--amber-700); }
   .month-chev { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; transition: transform .25s ease; }
   .month-group.is-open .month-chev { transform: rotate(180deg); }
@@ -3007,10 +3021,12 @@ function pickDefaultYear() {
   return years.length ? Math.max(...years) : null;
 }
 
+let lastActPoll = 0;
 async function checkForUpdates() {
   if (document.hidden) return;   // 分頁沒在看時不更新，減少後端負擔
-  await loadSessions(true);
-  loadActivity();
+  try { await loadSessions(true); } catch (e) {}
+  // 最新動態每 60 秒更新一次就夠（場次人數仍是 15 秒），減少後端同時處理的請求
+  if (!activityLoaded || Date.now() - lastActPoll > 60000) { lastActPoll = Date.now(); loadActivity(); }
   if (actTab === 'stats' && document.getElementById('activityPanel').classList.contains('show')) loadTypeStats();   // 看分析分頁時才更新
 }
 
@@ -3113,7 +3129,8 @@ async function loadActivity() {
   try {
     const res  = await fetch(`${APPS_SCRIPT_URL}?action=getActivity&t=${Date.now()}`);
     const json = await res.json();
-    if (!json.success || !Array.isArray(json.items)) return;   // 後端尚未更新：不顯示
+    if (!json.success || !Array.isArray(json.items)) { actRetry(); return; }   // 後端忙碌或暫時出錯：稍後重試
+    actRetryN = 0; clearTimeout(actRetryT);
     const sameAsBefore = activityLoaded && JSON.stringify(json.items) === JSON.stringify(activityItems);
     activityItems = json.items.map(safeObj);
     lsSet('actCache', JSON.stringify({ items: json.items, at: Date.now() }));
@@ -3123,9 +3140,19 @@ async function loadActivity() {
     // 內容有變才重畫；沒變時每分鐘重畫一次，讓「幾分鐘前」保持正確
     if (!sameAsBefore || Date.now() - lastActRender > 60000) { renderActivity(); lastActRender = Date.now(); }
     if (first) initActivityState();
-  } catch (e) {   /* 動態讀不到不影響報名 */
-    if (!activityLoaded) { setFabLoading(false); document.getElementById('activityFab').classList.remove('show'); }
+  } catch (e) {   /* 動態讀不到不影響報名：按鈕保留，稍後自動重試 */
+    actRetry();
   }
+}
+// 讀取失敗（後端忙碌、網路不穩）時：按鈕不消失，5、10、20…秒後自動再讀一次
+let actRetryN = 0, actRetryT = 0;
+function actRetry() {
+  if (activityLoaded) return;
+  showFab();
+  setFabLoading(true);
+  clearTimeout(actRetryT);
+  const wait = Math.min(60000, 5000 * Math.pow(2, actRetryN++));
+  actRetryT = setTimeout(loadActivity, wait);
 }
 
 // 打開網頁時：有上次的動態就先顯示（之後背景更新）；沒有就先出現「讀取中」的按鈕
@@ -3133,7 +3160,8 @@ function bootActivityFromCache() {
   if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') return;
   let cache = null;
   try { cache = JSON.parse(lsGet('actCache') || 'null'); } catch (e) {}
-  if (cache && Array.isArray(cache.items) && Date.now() - cache.at < 3 * 24 * 60 * 60 * 1000) {
+  // 上次存下的動態（30 天內）先顯示，最新的讀到後會自動更新
+  if (cache && Array.isArray(cache.items) && Date.now() - cache.at < 30 * 24 * 60 * 60 * 1000) {
     activityItems = cache.items.map(safeObj);
     activityLoaded = true;
     renderActivity(); lastActRender = Date.now();
@@ -3161,7 +3189,10 @@ function showFab() {
 }
 
 function openActivity(silent) {
-  if (!activityLoaded) { if (!silent) showToast('最新動態讀取中，請稍候幾秒', ''); return; }
+  if (!activityLoaded) {
+    if (!silent) { showToast('最新動態讀取中，請稍候幾秒', ''); clearTimeout(actRetryT); loadActivity(); }
+    return;
+  }
   const panel = document.getElementById('activityPanel');
   panel.classList.add('show');
   document.getElementById('activityFab').classList.remove('show');
@@ -3558,7 +3589,7 @@ function monthSummary(list) {
     const allPending = active.length && active.every(s => !s.venue);
     if (allPending) parts.push(`<span class="tba">場地確認中・每場暫定 ${PENDING_CAPACITY} 名</span>`);
     // 月份這行顯示的是「整個月合計」，加上「本月合計」避免誤會成單場名額
-    parts.push(`已報 ${reg} / ${cap} 人`);
+    parts.push(reg > 0 ? `<b class="reg">已報 ${reg}</b> / ${cap} 人` : `已報 ${reg} / ${cap} 人`);
   }
   if (list.length - active.length) parts.push(`取消 ${list.length - active.length}`);
   return parts.join('・');
@@ -3652,6 +3683,7 @@ function buildCard(s) {
     : '場地確認中，確定後會寄信通知';
   const hasCap = !isCancel && s.capacity;
   const countHtml = hasCap ? `<strong>${s.registered||0}</strong> / ${s.capacity} 人` : '—';
+  const hasReg = !isCancel && (s.registered || 0) > 0;   // 有人報名的場次，列表上標示得明顯一點
   const capDisplay = s.capacity ? `${s.registered||0} / ${s.capacity} 人` : '—';
   const regText = s.registrants
     ? `<div class="card-registrants"><div class="card-registrants-label">已報名單位</div>👥 ${unitTags(s.registrants)}</div>` : '';
@@ -3689,7 +3721,7 @@ function buildCard(s) {
               </div>
             </div>` : ''}`;
   return `
-  <div class="course-row ${statusClass} ${isOpenRow ? 'is-open' : ''}" data-id="${s.id}" style="--accent:${monthAccent}">
+  <div class="course-row ${statusClass} ${isOpenRow ? 'is-open' : ''} ${hasReg ? 'has-reg' : ''}" data-id="${s.id}" style="--accent:${monthAccent}">
     <div class="card-update-dot"></div>
     <div class="row-head" role="button" tabindex="0" aria-expanded="${isOpenRow}"
          onclick="toggleRow('${s.id}')" onkeydown="rowKey(event,'${s.id}')">
@@ -3701,6 +3733,7 @@ function buildCard(s) {
         <div class="row-title ${s.venue ? '' : 'venue-pending'}">${s.venue
           ? `${venueText}${buildingText ? `<span class="row-building">・${buildingText}</span>` : ''}`
           : '場地確認中'}</div>
+        ${hasReg ? `<div class="row-reg-hint">已報名：${s.registrants ? String(s.registrants).split('、').filter(Boolean).join('、') : `${s.registered} 位`}</div>` : ''}
       </div>
       <div class="row-status">
         <span class="card-badge ${badgeClass}">${badgeText}</span>
