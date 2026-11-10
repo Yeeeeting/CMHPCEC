@@ -3027,6 +3027,7 @@ async function checkForUpdates() {
   try { await loadSessions(true); } catch (e) {}
   // 最新動態每 60 秒更新一次就夠（場次人數仍是 15 秒），減少後端同時處理的請求
   if (!activityLoaded || Date.now() - lastActPoll > 60000) { lastActPoll = Date.now(); loadActivity(); }
+  ensureActivityVisible();
   if (actTab === 'stats' && document.getElementById('activityPanel').classList.contains('show')) loadTypeStats();   // 看分析分頁時才更新
 }
 
@@ -3186,6 +3187,12 @@ function initActivityState() {
 
 function showFab() {
   document.getElementById('activityFab').classList.add('show');
+}
+// 保險：面板沒打開、按鈕也沒顯示時（任何意外狀況），把「最新動態」按鈕補回來
+function ensureActivityVisible() {
+  const panel = document.getElementById('activityPanel'), fab = document.getElementById('activityFab');
+  if (!panel || !fab) return;
+  if (!panel.classList.contains('show') && !fab.classList.contains('show')) showFab();
 }
 
 function openActivity(silent) {
